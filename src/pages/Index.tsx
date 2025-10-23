@@ -213,7 +213,7 @@ const Index = () => {
             <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-pink-600 dark:text-pink-400">
               <i className="fas fa-theater-masks service-icon"></i>
             </div>
-            <span className="text-xs font-medium">Cultura</span>
+            <span className="text-xs font-medium">Cultura e Turismo</span>
           </Link>
         </div>
       </div>

@@ -10,6 +10,7 @@ import Saude from "./pages/Saude";
 import AssistenciaSocial from "./pages/AssistenciaSocial";
 import Educacao from "./pages/Educacao";
 import Financas from "./pages/Financas";
+import Cultura from "./pages/Cultura";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/educacao" element={<Educacao />} />
           <Route path="/assistencia" element={<AssistenciaSocial />} />
           <Route path="/financas" element={<Financas />} />
+          <Route path="/cultura" element={<Cultura />} />
           <Route path="/ouvidoria" element={<Navigate to="/" replace />} />
           <Route path="/noticias" element={<Navigate to="/" replace />} />
           <Route path="/noticia/:id" element={<Navigate to="/" replace />} />
