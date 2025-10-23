@@ -133,6 +133,54 @@ export type Database = {
         }
         Relationships: []
       }
+      attendance_queue: {
+        Row: {
+          called_at: string | null
+          completed_at: string | null
+          created_at: string
+          full_name: string
+          id: string
+          location: string | null
+          position: number | null
+          priority: number | null
+          secretaria_slug: string
+          service_type: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          called_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          location?: string | null
+          position?: number | null
+          priority?: number | null
+          secretaria_slug: string
+          service_type: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          called_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          location?: string | null
+          position?: number | null
+          priority?: number | null
+          secretaria_slug?: string
+          service_type?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       campaign_banners: {
         Row: {
           created_at: string
