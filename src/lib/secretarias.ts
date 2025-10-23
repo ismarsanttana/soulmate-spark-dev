@@ -39,6 +39,11 @@ const secretarias: Secretaria[] = [
     slug: "esporte",
     title: "Secretaria de Esporte",
     description: "Campeonatos, quadras, campos e programas esportivos"
+  },
+  {
+    slug: "comunicacao",
+    title: "Secretaria de Comunicação",
+    description: "Comunicação institucional, notícias, eventos e campanhas da cidade"
   }
 ];
 
