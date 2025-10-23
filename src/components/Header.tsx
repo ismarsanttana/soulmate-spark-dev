@@ -28,8 +28,8 @@ export const Header = () => {
             className="h-12 w-auto bg-white p-1 rounded-lg"
           />
           <div>
-            <h1 className="text-xl font-bold">Conecta Camalaú</h1>
-            <p className="text-xs opacity-90">Prefeitura de Camalaú</p>
+            <h1 className="text-xl font-bold">Conecta Afogados</h1>
+            <p className="text-xs opacity-90">Prefeitura de Afogados da Ingazeira-PE</p>
           </div>
         </div>
         <button

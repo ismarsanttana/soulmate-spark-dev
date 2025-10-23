@@ -58,7 +58,7 @@ const Auth = () => {
               alt="Prefeitura de Afogados da Ingazeira"
               className="h-16 w-auto mx-auto mb-4 bg-white p-2 rounded-lg"
             />
-            <h1 className="text-2xl font-bold">Conecta Camalaú</h1>
+            <h1 className="text-2xl font-bold">Conecta Afogados</h1>
             <p className="text-sm text-muted-foreground mt-1">
               {isLogin ? "Entre na sua conta" : "Crie sua conta"}
             </p>

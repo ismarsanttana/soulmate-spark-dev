@@ -143,7 +143,7 @@ const Index = () => {
           <div>
             <p className="font-semibold text-sm">Assistente Virtual</p>
             <p className="text-xs text-muted-foreground">
-              Pergunte sobre serviços de Camalaú
+              Pergunte sobre serviços de Afogados da Ingazeira
             </p>
           </div>
         </div>
