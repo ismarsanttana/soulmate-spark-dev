@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Layout } from "@/components/Layout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Settings } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -31,29 +30,29 @@ const AdminContent = () => {
   };
 
   return (
-    <Layout>
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-          
-          <div className="flex-1">
-            <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-              <div className="flex h-full items-center gap-4 px-6">
-                <SidebarTrigger />
-                <div className="flex items-center gap-3">
-                  <Settings className="h-6 w-6 text-primary" />
-                  <h1 className="text-2xl font-bold">Painel de Administração</h1>
-                </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        <div className="flex-1 flex flex-col">
+          <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+            <div className="flex h-full items-center gap-4 px-6">
+              <SidebarTrigger className="-ml-2" />
+              <div className="flex items-center gap-3">
+                <Settings className="h-6 w-6 text-primary" />
+                <h1 className="text-2xl font-bold">Painel de Administração</h1>
               </div>
-            </header>
+            </div>
+          </header>
 
-            <main className="p-6 bg-gradient-to-br from-background to-secondary/10 min-h-[calc(100vh-4rem)]">
+          <main className="flex-1 p-8 bg-gradient-to-br from-background to-secondary/5 overflow-auto">
+            <div className="max-w-7xl mx-auto">
               {renderContent()}
-            </main>
-          </div>
+            </div>
+          </main>
         </div>
-      </SidebarProvider>
-    </Layout>
+      </div>
+    </SidebarProvider>
   );
 };
 

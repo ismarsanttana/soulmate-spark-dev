@@ -29,26 +29,30 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
   const { open } = useSidebar();
 
   return (
-    <Sidebar className={!open ? "w-14" : "w-60"}>
-      <SidebarContent>
+    <Sidebar 
+      className={`transition-all duration-300 ease-in-out border-r ${!open ? "w-16" : "w-64"}`}
+      collapsible="icon"
+    >
+      <SidebarContent className="gap-2 py-4">
         <SidebarGroup>
-          <SidebarGroupLabel className={!open ? "hidden" : ""}>
+          <SidebarGroupLabel className={`px-4 transition-opacity duration-200 ${!open ? "opacity-0" : "opacity-100"}`}>
             Administração
           </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
+          <SidebarGroupContent className="px-2">
+            <SidebarMenu className="gap-1">
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.value}>
                   <SidebarMenuButton
                     onClick={() => onTabChange(item.value)}
-                    className={
+                    tooltip={!open ? item.title : undefined}
+                    className={`transition-all duration-200 ${
                       activeTab === item.value
-                        ? "bg-accent text-accent-foreground font-medium"
-                        : "hover:bg-accent/50"
-                    }
+                        ? "bg-accent text-accent-foreground font-semibold shadow-sm"
+                        : "hover:bg-accent/50 hover:shadow-sm"
+                    } ${!open ? "justify-center" : ""}`}
                   >
-                    <item.icon className="h-4 w-4" />
-                    {open && <span>{item.title}</span>}
+                    <item.icon className={`h-5 w-5 ${!open ? "" : "mr-3"}`} />
+                    {open && <span className="truncate">{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
