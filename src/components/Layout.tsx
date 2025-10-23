@@ -93,21 +93,21 @@ export const Layout = ({ children }: LayoutProps) => {
             </Link>
 
             <Link
-              to="/agenda"
+              to="/perfil"
               className={`flex flex-col items-center p-2 transition ${
-                isActive("/agenda") ? "text-primary" : "text-muted-foreground"
+                isActive("/perfil") ? "text-primary" : "text-muted-foreground"
               }`}
             >
               <div
                 className={`h-8 w-8 rounded-lg flex items-center justify-center transition ${
-                  isActive("/agenda")
+                  isActive("/perfil")
                     ? "bg-primary/10"
                     : "bg-muted dark:bg-muted"
                 }`}
               >
-                <i className="fas fa-calendar-alt text-sm"></i>
+                <i className="fas fa-user text-sm"></i>
               </div>
-              <span className="text-xs font-medium mt-1">Agenda</span>
+              <span className="text-xs font-medium mt-1">Meu Perfil</span>
             </Link>
           </div>
         </nav>
