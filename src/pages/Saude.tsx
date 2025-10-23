@@ -158,7 +158,6 @@ const Saude = () => {
 
   const patientName =
     profile?.full_name?.trim() ||
-    profile?.nickname?.trim() ||
     "Cidadão Camalauense";
 
   const formatDateTime = (iso: string) => {

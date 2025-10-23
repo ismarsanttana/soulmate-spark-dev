@@ -7,11 +7,6 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Saude from "./pages/Saude";
-import Educacao from "./pages/Educacao";
-import AssistenciaSocial from "./pages/AssistenciaSocial";
-import Services from "./pages/Services";
-import Secretaria from "./pages/Secretaria";
-import Ouvidoria from "./pages/Ouvidoria";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,22 +20,16 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/servicos" element={<Services />} />
-          <Route path="/secretarias/saude" element={<Saude />} />
-          <Route path="/secretarias/educacao" element={<Educacao />} />
-          <Route path="/secretarias/assistencia" element={<AssistenciaSocial />} />
-          <Route path="/secretarias/:slug" element={<Secretaria />} />
           <Route path="/saude" element={<Saude />} />
-          <Route path="/educacao" element={<Educacao />} />
-          <Route path="/assistencia" element={<AssistenciaSocial />} />
-          <Route path="/obras" element={<Navigate to="/secretarias/obras" replace />} />
-          <Route path="/financas" element={<Navigate to="/secretarias/financas" replace />} />
-          <Route path="/cultura" element={<Navigate to="/secretarias/cultura" replace />} />
-          <Route path="/ouvidoria" element={<Ouvidoria />} />
+          <Route path="/perfil" element={<Profile />} />
+          <Route path="/servicos" element={<Navigate to="/" replace />} />
+          <Route path="/secretarias/:slug" element={<Navigate to="/" replace />} />
+          <Route path="/educacao" element={<Navigate to="/" replace />} />
+          <Route path="/assistencia" element={<Navigate to="/" replace />} />
+          <Route path="/ouvidoria" element={<Navigate to="/" replace />} />
           <Route path="/noticias" element={<Navigate to="/" replace />} />
           <Route path="/noticia/:id" element={<Navigate to="/" replace />} />
           <Route path="/agenda" element={<Navigate to="/" replace />} />
-          <Route path="/perfil" element={<Profile />} />
           <Route path="/notificacoes" element={<Navigate to="/" replace />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
