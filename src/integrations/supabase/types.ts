@@ -600,6 +600,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           birth_date: string | null
+          cpf: string | null
           created_at: string
           email: string | null
           full_name: string
@@ -611,6 +612,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           birth_date?: string | null
+          cpf?: string | null
           created_at?: string
           email?: string | null
           full_name: string
@@ -622,6 +624,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           birth_date?: string | null
+          cpf?: string | null
           created_at?: string
           email?: string | null
           full_name?: string
@@ -631,6 +634,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          permissions: Json | null
+          role_name: string
+          secretaria_slug: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          permissions?: Json | null
+          role_name: string
+          secretaria_slug?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          permissions?: Json | null
+          role_name?: string
+          secretaria_slug?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roles_secretaria_slug_fkey"
+            columns: ["secretaria_slug"]
+            isOneToOne: false
+            referencedRelation: "secretarias"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       secretarias: {
         Row: {
@@ -754,26 +798,121 @@ export type Database = {
           },
         ]
       }
+      student_enrollments: {
+        Row: {
+          attendance: Json | null
+          class_name: string | null
+          created_at: string
+          created_by: string | null
+          grade_level: string | null
+          grades: Json | null
+          id: string
+          matricula: string
+          metadata: Json | null
+          school_name: string | null
+          school_year: string | null
+          status: string | null
+          student_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          attendance?: Json | null
+          class_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          grade_level?: string | null
+          grades?: Json | null
+          id?: string
+          matricula: string
+          metadata?: Json | null
+          school_name?: string | null
+          school_year?: string | null
+          status?: string | null
+          student_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          attendance?: Json | null
+          class_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          grade_level?: string | null
+          grades?: Json | null
+          id?: string
+          matricula?: string
+          metadata?: Json | null
+          school_name?: string | null
+          school_year?: string | null
+          status?: string | null
+          student_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_relationships: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          metadata: Json | null
+          related_user_id: string
+          relationship_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          metadata?: Json | null
+          related_user_id: string
+          relationship_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          metadata?: Json | null
+          related_user_id?: string
+          relationship_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
           id: string
+          metadata: Json | null
           role: Database["public"]["Enums"]["app_role"]
+          role_id: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          metadata?: Json | null
           role: Database["public"]["Enums"]["app_role"]
+          role_id?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          metadata?: Json | null
           role?: Database["public"]["Enums"]["app_role"]
+          role_id?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
