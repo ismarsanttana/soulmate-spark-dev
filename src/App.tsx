@@ -24,6 +24,8 @@ import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import PainelPrefeito from "./pages/PainelPrefeito";
 import PainelSecretario from "./pages/PainelSecretario";
+import SecretariaDetalhes from "./pages/SecretariaDetalhes";
+import SecretariasList from "./pages/SecretariasList";
 
 const queryClient = new QueryClient();
 
@@ -36,15 +38,21 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/saude" element={<Saude />} />
           <Route path="/perfil" element={<Profile />} />
-          <Route path="/servicos" element={<Navigate to="/" replace />} />
-          <Route path="/secretarias/:slug" element={<Navigate to="/" replace />} />
-          <Route path="/educacao" element={<Educacao />} />
-          <Route path="/assistencia" element={<AssistenciaSocial />} />
-          <Route path="/financas" element={<Financas />} />
-          <Route path="/cultura" element={<Cultura />} />
-          <Route path="/obras" element={<Obras />} />
+          
+          {/* Dynamic Secretarias Routes */}
+          <Route path="/servicos" element={<SecretariasList />} />
+          <Route path="/secretarias/:slug" element={<SecretariaDetalhes />} />
+          
+          {/* Redirects for backwards compatibility */}
+          <Route path="/saude" element={<Navigate to="/secretarias/saude" replace />} />
+          <Route path="/educacao" element={<Navigate to="/secretarias/educacao" replace />} />
+          <Route path="/assistencia" element={<Navigate to="/secretarias/assistencia" replace />} />
+          <Route path="/financas" element={<Navigate to="/secretarias/financas" replace />} />
+          <Route path="/cultura" element={<Navigate to="/secretarias/cultura" replace />} />
+          <Route path="/obras" element={<Navigate to="/secretarias/obras" replace />} />
+          
+          {/* Specific Services */}
           <Route path="/iptu" element={<Iptu />} />
           <Route path="/agendar-consulta" element={<AgendarConsulta />} />
           <Route path="/iluminacao-publica" element={<IluminacaoPublica />} />
@@ -54,6 +62,8 @@ const App = () => (
           <Route path="/noticias" element={<Noticias />} />
           <Route path="/noticia/:id" element={<NoticiaDetalhes />} />
           <Route path="/agenda" element={<Navigate to="/" replace />} />
+          
+          {/* Admin & Panels */}
           <Route path="/admin" element={<Admin />} />
           <Route path="/painel-prefeito" element={<PainelPrefeito />} />
           <Route path="/painel-secretario" element={<PainelSecretario />} />

@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, FileText, Clock, CheckCircle } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { Calendar, FileText, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { StatCard } from "@/components/admin/StatCard";
+import { ProtocolsTable } from "@/components/admin/ProtocolsTable";
+import { AppointmentsTable } from "@/components/admin/AppointmentsTable";
+import { getIconComponent } from "@/lib/iconMapper";
 
 const PainelSecretarioContent = () => {
   const { data: assignment } = useQuery({
@@ -17,11 +18,22 @@ const PainelSecretarioContent = () => {
 
       const { data, error } = await supabase
         .from("secretary_assignments")
-        .select("secretaria_slug")
+        .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (error) throw error;
+      
+      if (data) {
+        const { data: secretaria } = await supabase
+          .from("secretarias")
+          .select("*")
+          .eq("slug", data.secretaria_slug)
+          .single();
+        
+        return { ...data, secretarias: secretaria };
+      }
+      
       return data;
     },
   });
@@ -29,14 +41,14 @@ const PainelSecretarioContent = () => {
   const { data: appointments } = useQuery({
     queryKey: ["secretary-appointments", assignment?.secretaria_slug],
     queryFn: async () => {
-      if (!assignment?.secretaria_slug || assignment.secretaria_slug !== "saude") {
-        return [];
-      }
+      if (!assignment?.secretaria_slug) return [];
 
       const { data, error } = await supabase
         .from("appointments")
         .select("*")
-        .order("created_at", { ascending: false });
+        .eq("secretaria_slug", assignment.secretaria_slug)
+        .order("created_at", { ascending: false })
+        .limit(20);
 
       if (error) throw error;
       return data;
@@ -62,190 +74,148 @@ const PainelSecretarioContent = () => {
   });
 
   const pendingAppointments = appointments?.filter((a) => a.status === "pendente").length || 0;
+  const confirmedAppointments = appointments?.filter((a) => a.status === "confirmado").length || 0;
   const openProtocols = protocols?.filter((p) => p.status === "aberto").length || 0;
+  const inProgressProtocols = protocols?.filter((p) => p.status === "em_andamento").length || 0;
+  const closedProtocols = protocols?.filter((p) => p.status === "encerrado").length || 0;
 
-  const getSecretariaName = (slug: string) => {
-    const names: Record<string, string> = {
-      saude: "Saúde",
-      educacao: "Educação",
-      assistencia: "Assistência Social",
-      financas: "Finanças",
-      cultura: "Cultura",
-      obras: "Obras",
-      esporte: "Esporte",
-    };
-    return names[slug] || slug;
-  };
+  if (!assignment?.secretarias) {
+    return (
+      <Layout>
+        <div className="text-center py-12">
+          <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Sem Atribuição</h2>
+          <p className="text-muted-foreground">
+            Você ainda não foi atribuído a nenhuma secretaria. Entre em contato com o administrador.
+          </p>
+        </div>
+      </Layout>
+    );
+  }
+
+  const secretaria = assignment.secretarias;
+  const IconComponent = getIconComponent(secretaria.icon);
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/10 py-8">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-foreground">
-              Painel do Secretário
-            </h1>
-            {assignment && (
-              <p className="text-muted-foreground mt-2">
-                Secretaria de {getSecretariaName(assignment.secretaria_slug)}
-              </p>
-            )}
+      <div className="space-y-6">
+        {/* Header */}
+        <div
+          className="rounded-2xl p-6 text-white"
+          style={{ backgroundColor: secretaria.color }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-16 w-16 rounded-xl bg-white/20 flex items-center justify-center">
+              <IconComponent className="h-8 w-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">Painel do Secretário</h1>
+              <p className="text-lg opacity-90">{secretaria.name}</p>
+            </div>
           </div>
+        </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Protocolos Abertos"
+            value={openProtocols}
+            icon={FileText}
+            description="Aguardando resposta"
+            color="#f59e0b"
+          />
+          <StatCard
+            title="Em Andamento"
+            value={inProgressProtocols}
+            icon={Clock}
+            description="Sendo processados"
+            color="#3b82f6"
+          />
+          <StatCard
+            title="Protocolos Encerrados"
+            value={closedProtocols}
+            icon={CheckCircle}
+            description="Resolvidos"
+            color="#22c55e"
+          />
+          <StatCard
+            title="Total de Protocolos"
+            value={protocols?.length || 0}
+            icon={FileText}
+            description="Histórico completo"
+          />
+        </div>
+
+        {/* Appointments Section (Only for Saúde) */}
+        {assignment.secretaria_slug === "saude" && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <StatCard
+                title="Consultas Pendentes"
+                value={pendingAppointments}
+                icon={Calendar}
+                description="A confirmar"
+                color="#8b5cf6"
+              />
+              <StatCard
+                title="Consultas Confirmadas"
+                value={confirmedAppointments}
+                icon={CheckCircle}
+                description="Agendadas"
+                color="#22c55e"
+              />
+              <StatCard
+                title="Total de Consultas"
+                value={appointments?.length || 0}
+                icon={Calendar}
+                description="Histórico"
+              />
+            </div>
+
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Consultas Pendentes
-                </CardTitle>
-                <Clock className="h-5 w-5 text-orange-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{pendingAppointments}</div>
-                <CardDescription className="mt-1">
-                  Aguardando confirmação
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Protocolos Abertos
-                </CardTitle>
-                <FileText className="h-5 w-5 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{openProtocols}</div>
-                <CardDescription className="mt-1">
-                  Requerem atenção
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total de Consultas
-                </CardTitle>
-                <Calendar className="h-5 w-5 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{appointments?.length || 0}</div>
-                <CardDescription className="mt-1">
-                  Todas as solicitações
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total de Protocolos
-                </CardTitle>
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{protocols?.length || 0}</div>
-                <CardDescription className="mt-1">
-                  Ouvidoria geral
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-
-          {assignment?.secretaria_slug === "saude" && (
-            <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Consultas Recentes</CardTitle>
+                <CardTitle>Gerenciar Consultas</CardTitle>
                 <CardDescription>
-                  Últimas solicitações de agendamento
+                  Confirme, cancele ou adicione observações às consultas agendadas
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {appointments?.slice(0, 5).map((appointment) => (
-                    <div
-                      key={appointment.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                    >
-                      <div className="space-y-1">
-                        <p className="font-medium">{appointment.full_name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {appointment.specialty} - {format(new Date(appointment.preferred_date), "dd/MM/yyyy", { locale: ptBR })}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          appointment.status === "pendente"
-                            ? "secondary"
-                            : appointment.status === "confirmado"
-                            ? "default"
-                            : "outline"
-                        }
-                      >
-                        {appointment.status}
-                      </Badge>
-                    </div>
-                  ))}
-                  {!appointments?.length && (
-                    <p className="text-muted-foreground text-center py-8">
-                      Nenhuma consulta registrada
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Protocolos de Ouvidoria</CardTitle>
-              <CardDescription>
-                Solicitações e reclamações da sua secretaria
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {protocols?.slice(0, 5).map((protocol) => (
-                  <div
-                    key={protocol.id}
-                    className="flex items-start justify-between p-4 border rounded-lg"
-                  >
-                    <div className="space-y-1 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">#{protocol.protocol_number}</p>
-                        <Badge variant="outline">{protocol.manifestation_type}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {protocol.description}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(protocol.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                      </p>
-                    </div>
-                    <Badge
-                      variant={
-                        protocol.status === "aberto"
-                          ? "destructive"
-                          : protocol.status === "em_andamento"
-                          ? "secondary"
-                          : "default"
-                      }
-                    >
-                      {protocol.status}
-                    </Badge>
-                  </div>
-                ))}
-                {!protocols?.length && (
-                  <p className="text-muted-foreground text-center py-8">
-                    Nenhum protocolo registrado para sua secretaria
+                {appointments && appointments.length > 0 ? (
+                  <AppointmentsTable 
+                    appointments={appointments} 
+                    queryKey={["secretary-appointments", assignment.secretaria_slug]} 
+                  />
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">
+                    Nenhuma consulta registrada ainda
                   </p>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        {/* Protocols Management */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Protocolos da Ouvidoria</CardTitle>
+            <CardDescription>
+              Gerencie os protocolos direcionados à {secretaria.name}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {protocols && protocols.length > 0 ? (
+              <ProtocolsTable 
+                protocols={protocols} 
+                queryKey={["secretary-protocols", assignment.secretaria_slug]} 
+              />
+            ) : (
+              <p className="text-center text-muted-foreground py-8">
+                Nenhum protocolo registrado ainda
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

@@ -57,6 +57,7 @@ export type Database = {
           phone: string
           preferred_date: string
           preferred_time: string
+          secretaria_slug: string | null
           specialty: string
           status: string
           updated_at: string
@@ -71,6 +72,7 @@ export type Database = {
           phone: string
           preferred_date: string
           preferred_time: string
+          secretaria_slug?: string | null
           specialty: string
           status?: string
           updated_at?: string
@@ -85,12 +87,21 @@ export type Database = {
           phone?: string
           preferred_date?: string
           preferred_time?: string
+          secretaria_slug?: string | null
           specialty?: string
           status?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "appointments_secretaria_slug_fkey"
+            columns: ["secretaria_slug"]
+            isOneToOne: false
+            referencedRelation: "secretarias"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       appointments_audit: {
         Row: {
@@ -130,6 +141,7 @@ export type Database = {
           event_time: string | null
           id: string
           location: string
+          status: Database["public"]["Enums"]["content_status"] | null
           title: string
         }
         Insert: {
@@ -139,6 +151,7 @@ export type Database = {
           event_time?: string | null
           id?: string
           location: string
+          status?: Database["public"]["Enums"]["content_status"] | null
           title: string
         }
         Update: {
@@ -148,6 +161,7 @@ export type Database = {
           event_time?: string | null
           id?: string
           location?: string
+          status?: Database["public"]["Enums"]["content_status"] | null
           title?: string
         }
         Relationships: []
@@ -160,6 +174,7 @@ export type Database = {
           id: string
           image_url: string | null
           published_at: string
+          status: Database["public"]["Enums"]["content_status"] | null
           summary: string
           title: string
         }
@@ -170,6 +185,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           published_at?: string
+          status?: Database["public"]["Enums"]["content_status"] | null
           summary: string
           title: string
         }
@@ -180,6 +196,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           published_at?: string
+          status?: Database["public"]["Enums"]["content_status"] | null
           summary?: string
           title?: string
         }
@@ -398,6 +415,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "prefeito" | "secretario"
+      content_status: "draft" | "pending" | "published"
       manifestation_type: "denuncia" | "sugestao" | "elogio" | "reclamacao"
       protocol_status: "aberto" | "em_andamento" | "encerrado"
     }
@@ -528,6 +546,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "prefeito", "secretario"],
+      content_status: ["draft", "pending", "published"],
       manifestation_type: ["denuncia", "sugestao", "elogio", "reclamacao"],
       protocol_status: ["aberto", "em_andamento", "encerrado"],
     },

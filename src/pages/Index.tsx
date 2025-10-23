@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import afogadosImage from "@/assets/afogados_da_ingazeira_pe.png";
+import { getIconComponent } from "@/lib/iconMapper";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -77,11 +78,60 @@ const Index = () => {
     },
   });
 
+  const { data: secretarias } = useQuery({
+    queryKey: ["secretarias"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("secretarias")
+        .select("*")
+        .eq("is_active", true)
+        .order("name")
+        .limit(6);
+      return data || [];
+    },
+  });
+
   const userInitials = profile?.full_name
     ?.split(" ")
     .map((n: string) => n[0])
     .join("")
     .substring(0, 2) || "U";
+
+  const SecretariasGrid = () => (
+    <div className="mb-5">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="font-semibold">Secretarias & Serviços</h2>
+        <Link to="/servicos" className="text-xs text-primary font-medium">
+          Ver todas
+        </Link>
+      </div>
+      <div className="grid grid-cols-3 gap-3 mb-3">
+        {secretarias?.map((secretaria) => {
+          const IconComponent = getIconComponent(secretaria.icon);
+          
+          return (
+            <Link
+              key={secretaria.id}
+              to={`/secretarias/${secretaria.slug}`}
+              className="service-btn rounded-2xl p-3 text-center cursor-pointer card-hover"
+              style={{ 
+                backgroundColor: `${secretaria.color}15`,
+                color: secretaria.color 
+              }}
+            >
+              <div 
+                className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center"
+                style={{ color: secretaria.color }}
+              >
+                <IconComponent className="service-icon h-5 w-5" />
+              </div>
+              <span className="text-xs font-medium">{secretaria.name}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <Layout>
@@ -157,116 +207,8 @@ const Index = () => {
         />
       </div>
 
-      {/* Secretarias e Serviços */}
-      <div className="mb-5">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold">Secretarias & Serviços</h2>
-          <Link to="/servicos" className="text-xs text-primary font-medium">
-            Ver todas
-          </Link>
-        </div>
-        <div className="grid grid-cols-3 gap-3 mb-3">
-          <Link
-            to="/saude"
-            className="service-btn bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-2xl p-3 text-center cursor-pointer card-hover"
-          >
-            <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-              <i className="fas fa-heartbeat service-icon"></i>
-            </div>
-            <span className="text-xs font-medium">Saúde</span>
-          </Link>
-
-          <Link
-            to="/educacao"
-            className="service-btn bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-2xl p-3 text-center cursor-pointer card-hover"
-          >
-            <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400">
-              <i className="fas fa-graduation-cap service-icon"></i>
-            </div>
-            <span className="text-xs font-medium">Educação</span>
-          </Link>
-
-          <Link
-            to="/assistencia"
-            className="service-btn bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 rounded-2xl p-3 text-center cursor-pointer card-hover"
-          >
-            <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-rose-600 dark:text-rose-400">
-              <i className="fas fa-hands-helping service-icon"></i>
-            </div>
-            <span className="text-xs font-medium">Assistência</span>
-          </Link>
-
-          <Link
-            to="/obras"
-            className="service-btn bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-2xl p-3 text-center cursor-pointer card-hover"
-          >
-            <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400">
-              <i className="fas fa-hard-hat service-icon"></i>
-            </div>
-            <span className="text-xs font-medium">Obras</span>
-          </Link>
-
-          <Link
-            to="/financas"
-            className="service-btn bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-2xl p-3 text-center cursor-pointer card-hover"
-          >
-            <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-purple-600 dark:text-purple-400">
-              <i className="fas fa-coins service-icon"></i>
-            </div>
-            <span className="text-xs font-medium">Finanças</span>
-          </Link>
-
-          <Link
-            to="/cultura"
-            className="service-btn bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-2xl p-3 text-center cursor-pointer card-hover"
-          >
-            <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-pink-600 dark:text-pink-400">
-              <i className="fas fa-theater-masks service-icon"></i>
-            </div>
-            <span className="text-xs font-medium">Cultura e Turismo</span>
-          </Link>
-
-          <Link
-            to="/iptu"
-            className="service-btn bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-2xl p-3 text-center cursor-pointer card-hover"
-          >
-            <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-              <i className="fas fa-file-invoice service-icon"></i>
-            </div>
-            <span className="text-xs font-medium">2ª via IPTU</span>
-          </Link>
-
-          <Link
-            to="/agendar-consulta"
-            className="service-btn bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 rounded-2xl p-3 text-center cursor-pointer card-hover"
-          >
-            <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-teal-600 dark:text-teal-400">
-              <i className="fas fa-calendar-check service-icon"></i>
-            </div>
-            <span className="text-xs font-medium">Agendar Consulta</span>
-          </Link>
-
-          <Link
-            to="/iluminacao-publica"
-            className="service-btn bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 rounded-2xl p-3 text-center cursor-pointer card-hover"
-          >
-            <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-sky-600 dark:text-sky-400">
-              <i className="fas fa-lightbulb service-icon"></i>
-            </div>
-            <span className="text-xs font-medium">Iluminação Pública</span>
-          </Link>
-
-          <Link
-            to="/esporte"
-            className="service-btn bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-2xl p-3 text-center cursor-pointer card-hover"
-          >
-            <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-green-600 dark:text-green-400">
-              <i className="fas fa-futbol service-icon"></i>
-            </div>
-            <span className="text-xs font-medium">Esporte</span>
-          </Link>
-        </div>
-      </div>
+      {/* Secretarias Dinâmicas */}
+      <SecretariasGrid />
 
       {/* Banner de Campanha */}
       <div className="mb-5 overflow-hidden rounded-2xl shadow-md card-hover">
