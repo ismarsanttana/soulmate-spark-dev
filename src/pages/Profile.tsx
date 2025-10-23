@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { User } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { RolePanelsSection } from "@/components/profile/RolePanelsSection";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type ProtocolRow = Database["public"]["Tables"]["ombudsman_protocols"]["Row"];
@@ -760,6 +761,9 @@ const Profile = () => {
             </ul>
           </div>
         </section>
+
+        {/* Seção de Painéis Disponíveis */}
+        <RolePanelsSection />
 
         <section className="bg-card dark:bg-card rounded-2xl p-5 shadow-sm card-hover mb-5 border border-border">
           <div className="flex items-center justify-between mb-4">
