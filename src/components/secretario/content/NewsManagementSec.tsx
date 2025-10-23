@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { newsSchema } from "@/lib/validationSchemas";
 import { format } from "date-fns";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface News {
   id: string;
@@ -27,12 +29,17 @@ interface News {
 export function NewsManagementSec() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingNews, setEditingNews] = useState<News | null>(null);
+  const [createStory, setCreateStory] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     summary: "",
     content: "",
     category: "geral",
     image_url: "",
+  });
+  const [storyData, setStoryData] = useState({
+    story_title: "",
+    story_image: "",
   });
 
   const { toast } = useToast();
@@ -53,15 +60,36 @@ export function NewsManagementSec() {
 
   const createNews = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase.from("news").insert([{
+      const { data: newsData, error } = await supabase.from("news").insert([{
         ...data,
         status: "published",
-      }]);
+      }]).select().single();
+      
       if (error) throw error;
+
+      // Se marcou para criar story, cria automaticamente
+      if (createStory && newsData) {
+        const { error: storyError } = await supabase.from("stories").insert([{
+          title: storyData.story_title || data.title,
+          media_url: storyData.story_image || data.image_url,
+          media_type: "image",
+          link: `/noticia/${newsData.id}`,
+          duration: 5,
+          status: "published",
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        }]);
+        
+        if (storyError) throw storyError;
+      }
+      
+      return newsData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["secretario-news"] });
-      toast({ title: "Notícia criada com sucesso!" });
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      toast({ 
+        title: createStory ? "Notícia e story criados com sucesso!" : "Notícia criada com sucesso!" 
+      });
       resetForm();
     },
     onError: () => {
@@ -103,6 +131,8 @@ export function NewsManagementSec() {
 
   const resetForm = () => {
     setFormData({ title: "", summary: "", content: "", category: "geral", image_url: "" });
+    setStoryData({ story_title: "", story_image: "" });
+    setCreateStory(false);
     setEditingNews(null);
     setDialogOpen(false);
   };
@@ -188,6 +218,49 @@ export function NewsManagementSec() {
                 onUploadComplete={(url) => setFormData({ ...formData, image_url: url })}
                 currentUrl={formData.image_url}
               />
+              
+              {!editingNews && (
+                <div className="border rounded-lg p-4 space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="create-story"
+                      checked={createStory}
+                      onCheckedChange={(checked) => setCreateStory(checked as boolean)}
+                    />
+                    <Label htmlFor="create-story" className="cursor-pointer">
+                      Criar story desta notícia automaticamente
+                    </Label>
+                  </div>
+                  
+                  {createStory && (
+                    <div className="space-y-3 pl-6 border-l-2 border-primary/30">
+                      <p className="text-sm text-muted-foreground">
+                        Personalize o story ou use os dados da notícia
+                      </p>
+                      <Input
+                        placeholder="Título do story (opcional - usa título da notícia)"
+                        value={storyData.story_title}
+                        onChange={(e) => setStoryData({ ...storyData, story_title: e.target.value })}
+                      />
+                      <div>
+                        <Label className="text-sm text-muted-foreground mb-2 block">
+                          Imagem do story (opcional - usa imagem da notícia)
+                        </Label>
+                        <FileUpload
+                          bucket="news-images"
+                          path="stories"
+                          onUploadComplete={(url) => setStoryData({ ...storyData, story_image: url })}
+                          currentUrl={storyData.story_image}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        ✨ O story será criado com link automático para esta notícia e expira em 24h
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               <div className="flex gap-2">
                 <Button onClick={handleSubmit} className="flex-1">
                   {editingNews ? "Atualizar" : "Criar"}

@@ -7,9 +7,12 @@ import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import afogadosImage from "@/assets/afogados_da_ingazeira_pe.png";
 import { getIconComponent } from "@/lib/iconMapper";
+import { StoryViewer } from "@/components/StoryViewer";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [storyViewerOpen, setStoryViewerOpen] = useState(false);
+  const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
   
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -196,9 +199,15 @@ const Index = () => {
         </div>
         <div className="flex gap-3 overflow-x-auto pb-1">
           {stories && stories.length > 0 ? (
-            stories.map((story) => (
+            stories.map((story, index) => (
               <article key={story.id} className="shrink-0 w-24">
-                <Link to="/noticias" className="group block text-center space-y-2">
+                <button
+                  onClick={() => {
+                    setSelectedStoryIndex(index);
+                    setStoryViewerOpen(true);
+                  }}
+                  className="group block text-center space-y-2 cursor-pointer"
+                >
                   <div className="relative w-24 h-24 mx-auto rounded-full border-4 border-primary/70 p-1 bg-card overflow-hidden">
                     <img 
                       src={story.media_url} 
@@ -209,7 +218,7 @@ const Index = () => {
                   <p className="text-xs font-semibold group-hover:underline line-clamp-2">
                     {story.title}
                   </p>
-                </Link>
+                </button>
               </article>
             ))
           ) : (
@@ -355,6 +364,16 @@ const Index = () => {
           })}
         </div>
       </div>
+
+      {/* Story Viewer */}
+      {stories && stories.length > 0 && (
+        <StoryViewer
+          stories={stories}
+          initialIndex={selectedStoryIndex}
+          open={storyViewerOpen}
+          onOpenChange={setStoryViewerOpen}
+        />
+      )}
     </Layout>
   );
 };
