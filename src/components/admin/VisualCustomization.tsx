@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Palette, Upload } from "lucide-react";
+import { Palette, Loader2 } from "lucide-react";
+import { FileUpload } from "./FileUpload";
 
 export function VisualCustomization() {
   const { toast } = useToast();
@@ -15,6 +16,8 @@ export function VisualCustomization() {
   const [primaryColor, setPrimaryColor] = useState("#1EAEDB");
   const [secondaryColor, setSecondaryColor] = useState("#0FA0CE");
   const [appName, setAppName] = useState("Portal do Cidadão");
+  const [logoUrl, setLogoUrl] = useState<string | undefined>();
+  const [iconUrl, setIconUrl] = useState<string | undefined>();
 
   const { data: settings } = useQuery({
     queryKey: ["app-settings"],
@@ -31,6 +34,8 @@ export function VisualCustomization() {
         setPrimaryColor(data.primary_color);
         setSecondaryColor(data.secondary_color);
         setAppName(data.app_name);
+        setLogoUrl(data.logo_url || undefined);
+        setIconUrl(data.icon_url || undefined);
       }
       
       return data;
@@ -41,26 +46,25 @@ export function VisualCustomization() {
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
+      const settingsData = {
+        primary_color: primaryColor,
+        secondary_color: secondaryColor,
+        app_name: appName,
+        logo_url: logoUrl || null,
+        icon_url: iconUrl || null,
+        updated_by: user?.id,
+      };
+
       if (!settings?.id) {
         const { error } = await supabase
           .from("app_settings")
-          .insert({
-            primary_color: primaryColor,
-            secondary_color: secondaryColor,
-            app_name: appName,
-            updated_by: user?.id,
-          });
+          .insert(settingsData);
         
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("app_settings")
-          .update({
-            primary_color: primaryColor,
-            secondary_color: secondaryColor,
-            app_name: appName,
-            updated_by: user?.id,
-          })
+          .update(settingsData)
           .eq("id", settings.id);
         
         if (error) throw error;
@@ -146,30 +150,32 @@ export function VisualCustomization() {
           </div>
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Logo do Aplicativo</Label>
-              <div className="flex items-center gap-4">
-                <Button variant="outline" className="gap-2">
-                  <Upload className="h-4 w-4" />
-                  Upload Logo
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Recomendado: 200x50px, PNG ou SVG
-                </span>
-              </div>
+            <div>
+              <Label htmlFor="logo">Logo do Aplicativo</Label>
+              <p className="text-sm text-muted-foreground mb-2">
+                Imagem principal exibida no cabeçalho
+              </p>
+              <FileUpload
+                bucket="app-assets"
+                path="logo"
+                currentUrl={logoUrl}
+                onUploadComplete={(url) => setLogoUrl(url)}
+                onRemove={() => setLogoUrl(undefined)}
+              />
             </div>
 
-            <div className="space-y-2">
-              <Label>Ícone do Aplicativo</Label>
-              <div className="flex items-center gap-4">
-                <Button variant="outline" className="gap-2">
-                  <Upload className="h-4 w-4" />
-                  Upload Ícone
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Recomendado: 512x512px, PNG
-                </span>
-              </div>
+            <div>
+              <Label htmlFor="icon">Ícone do Aplicativo</Label>
+              <p className="text-sm text-muted-foreground mb-2">
+                Ícone pequeno para favicon e menus
+              </p>
+              <FileUpload
+                bucket="app-assets"
+                path="icon"
+                currentUrl={iconUrl}
+                onUploadComplete={(url) => setIconUrl(url)}
+                onRemove={() => setIconUrl(undefined)}
+              />
             </div>
           </div>
 
@@ -178,7 +184,8 @@ export function VisualCustomization() {
             disabled={updateSettings.isPending}
             className="w-full"
           >
-            {updateSettings.isPending ? "Salvando..." : "Salvar Configurações"}
+            {updateSettings.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Salvar Configurações
           </Button>
         </CardContent>
       </Card>

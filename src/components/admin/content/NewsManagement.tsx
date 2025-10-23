@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { FileUpload } from "../FileUpload";
 
 interface News {
   id: string;
@@ -177,11 +178,13 @@ export function NewsManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>URL da Imagem</Label>
-                  <Input
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    placeholder="https://..."
+                  <Label>Imagem da Notícia</Label>
+                  <FileUpload
+                    bucket="news-images"
+                    path="news"
+                    currentUrl={formData.image_url || undefined}
+                    onUploadComplete={(url) => setFormData({ ...formData, image_url: url })}
+                    onRemove={() => setFormData({ ...formData, image_url: "" })}
                   />
                 </div>
 

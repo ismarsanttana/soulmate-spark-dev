@@ -61,6 +61,17 @@ export const Header = ({ pageTitle }: HeaderProps) => {
     enabled: !!user,
   });
 
+  const { data: appSettings } = useQuery({
+    queryKey: ["app-settings"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("*")
+        .single();
+      return data;
+    },
+  });
+
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
   };
@@ -82,13 +93,21 @@ export const Header = ({ pageTitle }: HeaderProps) => {
       <div className="bg-gradient-to-br from-primary to-blue-700 text-white rounded-2xl p-5 shadow-lg mb-5">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
-            <img
-              src="https://afogadosdaingazeira.pe.gov.br/img/logo_afogados.png"
-              alt="Prefeitura de Afogados da Ingazeira"
-              className="h-12 w-auto bg-white p-1 rounded-lg"
-            />
+            {appSettings?.logo_url ? (
+              <img
+                src={appSettings.logo_url}
+                alt={appSettings.app_name}
+                className="h-12 w-auto rounded-lg object-contain"
+              />
+            ) : (
+              <img
+                src="https://afogadosdaingazeira.pe.gov.br/img/logo_afogados.png"
+                alt="Prefeitura de Afogados da Ingazeira"
+                className="h-12 w-auto bg-white p-1 rounded-lg"
+              />
+            )}
             <div>
-              <h1 className="text-xl font-bold">Conecta Afogados</h1>
+              <h1 className="text-xl font-bold">{appSettings?.app_name || "Conecta Afogados"}</h1>
               <p className="text-xs opacity-90">
                 {pageTitle ? `${pageTitle} • ` : ""}Prefeitura de Afogados da Ingazeira-PE
               </p>
