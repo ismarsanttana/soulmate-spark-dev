@@ -86,54 +86,6 @@ const Index = () => {
     <Layout>
       <Header />
 
-      {/* Notificações e Área do Usuário */}
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        <Link
-          to={user ? "/notificacoes" : "/auth"}
-          className="bg-card dark:bg-card rounded-2xl p-4 shadow-sm card-hover block focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <div className="flex items-start gap-3">
-            <div className="relative">
-              <div className="bg-primary/10 text-primary p-2.5 rounded-xl">
-                <i className="fas fa-bell"></i>
-              </div>
-              {notifications && notifications.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs h-5 w-5 flex items-center justify-center rounded-full">
-                  {notifications.length}
-                </span>
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-semibold">Notificações</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {notifications && notifications.length > 0
-                  ? `${notifications.length} ${notifications.length === 1 ? "nova" : "novas"}`
-                  : "Nenhuma nova"}
-              </p>
-            </div>
-          </div>
-        </Link>
-
-        <Link
-          to={user ? "/perfil" : "/auth"}
-          className="bg-card dark:bg-card rounded-2xl p-4 shadow-sm card-hover block focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center text-white font-semibold">
-              {userInitials}
-            </div>
-            <div>
-              <p className="text-sm font-semibold">
-                {profile?.full_name?.split(" ")[0] || "Cidadão"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {user ? "Área do usuário" : "Faça login"}
-              </p>
-            </div>
-          </div>
-        </Link>
-      </div>
-
       {/* Assistente Virtual */}
       <div className="mb-5 bg-card dark:bg-card rounded-2xl p-4 shadow-sm card-hover">
         <div className="flex items-center gap-3 mb-3">
