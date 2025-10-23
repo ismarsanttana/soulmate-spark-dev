@@ -18,6 +18,8 @@ import IluminacaoPublica from "./pages/IluminacaoPublica";
 import Ouvidoria from "./pages/Ouvidoria";
 import Notificacoes from "./pages/Notificacoes";
 import Esporte from "./pages/Esporte";
+import Noticias from "./pages/Noticias";
+import NoticiaDetalhes from "./pages/NoticiaDetalhes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,8 +48,8 @@ const App = () => (
           <Route path="/ouvidoria" element={<Ouvidoria />} />
           <Route path="/notificacoes" element={<Notificacoes />} />
           <Route path="/esporte" element={<Esporte />} />
-          <Route path="/noticias" element={<Navigate to="/" replace />} />
-          <Route path="/noticia/:id" element={<Navigate to="/" replace />} />
+          <Route path="/noticias" element={<Noticias />} />
+          <Route path="/noticia/:id" element={<NoticiaDetalhes />} />
           <Route path="/agenda" element={<Navigate to="/" replace />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
