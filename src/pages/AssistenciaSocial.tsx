@@ -21,8 +21,6 @@ const formatHeaderTime = (date: Date) =>
 
 const AssistenciaSocial = () => {
   const secretaria = getSecretariaBySlug("assistencia");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [atendimentoSuccess, setAtendimentoSuccess] = useState<string | null>(
     null
   );
@@ -33,11 +31,6 @@ const AssistenciaSocial = () => {
   const [assistantMessage, setAssistantMessage] = useState("");
   const [assistantFeedback, setAssistantFeedback] = useState<string | null>(null);
   const assistantInputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentDate(new Date()), 60000);
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     if (!assistantOpen) {
@@ -162,103 +155,12 @@ const AssistenciaSocial = () => {
       </Layout>
     );
   }
+  
   return (
     <Layout>
-      <header className="mb-5 rounded-2xl bg-gradient-to-br from-primary to-blue-700 p-5 text-white shadow-lg">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <img
-              src="https://afogadosdaingazeira.pe.gov.br/img/logo_afogados.png"
-              alt="Prefeitura de Afogados da Ingazeira"
-              className="h-12 w-auto rounded-lg bg-white p-1"
-            />
-            <div>
-              <p className="text-xs uppercase tracking-wide opacity-80">
-                {secretaria.title}
-              </p>
-              <h1 className="text-xl font-bold">Conecta Afogados</h1>
-              <p className="text-xs opacity-90">
-                Prefeitura de Afogados da Ingazeira
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="rounded-xl bg-white/15 p-2 transition hover:bg-white/25"
-            aria-label="Compartilhar"
-          >
-            <i className="fas fa-share-nodes text-white"></i>
-          </button>
-        </div>
+      <Header pageTitle="Secretaria de Assistência Social" />
 
-        <div className="mt-4 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <i className="fas fa-cloud-sun"></i>
-            <span>28°C · Parcialmente nublado</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <i className="far fa-calendar"></i>
-            <span>{formatHeaderDate(currentDate)}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <i className="far fa-clock"></i>
-            <span>{formatHeaderTime(currentDate)}</span>
-          </div>
-        </div>
-
-        <div className="relative mt-4">
-          <input
-            type="search"
-            placeholder="Buscar serviços, protocolos, notícias..."
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full rounded-xl bg-white/90 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/60"
-          />
-          <i className="fas fa-search absolute right-3 top-3.5 text-gray-400"></i>
-        </div>
-      </header>
-
-      <section className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Link
-          to="/notificacoes"
-          className="block rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <div className="flex items-start gap-3">
-            <div className="relative">
-              <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
-                <i className="fas fa-bell"></i>
-              </div>
-              <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-semibold text-white">
-                4
-              </span>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                Notificações
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                1 visita domiciliar agendada · 3 avisos
-              </p>
-            </div>
-          </div>
-        </Link>
-
-        <Link
-          to="/perfil"
-          className="block rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-blue-600 text-white font-semibold">
-              BR
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">Olá, Bira</p>
-              <p className="text-xs text-muted-foreground">Área do usuário</p>
-            </div>
-          </div>
-        </Link>
-      </section>
-      <main className="space-y-4">
+      <div className="space-y-4">
         <div>
           <h2 className="text-lg font-semibold text-foreground">
             Assistência Social
@@ -633,7 +535,9 @@ const AssistenciaSocial = () => {
             </article>
           </div>
         </section>
-      </main>
+      </div>
+
+      {/* FAB: Virtual Assistant */}
       <div className="fixed bottom-28 right-6 z-40 flex flex-col items-end gap-3">
         <div
           id="assistant-panel"

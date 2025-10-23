@@ -202,7 +202,7 @@ const Saude = () => {
 
   return (
     <Layout>
-      <Header />
+      <Header pageTitle="Secretaria de Saúde" />
 
       <div className="mb-4">
         <h2 className="font-semibold text-lg">Secretaria de Saúde</h2>

@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/Layout";
-import { Search, Bell, User, MessageCircle, X, Send, Calendar as CalendarIcon } from "lucide-react";
+import { Header } from "@/components/Header";
+import { MessageCircle, X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,24 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { getSecretariaBySlug } from "@/lib/secretarias";
 
-const formatHeaderDate = (date: Date): string => {
-  const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-  return `${day} ${month} ${year}`;
-};
-
-const formatHeaderTime = (date: Date): string => {
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${hours}:${minutes}`;
-};
-
 const Educacao = () => {
   const secretaria = getSecretariaBySlug("educacao");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [boletimMatricula, setBoletimMatricula] = useState("");
   const [boletimData, setBoletimData] = useState<any>(null);
   const [matriculaSuccess, setMatriculaSuccess] = useState("");
@@ -36,11 +21,6 @@ const Educacao = () => {
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
   const [calendarModalEvent, setCalendarModalEvent] = useState<{ day: number; event: string } | null>(null);
   const assistantInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentDate(new Date()), 60000);
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     if (assistantOpen && assistantInputRef.current) {
@@ -132,73 +112,14 @@ const Educacao = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-background pb-20">
-        {/* Header */}
-        <header className="bg-primary text-primary-foreground px-4 py-4 shadow-md">
-          <div className="max-w-md mx-auto">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-primary-foreground rounded-full flex items-center justify-center">
-                  <span className="text-primary font-bold text-sm">AF</span>
-                </div>
-                <div>
-                  <h1 className="font-bold text-lg leading-tight">Prefeitura de</h1>
-                  <h2 className="font-bold text-lg leading-tight">Afogados da Ingazeira</h2>
-                </div>
-              </div>
-              <div className="text-right text-xs">
-                <div className="font-semibold">{formatHeaderDate(currentDate)}</div>
-                <div className="opacity-90">{formatHeaderTime(currentDate)}</div>
-              </div>
-            </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Buscar serviços, notícias..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-background text-foreground border-0"
-              />
-            </div>
-          </div>
-        </header>
+      <Header pageTitle="Secretaria de Educação" />
 
-        {/* Quick Actions */}
-        <div className="max-w-md mx-auto px-4 -mt-3 mb-4">
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="bg-card hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 bg-destructive/10 rounded-full flex items-center justify-center">
-                  <Bell className="w-5 h-5 text-destructive" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Notificações</p>
-                  <p className="font-semibold text-sm">3 novas</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Meu Perfil</p>
-                  <p className="font-semibold text-sm">Acessar</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+      <div className="space-y-6">
+        {/* Title Section */}
+        <div>
+          <h3 className="text-2xl font-bold text-foreground mb-1">{secretaria?.title || "Educação"}</h3>
+          <p className="text-muted-foreground text-sm">{secretaria?.description}</p>
         </div>
-
-        {/* Main Content */}
-        <main className="max-w-md mx-auto px-4 space-y-6">
-          {/* Title Section */}
-          <div>
-            <h3 className="text-2xl font-bold text-foreground mb-1">{secretaria?.title || "Educação"}</h3>
-            <p className="text-muted-foreground text-sm">{secretaria?.description}</p>
-          </div>
 
           {/* Boletim Escolar */}
           <Card>
@@ -404,9 +325,9 @@ const Educacao = () => {
               </div>
             </CardContent>
           </Card>
-        </main>
+        </div>
 
-        {/* Calendar Event Modal */}
+      {/* Calendar Event Modal */}
         <AlertDialog open={calendarModalOpen} onOpenChange={setCalendarModalOpen}>
           <AlertDialogContent className="max-w-sm">
             <AlertDialogHeader>
@@ -478,7 +399,6 @@ const Educacao = () => {
             </div>
           </div>
         )}
-      </div>
     </Layout>
   );
 };
