@@ -8,6 +8,12 @@ import { SecretarioLayout } from "@/components/secretario/SecretarioLayout";
 import { NewsManagementSec } from "@/components/secretario/content/NewsManagementSec";
 import { StoriesManagement } from "@/components/secretario/content/StoriesManagement";
 import { PushNotifications } from "@/components/secretario/content/PushNotifications";
+import { AgendaManagement } from "@/components/secretario/content/AgendaManagement";
+import { GalleryManagement } from "@/components/secretario/content/GalleryManagement";
+import { EventsManagementSec } from "@/components/secretario/content/EventsManagementSec";
+import { LiveStreamManagement } from "@/components/secretario/content/LiveStreamManagement";
+import { PodcastManagement } from "@/components/secretario/content/PodcastManagement";
+import { BannersManagement } from "@/components/secretario/content/BannersManagement";
 
 const PainelSecretarioContent = () => {
   const [activeTab, setActiveTab] = useState("noticias");
@@ -64,77 +70,17 @@ const PainelSecretarioContent = () => {
       case "push":
         return <PushNotifications />;
       case "agenda":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Agenda da Cidade</CardTitle>
-              <CardDescription>Gerencie a agenda de eventos e compromissos da cidade</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <AgendaManagement />;
       case "galeria":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Galeria de Imagens</CardTitle>
-              <CardDescription>Gerencie as fotos e álbuns da cidade</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <GalleryManagement />;
       case "eventos":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Eventos</CardTitle>
-              <CardDescription>Gerencie os eventos da cidade</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <EventsManagementSec />;
       case "transmissao":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Transmissão ao Vivo</CardTitle>
-              <CardDescription>Configure e gerencie transmissões ao vivo</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <LiveStreamManagement />;
       case "podcast":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Podcasts</CardTitle>
-              <CardDescription>Gerencie os podcasts da cidade</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <PodcastManagement />;
       case "banners":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Banners de Campanha</CardTitle>
-              <CardDescription>Gerencie os banners e campanhas publicitárias</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <BannersManagement />;
       default:
         return null;
     }

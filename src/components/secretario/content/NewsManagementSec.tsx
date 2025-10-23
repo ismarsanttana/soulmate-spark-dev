@@ -53,7 +53,10 @@ export function NewsManagementSec() {
 
   const createNews = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase.from("news").insert([data]);
+      const { error } = await supabase.from("news").insert([{
+        ...data,
+        status: "published",
+      }]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -68,7 +71,10 @@ export function NewsManagementSec() {
 
   const updateNews = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase.from("news").update(data).eq("id", id);
+      const { error } = await supabase.from("news").update({
+        ...data,
+        status: "published",
+      }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

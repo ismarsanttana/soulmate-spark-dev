@@ -73,6 +73,7 @@ export function StoriesManagement() {
         ...data,
         secretaria_slug: assignment?.secretaria_slug,
         created_by: user.user?.id,
+        status: "published",
       }]);
       if (error) throw error;
     },
