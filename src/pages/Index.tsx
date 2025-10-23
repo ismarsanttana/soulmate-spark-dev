@@ -148,6 +148,15 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Imagem da Cidade */}
+      <div className="mb-5 overflow-hidden rounded-2xl shadow-md card-hover">
+        <img 
+          src={afogadosImage} 
+          alt="Afogados da Ingazeira - PE" 
+          className="w-full h-auto"
+        />
+      </div>
+
       {/* Secretarias e Serviços */}
       <div className="mb-5">
         <div className="flex justify-between items-center mb-4">
@@ -293,15 +302,6 @@ const Index = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Imagem da Cidade */}
-      <div className="mb-5 overflow-hidden rounded-2xl shadow-md card-hover">
-        <img 
-          src={afogadosImage} 
-          alt="Afogados da Ingazeira - PE" 
-          className="w-full h-auto"
-        />
       </div>
 
       {/* Notícias */}
