@@ -91,6 +91,20 @@ const Index = () => {
     },
   });
 
+  const { data: stories } = useQuery({
+    queryKey: ["stories"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("stories")
+        .select("*")
+        .eq("status", "published")
+        .gt("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(10);
+      return data || [];
+    },
+  });
+
   const userInitials = profile?.full_name
     ?.split(" ")
     .map((n: string) => n[0])
@@ -181,19 +195,27 @@ const Index = () => {
           </Link>
         </div>
         <div className="flex gap-3 overflow-x-auto pb-1">
-          {["Novo parque LED", "Campanha de vacinação", "Feira do agricultor", "Circuito cultural"].map(
-            (story, i) => (
-              <article key={i} className="shrink-0 w-24">
+          {stories && stories.length > 0 ? (
+            stories.map((story) => (
+              <article key={story.id} className="shrink-0 w-24">
                 <Link to="/noticias" className="group block text-center space-y-2">
-                  <div className="relative w-24 h-24 mx-auto rounded-full border-4 border-primary/70 p-1 bg-card">
-                    <div className="w-full h-full rounded-full bg-gradient-to-br from-primary/20 to-secondary/20"></div>
+                  <div className="relative w-24 h-24 mx-auto rounded-full border-4 border-primary/70 p-1 bg-card overflow-hidden">
+                    <img 
+                      src={story.media_url} 
+                      alt={story.title}
+                      className="w-full h-full rounded-full object-cover"
+                    />
                   </div>
-                  <p className="text-xs font-semibold group-hover:underline">
-                    {story}
+                  <p className="text-xs font-semibold group-hover:underline line-clamp-2">
+                    {story.title}
                   </p>
                 </Link>
               </article>
-            )
+            ))
+          ) : (
+            <div className="text-center py-4 text-muted-foreground text-sm w-full">
+              Nenhum story disponível no momento
+            </div>
           )}
         </div>
       </section>
