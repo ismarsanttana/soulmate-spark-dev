@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Layout } from "@/components/Layout";
+import { PrefeitoLayout } from "@/components/prefeito/PrefeitoLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileText, CheckCircle, Clock, Bell, Calendar, Building2, Newspaper } from "lucide-react";
@@ -129,10 +129,10 @@ const PainelPrefeitoContent = () => {
   ];
 
   return (
-    <Layout>
+    <PrefeitoLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Painel do Prefeito</h1>
+          <h1 className="text-3xl font-bold mb-2">Visão Geral</h1>
           <p className="text-muted-foreground">
             Visão geral de todas as secretarias e serviços municipais
           </p>
@@ -301,7 +301,7 @@ const PainelPrefeitoContent = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </PrefeitoLayout>
   );
 };
 
