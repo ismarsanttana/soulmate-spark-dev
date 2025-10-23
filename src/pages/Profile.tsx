@@ -482,7 +482,7 @@ const Profile = () => {
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
-                  alt={`Foto de ${formState.fullName || "Perfil do cidadao"}`}
+                  alt={`Foto de ${formState.fullName || "Perfil do cidadão"}`}
                   className="h-12 w-12 rounded-xl object-cover border border-white/40 bg-white/10"
                 />
               ) : (
@@ -499,7 +499,7 @@ const Profile = () => {
               )}
             </div>
             <div>
-              <p className="text-xs opacity-80 mb-1">Perfil do cidadao</p>
+              <p className="text-xs opacity-80 mb-1">Perfil do cidadão</p>
               <h1 className="text-xl font-bold">{greetingName}</h1>
               <div className="flex flex-wrap gap-2 mt-2 text-xs">
                 <span className="px-3 py-1 rounded-full bg-white/20">
@@ -559,7 +559,7 @@ const Profile = () => {
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
-                    alt="Foto do cidadao"
+                    alt="Foto do cidadão"
                     className="h-16 w-16 rounded-2xl object-cover border border-border bg-muted/40"
                   />
                 ) : (
