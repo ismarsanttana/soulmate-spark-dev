@@ -190,7 +190,7 @@ const Profile = () => {
         "",
       phone: (user.user_metadata?.phone as string | undefined) || "",
       address: (user.user_metadata?.address as string | undefined) || "",
-      cpf: (user.user_metadata?.cpf as string | undefined) || "",
+      cpf: profile?.cpf || (user.user_metadata?.cpf as string | undefined) || "",
     };
 
     setFormState(nextFormState);
@@ -370,6 +370,7 @@ const Profile = () => {
           id: user.id,
           full_name: formState.fullName,
           email: formState.email || null,
+          cpf: formState.cpf || null,
           avatar_url: avatarUrl,
         },
         { onConflict: "id" }

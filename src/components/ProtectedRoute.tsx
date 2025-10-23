@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUserRole, UserRole } from "@/hooks/useUserRole";
+import { useUserRole, type UserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ProtectedRouteProps {

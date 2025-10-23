@@ -4,6 +4,9 @@ import { ThemeToggle } from "./theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@supabase/supabase-js";
+import { useRoleNavigation } from "@/hooks/useRoleNavigation";
+import { Button } from "./ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 interface HeaderProps {
   pageTitle?: string;
@@ -88,6 +91,8 @@ export const Header = ({ pageTitle }: HeaderProps) => {
 
   const firstName = profile?.full_name?.split(" ")[0] || "Cidadão";
 
+  const { rolePanels, hasRoles } = useRoleNavigation();
+
   return (
     <>
       <div className="bg-gradient-to-br from-primary to-blue-700 text-white rounded-2xl p-5 shadow-lg mb-5">
@@ -115,6 +120,28 @@ export const Header = ({ pageTitle }: HeaderProps) => {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            {user && hasRoles && rolePanels.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="bg-white/15 hover:bg-white/20 text-white border-0">
+                    <i className="fas fa-th mr-2"></i>
+                    Painéis
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>Meus Painéis</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {rolePanels.map((panel) => (
+                    <DropdownMenuItem key={panel.path} asChild>
+                      <Link to={panel.path} className="w-full cursor-pointer">
+                        <i className={`fas fa-${panel.icon} mr-2`}></i>
+                        {panel.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <button
               className="bg-white/15 p-2 rounded-xl hover:bg-white/20 transition"
               aria-label="Compartilhar"
