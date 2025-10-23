@@ -235,6 +235,16 @@ const Index = () => {
             </div>
             <span className="text-xs font-medium">Agendar Consulta</span>
           </Link>
+
+          <Link
+            to="/iluminacao-publica"
+            className="service-btn bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 rounded-2xl p-3 text-center cursor-pointer card-hover"
+          >
+            <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-sky-600 dark:text-sky-400">
+              <i className="fas fa-lightbulb service-icon"></i>
+            </div>
+            <span className="text-xs font-medium">Iluminação Pública</span>
+          </Link>
         </div>
       </div>
 

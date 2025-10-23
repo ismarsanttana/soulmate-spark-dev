@@ -14,6 +14,7 @@ import Cultura from "./pages/Cultura";
 import Obras from "./pages/Obras";
 import Iptu from "./pages/Iptu";
 import AgendarConsulta from "./pages/AgendarConsulta";
+import IluminacaoPublica from "./pages/IluminacaoPublica";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/obras" element={<Obras />} />
           <Route path="/iptu" element={<Iptu />} />
           <Route path="/agendar-consulta" element={<AgendarConsulta />} />
+          <Route path="/iluminacao-publica" element={<IluminacaoPublica />} />
           <Route path="/ouvidoria" element={<Navigate to="/" replace />} />
           <Route path="/noticias" element={<Navigate to="/" replace />} />
           <Route path="/noticia/:id" element={<Navigate to="/" replace />} />
