@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { ThemeToggle } from "./theme-toggle";
 
 export const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,12 +33,15 @@ export const Header = () => {
             <p className="text-xs opacity-90">Prefeitura de Afogados da Ingazeira-PE</p>
           </div>
         </div>
-        <button
-          className="bg-white/15 p-2 rounded-xl hover:bg-white/20 transition"
-          aria-label="Compartilhar"
-        >
-          <i className="fas fa-share-nodes text-white"></i>
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            className="bg-white/15 p-2 rounded-xl hover:bg-white/20 transition"
+            aria-label="Compartilhar"
+          >
+            <i className="fas fa-share-nodes text-white"></i>
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 flex items-center justify-between text-xs">
