@@ -14,7 +14,219 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          cpf: string
+          created_at: string
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string
+          preferred_date: string
+          preferred_time: string
+          specialty: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cpf: string
+          created_at?: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone: string
+          preferred_date: string
+          preferred_time: string
+          specialty: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cpf?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string
+          preferred_date?: string
+          preferred_time?: string
+          specialty?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          created_at: string
+          description: string
+          event_date: string
+          event_time: string | null
+          id: string
+          location: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          event_date: string
+          event_time?: string | null
+          id?: string
+          location: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          event_date?: string
+          event_time?: string | null
+          id?: string
+          location?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      news: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          published_at: string
+          summary: string
+          title: string
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          published_at?: string
+          summary: string
+          title: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          published_at?: string
+          summary?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ombudsman_protocols: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          email: string | null
+          full_name: string
+          id: string
+          manifestation_type: Database["public"]["Enums"]["manifestation_type"]
+          protocol_number: string
+          response: string | null
+          status: Database["public"]["Enums"]["protocol_status"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          email?: string | null
+          full_name: string
+          id?: string
+          manifestation_type: Database["public"]["Enums"]["manifestation_type"]
+          protocol_number: string
+          response?: string | null
+          status?: Database["public"]["Enums"]["protocol_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          manifestation_type?: Database["public"]["Enums"]["manifestation_type"]
+          protocol_number?: string
+          response?: string | null
+          status?: Database["public"]["Enums"]["protocol_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +235,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      manifestation_type: "denuncia" | "sugestao" | "elogio" | "reclamacao"
+      protocol_status: "aberto" | "em_andamento" | "encerrado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +363,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      manifestation_type: ["denuncia", "sugestao", "elogio", "reclamacao"],
+      protocol_status: ["aberto", "em_andamento", "encerrado"],
+    },
   },
 } as const
