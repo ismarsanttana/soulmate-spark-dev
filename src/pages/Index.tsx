@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import afogadosImage from "@/assets/afogados_da_ingazeira_pe.png";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -292,6 +293,15 @@ const Index = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Imagem da Cidade */}
+      <div className="mb-5 overflow-hidden rounded-2xl shadow-md card-hover">
+        <img 
+          src={afogadosImage} 
+          alt="Afogados da Ingazeira - PE" 
+          className="w-full h-auto"
+        />
       </div>
 
       {/* Notícias */}
