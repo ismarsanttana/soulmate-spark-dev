@@ -16,6 +16,7 @@ import Iptu from "./pages/Iptu";
 import AgendarConsulta from "./pages/AgendarConsulta";
 import IluminacaoPublica from "./pages/IluminacaoPublica";
 import Ouvidoria from "./pages/Ouvidoria";
+import Notificacoes from "./pages/Notificacoes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,10 +43,10 @@ const App = () => (
           <Route path="/agendar-consulta" element={<AgendarConsulta />} />
           <Route path="/iluminacao-publica" element={<IluminacaoPublica />} />
           <Route path="/ouvidoria" element={<Ouvidoria />} />
+          <Route path="/notificacoes" element={<Notificacoes />} />
           <Route path="/noticias" element={<Navigate to="/" replace />} />
           <Route path="/noticia/:id" element={<Navigate to="/" replace />} />
           <Route path="/agenda" element={<Navigate to="/" replace />} />
-          <Route path="/notificacoes" element={<Navigate to="/" replace />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
