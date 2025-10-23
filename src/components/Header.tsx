@@ -23,8 +23,8 @@ export const Header = () => {
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-3">
           <img
-            src="https://camalau.pb.gov.br/skins/avancado/template/2025/img/logos/logo.png"
-            alt="Prefeitura de Camalaú"
+            src="https://afogadosdaingazeira.pe.gov.br/img/logo_afogados.png"
+            alt="Prefeitura de Afogados da Ingazeira"
             className="h-12 w-auto bg-white p-1 rounded-lg"
           />
           <div>

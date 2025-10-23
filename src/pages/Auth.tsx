@@ -54,8 +54,8 @@ const Auth = () => {
         <div className="bg-card rounded-2xl p-6 shadow-lg">
           <div className="text-center mb-6">
             <img
-              src="https://camalau.pb.gov.br/skins/avancado/template/2025/img/logos/logo.png"
-              alt="Prefeitura de Camalaú"
+              src="https://afogadosdaingazeira.pe.gov.br/img/logo_afogados.png"
+              alt="Prefeitura de Afogados da Ingazeira"
               className="h-16 w-auto mx-auto mb-4 bg-white p-2 rounded-lg"
             />
             <h1 className="text-2xl font-bold">Conecta Camalaú</h1>
