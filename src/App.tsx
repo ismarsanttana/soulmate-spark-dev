@@ -21,6 +21,9 @@ import Esporte from "./pages/Esporte";
 import Noticias from "./pages/Noticias";
 import NoticiaDetalhes from "./pages/NoticiaDetalhes";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
+import PainelPrefeito from "./pages/PainelPrefeito";
+import PainelSecretario from "./pages/PainelSecretario";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +54,9 @@ const App = () => (
           <Route path="/noticias" element={<Noticias />} />
           <Route path="/noticia/:id" element={<NoticiaDetalhes />} />
           <Route path="/agenda" element={<Navigate to="/" replace />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/painel-prefeito" element={<PainelPrefeito />} />
+          <Route path="/painel-secretario" element={<PainelSecretario />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
