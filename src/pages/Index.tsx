@@ -255,6 +255,16 @@ const Index = () => {
             </div>
             <span className="text-xs font-medium">Iluminação Pública</span>
           </Link>
+
+          <Link
+            to="/esporte"
+            className="service-btn bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-2xl p-3 text-center cursor-pointer card-hover"
+          >
+            <div className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center text-green-600 dark:text-green-400">
+              <i className="fas fa-futbol service-icon"></i>
+            </div>
+            <span className="text-xs font-medium">Esporte</span>
+          </Link>
         </div>
       </div>
 

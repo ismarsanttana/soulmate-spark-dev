@@ -34,6 +34,11 @@ const secretarias: Secretaria[] = [
     slug: "obras",
     title: "Secretaria de Obras e Infraestrutura",
     description: "Acompanhamento de obras, investimentos e cronogramas"
+  },
+  {
+    slug: "esporte",
+    title: "Secretaria de Esporte",
+    description: "Campeonatos, quadras, campos e programas esportivos"
   }
 ];
 
