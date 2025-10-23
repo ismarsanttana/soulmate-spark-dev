@@ -1,6 +1,13 @@
 /**
- * Utilitário de criptografia para dados sensíveis
- * Usa o Web Crypto API para criptografia AES-GCM
+ * DEPRECATED: Este arquivo foi movido para encryption.deprecated.ts
+ * 
+ * SECURITY WARNING: Client-side encryption with hardcoded keys is NOT secure.
+ * The encryption key was exposed in the client-side code, making all encrypted data vulnerable.
+ * 
+ * RECOMMENDATION: Rely on Supabase RLS and server-side encryption for sensitive data.
+ * Do NOT use this encryption library for sensitive data like CPF, phone numbers, etc.
+ * 
+ * This file is kept for reference only and should not be used.
  */
 
 // Chave de criptografia - em produção, isso deveria vir de uma variável de ambiente
@@ -33,8 +40,10 @@ async function getKey(): Promise<CryptoKey> {
 
 /**
  * Criptografa um texto usando AES-GCM
+ * @deprecated Use server-side encryption instead
  */
 export async function encryptData(text: string): Promise<string> {
+  console.warn('DEPRECATED: encryptData() should not be used. Use server-side encryption instead.');
   try {
     const encoder = new TextEncoder();
     const data = encoder.encode(text);
@@ -62,8 +71,10 @@ export async function encryptData(text: string): Promise<string> {
 
 /**
  * Descriptografa um texto criptografado com AES-GCM
+ * @deprecated Use server-side decryption instead
  */
 export async function decryptData(encryptedText: string): Promise<string> {
+  console.warn('DEPRECATED: decryptData() should not be used. Use server-side decryption instead.');
   try {
     // Decodifica base64
     const combined = Uint8Array.from(atob(encryptedText), c => c.charCodeAt(0));

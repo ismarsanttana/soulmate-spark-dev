@@ -79,7 +79,8 @@ const PainelSecretarioContent = () => {
   const inProgressProtocols = protocols?.filter((p) => p.status === "em_andamento").length || 0;
   const closedProtocols = protocols?.filter((p) => p.status === "encerrado").length || 0;
 
-  if (!assignment?.secretarias) {
+  // Type guard para verificar se temos os dados completos da secretaria
+  if (!assignment || !('secretarias' in assignment) || !assignment.secretarias) {
     return (
       <Layout>
         <div className="text-center py-12">

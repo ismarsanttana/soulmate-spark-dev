@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { eventSchema, type EventFormData } from "@/lib/validationSchemas";
 
 interface Event {
   id: string;
@@ -48,8 +49,8 @@ export function EventsManagement() {
   });
 
   const createEvent = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase.from("events").insert(data);
+    mutationFn: async (data: EventFormData) => {
+      const { error } = await supabase.from("events").insert([data as any]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -61,8 +62,8 @@ export function EventsManagement() {
   });
 
   const updateEvent = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
-      const { error } = await supabase.from("events").update(data).eq("id", id);
+    mutationFn: async ({ id, data }: { id: string; data: Partial<EventFormData> }) => {
+      const { error } = await supabase.from("events").update(data as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -108,10 +109,23 @@ export function EventsManagement() {
   };
 
   const handleSubmit = () => {
+    // Validar dados antes de submeter
+    const validation = eventSchema.safeParse(formData);
+    
+    if (!validation.success) {
+      const errors = validation.error.errors.map(e => e.message).join(", ");
+      toast({ 
+        title: "Erro de validação", 
+        description: errors,
+        variant: "destructive" 
+      });
+      return;
+    }
+
     if (editingEvent) {
-      updateEvent.mutate({ id: editingEvent.id, data: formData });
+      updateEvent.mutate({ id: editingEvent.id, data: validation.data });
     } else {
-      createEvent.mutate(formData);
+      createEvent.mutate(validation.data);
     }
   };
 

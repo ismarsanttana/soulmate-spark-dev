@@ -11,6 +11,7 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileUpload } from "../FileUpload";
+import { newsSchema, type NewsFormData } from "@/lib/validationSchemas";
 
 interface News {
   id: string;
@@ -50,8 +51,8 @@ export function NewsManagement() {
   });
 
   const createNews = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase.from("news").insert(data);
+    mutationFn: async (data: NewsFormData) => {
+      const { error } = await supabase.from("news").insert([data as any]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -63,8 +64,8 @@ export function NewsManagement() {
   });
 
   const updateNews = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
-      const { error } = await supabase.from("news").update(data).eq("id", id);
+    mutationFn: async ({ id, data }: { id: string; data: Partial<NewsFormData> }) => {
+      const { error } = await supabase.from("news").update(data as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -110,10 +111,23 @@ export function NewsManagement() {
   };
 
   const handleSubmit = () => {
+    // Validar dados antes de submeter
+    const validation = newsSchema.safeParse(formData);
+    
+    if (!validation.success) {
+      const errors = validation.error.errors.map(e => e.message).join(", ");
+      toast({ 
+        title: "Erro de validação", 
+        description: errors,
+        variant: "destructive" 
+      });
+      return;
+    }
+
     if (editingNews) {
-      updateNews.mutate({ id: editingNews.id, data: formData });
+      updateNews.mutate({ id: editingNews.id, data: validation.data });
     } else {
-      createNews.mutate(formData);
+      createNews.mutate(validation.data);
     }
   };
 

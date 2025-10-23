@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { User } from "@supabase/supabase-js";
+import { ombudsmanSchema, type OmbudsmanFormData } from "@/lib/validationSchemas";
 
 const Ouvidoria = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -79,7 +80,7 @@ const Ouvidoria = () => {
 
   // Create new protocol mutation
   const createProtocolMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+    mutationFn: async (data: OmbudsmanFormData) => {
       // Generate protocol number
       const protocolNumber = `${new Date().getFullYear()}-${String(
         Math.floor(Math.random() * 999999)
@@ -142,15 +143,21 @@ const Ouvidoria = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.manifestationType || !formData.category || !formData.description) {
+    
+    // Validar dados usando Zod
+    const validation = ombudsmanSchema.safeParse(formData);
+    
+    if (!validation.success) {
+      const errors = validation.error.errors.map(e => e.message).join(", ");
       toast({
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos obrigatórios.",
+        title: "Erro de validação",
+        description: errors,
         variant: "destructive",
       });
       return;
     }
-    createProtocolMutation.mutate(formData);
+    
+    createProtocolMutation.mutate(validation.data);
   };
 
   const getStatusColor = (status: string) => {
