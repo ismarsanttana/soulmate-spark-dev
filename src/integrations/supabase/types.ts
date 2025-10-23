@@ -59,6 +59,36 @@ export type Database = {
         }
         Relationships: []
       }
+      appointments_audit: {
+        Row: {
+          accessed_at: string
+          action: string
+          appointment_id: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          accessed_at?: string
+          action: string
+          appointment_id: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          accessed_at?: string
+          action?: string
+          appointment_id?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           created_at: string

@@ -116,7 +116,7 @@ const Profile = () => {
     }
   }, [loadingUser, navigate, user]);
 
-  const { data: profile, isLoading: profileLoading } = useQuery<
+  const { data: profile, isLoading: profileLoading, error: profileError } = useQuery<
     ProfileRow | null
   >({
     queryKey: ["profile", user?.id],
@@ -132,13 +132,16 @@ const Profile = () => {
     },
     enabled: !!user,
     retry: 1,
-    onError: (error: unknown) => {
-      console.error(error);
-      toast.error("NÃ£o foi possÃ­vel carregar os dados do perfil.");
-    },
   });
 
-  const { data: protocols = [], isLoading: protocolsLoading } = useQuery<
+  useEffect(() => {
+    if (profileError) {
+      console.error(profileError);
+      toast.error("Não foi possível carregar os dados do perfil.");
+    }
+  }, [profileError]);
+
+  const { data: protocols = [], isLoading: protocolsLoading, error: protocolsError } = useQuery<
     ProtocolRow[]
   >({
     queryKey: ["protocols", user?.id],
@@ -155,11 +158,14 @@ const Profile = () => {
     },
     enabled: !!user,
     retry: 1,
-    onError: (error: unknown) => {
-      console.error(error);
-      toast.error("NÃ£o foi possÃ­vel carregar seus protocolos.");
-    },
   });
+
+  useEffect(() => {
+    if (protocolsError) {
+      console.error(protocolsError);
+      toast.error("Não foi possível carregar seus protocolos.");
+    }
+  }, [protocolsError]);
 
   useEffect(() => {
     if (!user) return;
