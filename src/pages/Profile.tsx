@@ -1,5 +1,5 @@
-import { Layout } from "@/components/Layout";
-import { useEffect, useMemo, useState } from "react";
+﻿import { Layout } from "@/components/Layout";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -29,7 +29,7 @@ const protocolStatusBadge: Record<
   { label: string; badgeClass: string; cardClass: string }
 > = {
   aberto: {
-    label: "Em análise",
+    label: "Em anÃ¡lise",
     badgeClass:
       "px-3 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
     cardClass: "bg-gray-50 dark:bg-gray-900",
@@ -41,7 +41,7 @@ const protocolStatusBadge: Record<
     cardClass: "bg-white dark:bg-gray-900",
   },
   encerrado: {
-    label: "Concluído",
+    label: "ConcluÃ­do",
     badgeClass:
       "px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
     cardClass: "bg-white dark:bg-gray-900",
@@ -70,6 +70,9 @@ const Profile = () => {
   const [loadingUser, setLoadingUser] = useState(true);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [assistantMessage, setAssistantMessage] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [initialAvatarUrl, setInitialAvatarUrl] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [formState, setFormState] = useState<FormState>({
     fullName: "",
     email: "",
@@ -87,6 +90,7 @@ const Profile = () => {
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [updatingPassword, setUpdatingPassword] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const navigate = useNavigate();
 
@@ -130,7 +134,7 @@ const Profile = () => {
     retry: 1,
     onError: (error: unknown) => {
       console.error(error);
-      toast.error("Não foi possível carregar os dados do perfil.");
+      toast.error("NÃ£o foi possÃ­vel carregar os dados do perfil.");
     },
   });
 
@@ -153,7 +157,7 @@ const Profile = () => {
     retry: 1,
     onError: (error: unknown) => {
       console.error(error);
-      toast.error("Não foi possível carregar seus protocolos.");
+      toast.error("NÃ£o foi possÃ­vel carregar seus protocolos.");
     },
   });
 
@@ -165,6 +169,11 @@ const Profile = () => {
       (user.user_metadata?.full_name as string | undefined) ||
       user.email?.split("@")[0] ||
       "";
+
+    const derivedAvatarUrl =
+      profile?.avatar_url ||
+      (user.user_metadata?.avatar_url as string | undefined) ||
+      null;
 
     const nextFormState: FormState = {
       fullName: derivedFullName,
@@ -180,6 +189,8 @@ const Profile = () => {
 
     setFormState(nextFormState);
     setInitialFormState(nextFormState);
+    setAvatarUrl(derivedAvatarUrl);
+    setInitialAvatarUrl(derivedAvatarUrl);
   }, [profile, user]);
 
   useEffect(() => {
@@ -193,9 +204,9 @@ const Profile = () => {
   }, []);
 
   const greetingName = useMemo(() => {
-    if (!formState.fullName) return "Olá!";
+    if (!formState.fullName) return "OlÃ¡!";
     const firstName = formState.fullName.split(" ")[0] || "";
-    return `Olá, ${firstName}!`;
+    return `OlÃ¡, ${firstName}!`;
   }, [formState.fullName]);
 
   const memberSinceLabel = useMemo(() => {
@@ -227,7 +238,7 @@ const Profile = () => {
   const protocolSuggestions = useMemo(() => {
     if (!protocols.length) {
       return [
-        "Como atualizar meu endereço?",
+        "Como atualizar meu endereÃ§o?",
         "Quero falar sobre um protocolo encerrado",
         "Quais documentos preciso para um novo protocolo?",
       ];
@@ -235,6 +246,82 @@ const Profile = () => {
 
     return protocols.map((protocol) => `Status do protocolo ${protocol.protocol_number}`);
   }, [protocols]);
+
+  const handleAvatarSelect = () => {
+    if (avatarUploading) return;
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (!user) {
+      toast.error("Faca login para atualizar sua foto.");
+      return;
+    }
+
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem valido.");
+      event.target.value = "";
+      return;
+    }
+
+    const MAX_AVATAR_SIZE = 3 * 1024 * 1024;
+    if (file.size > MAX_AVATAR_SIZE) {
+      toast.error("A imagem deve ter no maximo 3MB.");
+      event.target.value = "";
+      return;
+    }
+
+    setAvatarUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, {
+          upsert: true,
+          cacheControl: "3600",
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const publicUrl = publicData.publicUrl;
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+
+      if (profileError) throw profileError;
+
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: { avatar_url: publicUrl },
+      });
+
+      if (metadataError) throw metadataError;
+
+      setAvatarUrl(publicUrl);
+      setInitialAvatarUrl(publicUrl);
+      toast.success("Foto atualizada com sucesso.");
+    } catch (error: unknown) {
+      console.error(error);
+      toast.error("NÃ£o foi possÃ­vel atualizar a foto do perfil.");
+    } finally {
+      setAvatarUploading(false);
+      if (event.target) {
+        event.target.value = "";
+      }
+    }
+  };
 
   const handleInputChange =
     (field: keyof FormState) =>
@@ -277,6 +364,7 @@ const Profile = () => {
           id: user.id,
           full_name: formState.fullName,
           email: formState.email || null,
+          avatar_url: avatarUrl,
         },
         { onConflict: "id" }
       );
@@ -289,16 +377,18 @@ const Profile = () => {
           phone: formState.phone || null,
           address: formState.address || null,
           cpf: formState.cpf || null,
+          avatar_url: avatarUrl,
         },
       });
 
       if (metadataError) throw metadataError;
 
       setInitialFormState(formState);
+      setInitialAvatarUrl(avatarUrl);
       toast.success("Dados pessoais atualizados com sucesso.");
     } catch (error: unknown) {
       console.error(error);
-      toast.error("Não foi possível salvar as alterações.");
+      toast.error("NÃ£o foi possÃ­vel salvar as alteraÃ§Ãµes.");
     } finally {
       setSavingProfile(false);
     }
@@ -308,6 +398,7 @@ const Profile = () => {
     if (initialFormState) {
       setFormState(initialFormState);
     }
+    setAvatarUrl(initialAvatarUrl);
   };
 
   const handlePasswordSubmit = async (
@@ -317,7 +408,7 @@ const Profile = () => {
     if (!user) return;
 
     if (securityForm.newPassword !== securityForm.confirmPassword) {
-      toast.error("As senhas não coincidem.");
+      toast.error("As senhas nÃ£o coincidem.");
       return;
     }
 
@@ -329,7 +420,7 @@ const Profile = () => {
     setUpdatingPassword(true);
     try {
       if (!user.email) {
-        toast.error("Não foi possível validar o usuário.");
+        toast.error("NÃ£o foi possÃ­vel validar o usuÃ¡rio.");
         return;
       }
 
@@ -360,7 +451,7 @@ const Profile = () => {
       });
     } catch (error: unknown) {
       console.error(error);
-      toast.error("Não foi possível atualizar a senha.");
+      toast.error("NÃ£o foi possÃ­vel atualizar a senha.");
     } finally {
       setUpdatingPassword(false);
     }
@@ -387,13 +478,28 @@ const Profile = () => {
       <div className="bg-gradient-to-br from-primary to-blue-700 text-white rounded-2xl p-5 shadow-lg mb-5">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
-              <span className="text-lg font-semibold">
-                {getInitials(formState.fullName)}
-              </span>
+            <div className="relative">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={`Foto de ${formState.fullName || "Perfil do cidadao"}`}
+                  className="h-12 w-12 rounded-xl object-cover border border-white/40 bg-white/10"
+                />
+              ) : (
+                <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                  <span className="text-lg font-semibold">
+                    {getInitials(formState.fullName)}
+                  </span>
+                </div>
+              )}
+              {avatarUploading && (
+                <div className="absolute inset-0 rounded-xl bg-black/40 flex items-center justify-center text-xs font-semibold">
+                  <i className="fas fa-spinner fa-spin"></i>
+                </div>
+              )}
             </div>
             <div>
-              <p className="text-xs opacity-80 mb-1">Perfil do cidadão</p>
+              <p className="text-xs opacity-80 mb-1">Perfil do cidadao</p>
               <h1 className="text-xl font-bold">{greetingName}</h1>
               <div className="flex flex-wrap gap-2 mt-2 text-xs">
                 <span className="px-3 py-1 rounded-full bg-white/20">
@@ -410,20 +516,20 @@ const Profile = () => {
           <Link
             to="/"
             className="bg-white/15 p-2 rounded-xl hover:bg-white/20 transition"
-            aria-label="Voltar para início"
+            aria-label="Voltar para inÃ­cio"
           >
             <i className="fas fa-arrow-left text-white"></i>
           </Link>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3 text-xs">
           <div className="bg-white/15 rounded-xl p-3">
-            <span className="block opacity-75">Solicitações em andamento</span>
+            <span className="block opacity-75">SolicitaÃ§Ãµes em andamento</span>
             <strong className="text-lg">
               {String(inProgressProtocols).padStart(2, "0")}
             </strong>
           </div>
           <div className="bg-white/15 rounded-xl p-3">
-            <span className="block opacity-75">Protocolos concluídos</span>
+            <span className="block opacity-75">Protocolos concluÃ­dos</span>
             <strong className="text-lg">
               {String(closedProtocols).padStart(2, "0")}
             </strong>
@@ -437,7 +543,7 @@ const Profile = () => {
             <div>
               <h2 className="font-semibold text-lg">Dados pessoais</h2>
               <p className="text-xs text-muted-foreground">
-                Mantenha suas informações sempre atualizadas.
+                Mantenha suas informaÃ§Ãµes sempre atualizadas.
               </p>
             </div>
             <span className="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-primary/10 text-primary">
@@ -448,6 +554,40 @@ const Profile = () => {
             </span>
           </div>
           <form className="space-y-3 text-sm" onSubmit={handleProfileSubmit}>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="relative h-16 w-16">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt="Foto do cidadao"
+                    className="h-16 w-16 rounded-2xl object-cover border border-border bg-muted/40"
+                  />
+                ) : (
+                  <div className="h-16 w-16 rounded-2xl bg-muted/60 dark:bg-muted/20 flex items-center justify-center text-lg font-semibold text-muted-foreground">
+                    {getInitials(formState.fullName)}
+                  </div>
+                )}
+                {avatarUploading && (
+                  <div className="absolute inset-0 rounded-2xl bg-black/40 flex items-center justify-center text-white text-xs">
+                    <i className="fas fa-spinner fa-spin"></i>
+                  </div>
+                )}
+              </div>
+              <div className="text-xs space-y-2">
+                <button
+                  type="button"
+                  onClick={handleAvatarSelect}
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 py-2 font-semibold transition disabled:opacity-70"
+                  disabled={avatarUploading}
+                >
+                  <i className="fas fa-camera"></i>
+                  {avatarUploading ? "Enviando..." : "Atualizar foto"}
+                </button>
+                <p className="text-muted-foreground">
+                  JPG ou PNG com at&eacute; 3MB. A foto aparece no seu painel.
+                </p>
+              </div>
+            </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wide">
                 Nome completo
@@ -501,14 +641,14 @@ const Profile = () => {
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wide">
-                Endereço
+                EndereÃ§o
               </label>
               <input
                 type="text"
                 value={formState.address}
                 onChange={handleInputChange("address")}
                 className="w-full rounded-xl border border-border px-4 py-3 bg-muted/40 dark:bg-muted/20 focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Rua, número, bairro"
+                placeholder="Rua, nÃºmero, bairro"
               />
             </div>
             <div className="flex gap-2">
@@ -517,7 +657,7 @@ const Profile = () => {
                 disabled={savingProfile}
                 className="flex-1 bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-semibold transition disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {savingProfile ? "Salvando..." : "Salvar alterações"}
+                {savingProfile ? "Salvando..." : "Salvar alteraÃ§Ãµes"}
               </button>
               <button
                 type="button"
@@ -533,13 +673,13 @@ const Profile = () => {
         <section className="bg-card dark:bg-card rounded-2xl p-5 shadow-sm mb-5 card-hover border border-border">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-semibold text-lg">Segurança da conta</h2>
+              <h2 className="font-semibold text-lg">SeguranÃ§a da conta</h2>
               <p className="text-xs text-muted-foreground">
                 Altere sua senha e revise os acessos recentes.
               </p>
             </div>
             <span className="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300">
-              <i className="fas fa-shield-alt"></i> Autenticação ativa
+              <i className="fas fa-shield-alt"></i> AutenticaÃ§Ã£o ativa
             </span>
           </div>
           <form className="space-y-3 text-sm" onSubmit={handlePasswordSubmit}>
@@ -598,7 +738,7 @@ const Profile = () => {
               {!cardLoading && protocols.length === 0 && (
                 <li className="flex items-center gap-2">
                   <i className="fas fa-info-circle text-primary"></i>
-                  Nenhuma atividade registrada até o momento.
+                  Nenhuma atividade registrada atÃ© o momento.
                 </li>
               )}
               {!cardLoading &&
@@ -617,7 +757,7 @@ const Profile = () => {
         <section className="bg-card dark:bg-card rounded-2xl p-5 shadow-sm card-hover mb-5 border border-border">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-semibold text-lg">Status das solicitações</h2>
+              <h2 className="font-semibold text-lg">Status das solicitaÃ§Ãµes</h2>
               <p className="text-xs text-muted-foreground">
                 Acompanhe o andamento dos seus protocolos.
               </p>
@@ -626,7 +766,7 @@ const Profile = () => {
               to="/ouvidoria#acompanhar"
               className="text-xs text-primary font-semibold"
             >
-              Ver histórico completo
+              Ver histÃ³rico completo
             </Link>
           </div>
           <div className="space-y-4">
@@ -639,8 +779,8 @@ const Profile = () => {
 
             {!cardLoading && protocols.length === 0 && (
               <div className="p-4 rounded-2xl border border-dashed border-border text-sm text-muted-foreground">
-                Você ainda não possui protocolos. Inicie uma solicitação na
-                área de Ouvidoria.
+                VocÃª ainda nÃ£o possui protocolos. Inicie uma solicitaÃ§Ã£o na
+                Ã¡rea de Ouvidoria.
               </div>
             )}
 
@@ -664,13 +804,13 @@ const Profile = () => {
                       {protocol.category}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Aberto em {formatDate(protocol.created_at)} •{" "}
+                      Aberto em {formatDate(protocol.created_at)} â€¢{" "}
                       {protocol.manifestation_type.replace("_", " ")}
                     </p>
                     <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                       <i className="fas fa-comments"></i>
                       {protocol.response
-                        ? `Última atualização em ${formatDate(
+                        ? `Ãšltima atualizaÃ§Ã£o em ${formatDate(
                             protocol.updated_at
                           )}`
                         : "Aguardando retorno da equipe."}
@@ -707,11 +847,11 @@ const Profile = () => {
           <div className="p-4 space-y-3 text-xs text-muted-foreground">
             <div className="rounded-xl bg-primary/10 p-3">
               <p className="font-semibold text-primary mb-1">
-                Sugestões rápidas
+                SugestÃµes rÃ¡pidas
               </p>
               <ul className="space-y-1">
                 {protocolSuggestions.map((suggestion) => (
-                  <li key={suggestion}>• {suggestion}</li>
+                  <li key={suggestion}>â€¢ {suggestion}</li>
                 ))}
               </ul>
             </div>
@@ -748,8 +888,20 @@ const Profile = () => {
           <i className="fas fa-comments"></i>
         </button>
       </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleAvatarChange}
+      />
     </Layout>
   );
 };
 
 export default Profile;
+
+
+
+
+
