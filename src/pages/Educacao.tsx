@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/Layout";
 import { Header } from "@/components/Header";
-import { MessageCircle, X, Send } from "lucide-react";
+import { MessageCircle, X, Send, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
