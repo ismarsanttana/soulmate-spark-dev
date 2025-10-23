@@ -11,8 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-type UserRole = "admin" | "prefeito" | "secretario";
-
 export function UsersRolesManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -27,8 +25,17 @@ export function UsersRolesManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, full_name, email, cpf")
         .order("full_name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: availableRoles } = useQuery({
+    queryKey: ["available-roles"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("roles").select("*").eq("is_active", true);
       if (error) throw error;
       return data;
     },
@@ -37,9 +44,7 @@ export function UsersRolesManagement() {
   const { data: userRoles } = useQuery({
     queryKey: ["all-user-roles"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("*");
+      const { data, error } = await supabase.from("user_roles").select("*");
       if (error) throw error;
       return data;
     },
@@ -48,11 +53,7 @@ export function UsersRolesManagement() {
   const { data: secretarias } = useQuery({
     queryKey: ["secretarias"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("secretarias")
-        .select("*")
-        .eq("is_active", true)
-        .order("name");
+      const { data, error } = await supabase.from("secretarias").select("*").eq("is_active", true).order("name");
       if (error) throw error;
       return data;
     },
@@ -61,23 +62,22 @@ export function UsersRolesManagement() {
   const { data: secretaryAssignments } = useQuery({
     queryKey: ["secretary-assignments"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("secretary_assignments")
-        .select("*");
+      const { data, error } = await supabase.from("secretary_assignments").select("*");
       if (error) throw error;
       return data;
     },
   });
 
   const addRole = useMutation({
-    mutationFn: async ({ userId, role, secretariaSlug }: { userId: string; role: string; secretariaSlug?: string }) => {
+    mutationFn: async ({ userId, roleId, secretariaSlug }: { userId: string; roleId: string; secretariaSlug?: string }) => {
+      const role = availableRoles?.find(r => r.id === roleId);
       const { error: roleError } = await supabase
         .from("user_roles")
-        .insert({ user_id: userId, role: role as UserRole });
+        .insert({ user_id: userId, role_id: roleId, role: role?.role_name.toLowerCase() as any });
 
       if (roleError) throw roleError;
 
-      if (role === "secretario" && secretariaSlug) {
+      if (role?.role_name.toLowerCase() === "secretario" && secretariaSlug) {
         const { error: assignmentError } = await supabase
           .from("secretary_assignments")
           .insert({ user_id: userId, secretaria_slug: secretariaSlug });
@@ -100,20 +100,12 @@ export function UsersRolesManagement() {
   });
 
   const removeRole = useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: UserRole }) => {
-      if (role === "secretario") {
-        await supabase
-          .from("secretary_assignments")
-          .delete()
-          .eq("user_id", userId);
+    mutationFn: async (userRoleId: string) => {
+      const userRole = userRoles?.find(ur => ur.id === userRoleId);
+      if (userRole?.role === "secretario") {
+        await supabase.from("secretary_assignments").delete().eq("user_id", userRole.user_id);
       }
-
-      const { error } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", userId)
-        .eq("role", role);
-
+      const { error } = await supabase.from("user_roles").delete().eq("id", userRoleId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -126,73 +118,44 @@ export function UsersRolesManagement() {
     },
   });
 
-  const updateAssignment = useMutation({
-    mutationFn: async ({ userId, secretariaSlug }: { userId: string; secretariaSlug: string }) => {
-      await supabase
-        .from("secretary_assignments")
-        .delete()
-        .eq("user_id", userId);
-
-      const { error } = await supabase
-        .from("secretary_assignments")
-        .insert({ user_id: userId, secretaria_slug: secretariaSlug });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["secretary-assignments"] });
-      toast({ title: "Sucesso!", description: "Secretaria atualizada." });
-    },
-    onError: () => {
-      toast({ title: "Erro", description: "Erro ao atualizar.", variant: "destructive" });
-    },
-  });
-
-  const getUserRoles = (userId: string): UserRole[] => {
-    return userRoles?.filter((ur: any) => ur.user_id === userId).map((ur: any) => ur.role as UserRole) || [];
+  const getUserRoles = (userId: string) => {
+    const userRoleIds = userRoles?.filter(ur => ur.user_id === userId) || [];
+    return userRoleIds.map(ur => {
+      const role = availableRoles?.find(r => r.id === ur.role_id);
+      return { ...ur, roleName: role?.role_name || ur.role || "Unknown", roleId: role?.id };
+    });
   };
 
   const getUserSecretaria = (userId: string) => {
-    const assignment = secretaryAssignments?.find((sa: any) => sa.user_id === userId);
+    const assignment = secretaryAssignments?.find(sa => sa.user_id === userId);
     if (!assignment) return null;
-    return secretarias?.find((s: any) => s.slug === assignment.secretaria_slug);
+    return secretarias?.find(s => s.slug === assignment.secretaria_slug);
   };
 
-  const filteredProfiles = profiles?.filter((profile: any) =>
-    profile.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProfiles = profiles?.filter(p =>
+    p.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.cpf?.includes(searchTerm.replace(/\D/g, ""))
   );
 
-  const roleColors: Record<UserRole, string> = {
+  const roleColors: Record<string, string> = {
     admin: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
     prefeito: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100",
     secretario: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
-  };
-
-  const roleLabels: Record<UserRole, string> = {
-    admin: "Admin",
-    prefeito: "Prefeito",
-    secretario: "Secretário",
+    professor: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
+    aluno: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
+    pai: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100",
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Gerenciamento de Usuários e Roles</h2>
-          <p className="text-muted-foreground">Gerencie permissões de acesso dos usuários</p>
-        </div>
-      </div>
-
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
             Usuários do Sistema
           </CardTitle>
-          <CardDescription>
-            Total de usuários: {profiles?.length || 0}
-          </CardDescription>
+          <CardDescription>Total de usuários: {profiles?.length || 0}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -200,7 +163,7 @@ export function UsersRolesManagement() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nome ou email..."
+                  placeholder="Buscar por nome, email ou CPF..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
@@ -214,6 +177,7 @@ export function UsersRolesManagement() {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>CPF</TableHead>
                     <TableHead>Roles</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
@@ -221,30 +185,22 @@ export function UsersRolesManagement() {
                 <TableBody>
                   {filteredProfiles?.map((profile: any) => {
                     const roles = getUserRoles(profile.id);
-                    const hasSecretarioRole = roles.includes("secretario");
+                    const hasSecretarioRole = roles.some(r => r.role === "secretario");
                     const secretaria = getUserSecretaria(profile.id);
                     
                     return (
                       <TableRow key={profile.id}>
                         <TableCell className="font-medium">{profile.full_name}</TableCell>
                         <TableCell>{profile.email}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{profile.cpf || "-"}</TableCell>
                         <TableCell>
                           <div className="flex gap-1 flex-wrap">
                             {roles.length > 0 ? (
-                              roles.map((role) => (
-                                <Badge
-                                  key={role}
-                                  variant="secondary"
-                                  className={roleColors[role]}
-                                >
-                                  {roleLabels[role]}
-                                  {role === "secretario" && secretaria && ` - ${secretaria.name}`}
-                                  <button
-                                    onClick={() => removeRole.mutate({ userId: profile.id, role })}
-                                    className="ml-1 hover:bg-black/10 rounded-full"
-                                  >
-                                    ×
-                                  </button>
+                              roles.map((userRole) => (
+                                <Badge key={userRole.id} variant="secondary" className={roleColors[userRole.roleName.toLowerCase()] || "bg-gray-100"}>
+                                  {userRole.roleName}
+                                  {userRole.role === "secretario" && secretaria && ` - ${secretaria.name}`}
+                                  <button onClick={() => removeRole.mutate(userRole.id)} className="ml-1 hover:bg-black/10 rounded-full">×</button>
                                 </Badge>
                               ))
                             ) : (
@@ -253,127 +209,59 @@ export function UsersRolesManagement() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex gap-2 justify-end">
-                            <Dialog 
-                              open={dialogOpen && selectedUserId === profile.id} 
-                              onOpenChange={(open) => {
-                                setDialogOpen(open);
-                                if (!open) {
-                                  setSelectedUserId(null);
-                                  setSelectedRole("");
-                                  setSelectedSecretaria("");
-                                }
-                              }}
-                            >
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setSelectedUserId(profile.id)}
-                                >
-                                  <Shield className="h-4 w-4 mr-2" />
-                                  Adicionar Role
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Adicionar Role</DialogTitle>
-                                  <DialogDescription>
-                                    Adicione uma role para {profile.full_name}
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div className="space-y-4">
-                                  <Select value={selectedRole} onValueChange={setSelectedRole}>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Selecione uma role" />
-                                    </SelectTrigger>
+                          <Dialog open={dialogOpen && selectedUserId === profile.id} onOpenChange={(open) => {
+                            setDialogOpen(open);
+                            if (!open) { setSelectedUserId(null); setSelectedRole(""); setSelectedSecretaria(""); }
+                          }}>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm" onClick={() => setSelectedUserId(profile.id)}>
+                                <Shield className="h-4 w-4 mr-2" />
+                                Adicionar Role
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Adicionar Role</DialogTitle>
+                                <DialogDescription>Adicione uma role para {profile.full_name}</DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <Select value={selectedRole} onValueChange={setSelectedRole}>
+                                  <SelectTrigger><SelectValue placeholder="Selecione uma role" /></SelectTrigger>
+                                  <SelectContent>
+                                    {availableRoles?.map((role) => (
+                                      <SelectItem key={role.id} value={role.id}>{role.role_name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+
+                                {availableRoles?.find(r => r.id === selectedRole)?.role_name.toLowerCase() === "secretario" && (
+                                  <Select value={selectedSecretaria} onValueChange={setSelectedSecretaria}>
+                                    <SelectTrigger><SelectValue placeholder="Selecione uma secretaria" /></SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="admin">Admin</SelectItem>
-                                      <SelectItem value="prefeito">Prefeito</SelectItem>
-                                      <SelectItem value="secretario">Secretário</SelectItem>
+                                      {secretarias?.map((sec: any) => (
+                                        <SelectItem key={sec.id} value={sec.slug}>{sec.name}</SelectItem>
+                                      ))}
                                     </SelectContent>
                                   </Select>
+                                )}
 
-                                  {selectedRole === "secretario" && (
-                                    <Select value={selectedSecretaria} onValueChange={setSelectedSecretaria}>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Selecione uma secretaria" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {secretarias?.map((sec: any) => (
-                                          <SelectItem key={sec.id} value={sec.slug}>
-                                            {sec.name}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  )}
-
-                                  <Button
-                                    onClick={() => {
-                                      if (selectedRole === "secretario" && !selectedSecretaria) {
-                                        toast({
-                                          title: "Atenção",
-                                          description: "Selecione uma secretaria.",
-                                          variant: "destructive"
-                                        });
-                                        return;
-                                      }
-                                      addRole.mutate({ 
-                                        userId: profile.id, 
-                                        role: selectedRole,
-                                        secretariaSlug: selectedRole === "secretario" ? selectedSecretaria : undefined
-                                      });
-                                    }}
-                                    disabled={!selectedRole || (selectedRole === "secretario" && !selectedSecretaria)}
-                                    className="w-full"
-                                  >
-                                    Adicionar Role
-                                  </Button>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-
-                            {hasSecretarioRole && (
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button variant="outline" size="sm">
-                                    Alterar Secretaria
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Alterar Secretaria</DialogTitle>
-                                    <DialogDescription>
-                                      Altere a secretaria atribuída a {profile.full_name}
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="space-y-4">
-                                    <Select 
-                                      defaultValue={secretaria?.slug}
-                                      onValueChange={(value) => 
-                                        updateAssignment.mutate({ 
-                                          userId: profile.id, 
-                                          secretariaSlug: value 
-                                        })
-                                      }
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Selecione uma secretaria" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {secretarias?.map((sec: any) => (
-                                          <SelectItem key={sec.id} value={sec.slug}>
-                                            {sec.name}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                            )}
-                          </div>
+                                <Button
+                                  onClick={() => {
+                                    const isSecretario = availableRoles?.find(r => r.id === selectedRole)?.role_name.toLowerCase() === "secretario";
+                                    if (isSecretario && !selectedSecretaria) {
+                                      toast({ title: "Atenção", description: "Selecione uma secretaria.", variant: "destructive" });
+                                      return;
+                                    }
+                                    addRole.mutate({ userId: profile.id, roleId: selectedRole, secretariaSlug: isSecretario ? selectedSecretaria : undefined });
+                                  }}
+                                  disabled={!selectedRole}
+                                  className="w-full"
+                                >
+                                  Adicionar Role
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         </TableCell>
                       </TableRow>
                     );
@@ -384,39 +272,6 @@ export function UsersRolesManagement() {
           </div>
         </CardContent>
       </Card>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Admins</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {userRoles?.filter((ur: any) => ur.role === "admin").length || 0}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Prefeitos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {userRoles?.filter((ur: any) => ur.role === "prefeito").length || 0}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Secretários</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {userRoles?.filter((ur: any) => ur.role === "secretario").length || 0}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }

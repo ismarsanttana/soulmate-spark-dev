@@ -6,6 +6,7 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { VisualCustomization } from "@/components/admin/VisualCustomization";
 import { SecretariasManagement } from "@/components/admin/SecretariasManagement";
 import { UsersRolesManagement } from "@/components/admin/UsersRolesManagement";
+import { UserRelationshipsManagement } from "@/components/admin/UserRelationshipsManagement";
 import { ContentManagement } from "@/components/admin/ContentManagement";
 import { Statistics } from "@/components/admin/Statistics";
 
@@ -20,6 +21,8 @@ const AdminContent = () => {
         return <SecretariasManagement />;
       case "users":
         return <UsersRolesManagement />;
+      case "relationships":
+        return <UserRelationshipsManagement />;
       case "content":
         return <ContentManagement />;
       case "stats":

@@ -24,6 +24,9 @@ import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import PainelPrefeito from "./pages/PainelPrefeito";
 import PainelSecretario from "./pages/PainelSecretario";
+import PainelProfessor from "./pages/PainelProfessor";
+import PainelAluno from "./pages/PainelAluno";
+import PainelPais from "./pages/PainelPais";
 import SecretariaDetalhes from "./pages/SecretariaDetalhes";
 import SecretariasList from "./pages/SecretariasList";
 
@@ -67,6 +70,9 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/painel-prefeito" element={<PainelPrefeito />} />
           <Route path="/painel-secretario" element={<PainelSecretario />} />
+          <Route path="/painel-professor" element={<PainelProfessor />} />
+          <Route path="/painel-aluno" element={<PainelAluno />} />
+          <Route path="/painel-pais" element={<PainelPais />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
