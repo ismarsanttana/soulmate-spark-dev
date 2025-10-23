@@ -290,6 +290,54 @@ export type Database = {
         }
         Relationships: []
       }
+      secretarias: {
+        Row: {
+          address: string | null
+          business_hours: string | null
+          color: string
+          created_at: string
+          description: string | null
+          email: string | null
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          business_hours?: string | null
+          color?: string
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          business_hours?: string | null
+          color?: string
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       secretary_assignments: {
         Row: {
           assigned_by: string | null
