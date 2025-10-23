@@ -239,7 +239,21 @@ const Profile = () => {
   const handleInputChange =
     (field: keyof FormState) =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
+      let { value } = event.target;
+
+      if (field === "cpf") {
+        const digits = value.replace(/\D/g, "").slice(0, 11);
+        if (digits.length <= 3) {
+          value = digits;
+        } else if (digits.length <= 6) {
+          value = `${digits.slice(0, 3)}.${digits.slice(3)}`;
+        } else if (digits.length <= 9) {
+          value = `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+        } else {
+          value = `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+        }
+      }
+
       setFormState((previous) => ({ ...previous, [field]: value }));
     };
 
@@ -469,6 +483,19 @@ const Profile = () => {
                   onChange={handleInputChange("phone")}
                   className="w-full rounded-xl border border-border px-4 py-3 bg-muted/40 dark:bg-muted/20 focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="(00) 00000-0000"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wide">
+                  CPF
+                </label>
+                <input
+                  type="text"
+                  value={formState.cpf}
+                  onChange={handleInputChange("cpf")}
+                  className="w-full rounded-xl border border-border px-4 py-3 bg-muted/40 dark:bg-muted/20 focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="000.000.000-00"
+                  inputMode="numeric"
                 />
               </div>
             </div>
