@@ -133,6 +133,118 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_banners: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          display_type: string
+          end_date: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          link: string | null
+          secretaria_slug: string | null
+          start_date: string
+          target_audience: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_type?: string
+          end_date?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean
+          link?: string | null
+          secretaria_slug?: string | null
+          start_date?: string
+          target_audience?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_type?: string
+          end_date?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          link?: string | null
+          secretaria_slug?: string | null
+          start_date?: string
+          target_audience?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_banners_secretaria_slug_fkey"
+            columns: ["secretaria_slug"]
+            isOneToOne: false
+            referencedRelation: "secretarias"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      city_agenda: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          event_date: string
+          id: string
+          image_url: string | null
+          location: string | null
+          secretaria_slug: string | null
+          status: Database["public"]["Enums"]["content_status"] | null
+          title: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          event_date: string
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          secretaria_slug?: string | null
+          status?: Database["public"]["Enums"]["content_status"] | null
+          title: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          event_date?: string
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          secretaria_slug?: string | null
+          status?: Database["public"]["Enums"]["content_status"] | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "city_agenda_secretaria_slug_fkey"
+            columns: ["secretaria_slug"]
+            isOneToOne: false
+            referencedRelation: "secretarias"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string
@@ -165,6 +277,100 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      gallery: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          image_url: string
+          secretaria_slug: string | null
+          title: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url: string
+          secretaria_slug?: string | null
+          title: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string
+          secretaria_slug?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_secretaria_slug_fkey"
+            columns: ["secretaria_slug"]
+            isOneToOne: false
+            referencedRelation: "secretarias"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      live_streams: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ended_at: string | null
+          id: string
+          scheduled_at: string
+          secretaria_slug: string | null
+          started_at: string | null
+          status: string
+          stream_url: string
+          thumbnail_url: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ended_at?: string | null
+          id?: string
+          scheduled_at: string
+          secretaria_slug?: string | null
+          started_at?: string | null
+          status?: string
+          stream_url: string
+          thumbnail_url?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ended_at?: string | null
+          id?: string
+          scheduled_at?: string
+          secretaria_slug?: string | null
+          started_at?: string | null
+          status?: string
+          stream_url?: string
+          thumbnail_url?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_streams_secretaria_slug_fkey"
+            columns: ["secretaria_slug"]
+            isOneToOne: false
+            referencedRelation: "secretarias"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       news: {
         Row: {
@@ -208,7 +414,10 @@ export type Database = {
           id: string
           link: string | null
           message: string
+          notification_type: string | null
           read: boolean
+          sent_by: string | null
+          target_audience: Json | null
           title: string
           type: string
           user_id: string
@@ -218,7 +427,10 @@ export type Database = {
           id?: string
           link?: string | null
           message: string
+          notification_type?: string | null
           read?: boolean
+          sent_by?: string | null
+          target_audience?: Json | null
           title: string
           type: string
           user_id: string
@@ -228,7 +440,10 @@ export type Database = {
           id?: string
           link?: string | null
           message?: string
+          notification_type?: string | null
           read?: boolean
+          sent_by?: string | null
+          target_audience?: Json | null
           title?: string
           type?: string
           user_id?: string
@@ -280,29 +495,91 @@ export type Database = {
         }
         Relationships: []
       }
+      podcasts: {
+        Row: {
+          audio_url: string
+          category: string | null
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration: number | null
+          id: string
+          published_at: string
+          secretaria_slug: string | null
+          status: Database["public"]["Enums"]["content_status"] | null
+          title: string
+        }
+        Insert: {
+          audio_url: string
+          category?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration?: number | null
+          id?: string
+          published_at?: string
+          secretaria_slug?: string | null
+          status?: Database["public"]["Enums"]["content_status"] | null
+          title: string
+        }
+        Update: {
+          audio_url?: string
+          category?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration?: number | null
+          id?: string
+          published_at?: string
+          secretaria_slug?: string | null
+          status?: Database["public"]["Enums"]["content_status"] | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "podcasts_secretaria_slug_fkey"
+            columns: ["secretaria_slug"]
+            isOneToOne: false
+            referencedRelation: "secretarias"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          birth_date: string | null
           created_at: string
           email: string | null
           full_name: string
+          gender: string | null
           id: string
+          lgbtqiapn: boolean | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string
           email?: string | null
           full_name: string
+          gender?: string | null
           id: string
+          lgbtqiapn?: boolean | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string
           email?: string | null
           full_name?: string
+          gender?: string | null
           id?: string
+          lgbtqiapn?: boolean | null
           updated_at?: string
         }
         Relationships: []
@@ -378,6 +655,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      stories: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          duration: number
+          expires_at: string
+          id: string
+          link: string | null
+          media_type: string
+          media_url: string
+          secretaria_slug: string | null
+          status: Database["public"]["Enums"]["content_status"] | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          duration?: number
+          expires_at?: string
+          id?: string
+          link?: string | null
+          media_type: string
+          media_url: string
+          secretaria_slug?: string | null
+          status?: Database["public"]["Enums"]["content_status"] | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          duration?: number
+          expires_at?: string
+          id?: string
+          link?: string | null
+          media_type?: string
+          media_url?: string
+          secretaria_slug?: string | null
+          status?: Database["public"]["Enums"]["content_status"] | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stories_secretaria_slug_fkey"
+            columns: ["secretaria_slug"]
+            isOneToOne: false
+            referencedRelation: "secretarias"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       user_roles: {
         Row: {
