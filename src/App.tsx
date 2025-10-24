@@ -57,6 +57,7 @@ const App = () => (
           
           {/* Página pública de Educação */}
           <Route path="/educacao" element={<Educacao />} />
+          <Route path="/secretarias/educacao" element={<Navigate to="/educacao" replace />} />
           
           {/* Specific Services */}
           <Route path="/iptu" element={<Iptu />} />
