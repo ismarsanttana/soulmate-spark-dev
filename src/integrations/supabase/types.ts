@@ -293,6 +293,50 @@ export type Database = {
           },
         ]
       }
+      employee_timeclock: {
+        Row: {
+          approved_by: string | null
+          clock_in: string
+          clock_out: string | null
+          created_at: string
+          employee_id: string
+          id: string
+          location: string | null
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_by?: string | null
+          clock_in: string
+          clock_out?: string | null
+          created_at?: string
+          employee_id: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_by?: string | null
+          clock_in?: string
+          clock_out?: string | null
+          created_at?: string
+          employee_id?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_timeclock_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "secretaria_employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string
@@ -669,6 +713,113 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "roles_secretaria_slug_fkey"
+            columns: ["secretaria_slug"]
+            isOneToOne: false
+            referencedRelation: "secretarias"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      secretaria_employees: {
+        Row: {
+          address: string | null
+          area: string | null
+          ato_nomeacao_arquivo_url: string | null
+          ato_nomeacao_data: string | null
+          ato_nomeacao_numero: string | null
+          birth_date: string | null
+          cargo: string | null
+          chefe_imediato: string | null
+          cpf: string
+          created_at: string
+          created_by: string | null
+          data_exercicio: string | null
+          email: string | null
+          equipamentos: Json | null
+          full_name: string
+          funcao: string
+          id: string
+          jornada: string | null
+          lotacao: string | null
+          matricula: string
+          phone: string | null
+          regime_juridico: string | null
+          secretaria_slug: string
+          situacao: string | null
+          termo_lgpd_arquivo_url: string | null
+          termo_lgpd_assinado: boolean | null
+          termo_responsabilidade_arquivo_url: string | null
+          termo_responsabilidade_assinado: boolean | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          area?: string | null
+          ato_nomeacao_arquivo_url?: string | null
+          ato_nomeacao_data?: string | null
+          ato_nomeacao_numero?: string | null
+          birth_date?: string | null
+          cargo?: string | null
+          chefe_imediato?: string | null
+          cpf: string
+          created_at?: string
+          created_by?: string | null
+          data_exercicio?: string | null
+          email?: string | null
+          equipamentos?: Json | null
+          full_name: string
+          funcao: string
+          id?: string
+          jornada?: string | null
+          lotacao?: string | null
+          matricula: string
+          phone?: string | null
+          regime_juridico?: string | null
+          secretaria_slug: string
+          situacao?: string | null
+          termo_lgpd_arquivo_url?: string | null
+          termo_lgpd_assinado?: boolean | null
+          termo_responsabilidade_arquivo_url?: string | null
+          termo_responsabilidade_assinado?: boolean | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          area?: string | null
+          ato_nomeacao_arquivo_url?: string | null
+          ato_nomeacao_data?: string | null
+          ato_nomeacao_numero?: string | null
+          birth_date?: string | null
+          cargo?: string | null
+          chefe_imediato?: string | null
+          cpf?: string
+          created_at?: string
+          created_by?: string | null
+          data_exercicio?: string | null
+          email?: string | null
+          equipamentos?: Json | null
+          full_name?: string
+          funcao?: string
+          id?: string
+          jornada?: string | null
+          lotacao?: string | null
+          matricula?: string
+          phone?: string | null
+          regime_juridico?: string | null
+          secretaria_slug?: string
+          situacao?: string | null
+          termo_lgpd_arquivo_url?: string | null
+          termo_lgpd_assinado?: boolean | null
+          termo_responsabilidade_arquivo_url?: string | null
+          termo_responsabilidade_assinado?: boolean | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "secretaria_employees_secretaria_slug_fkey"
             columns: ["secretaria_slug"]
             isOneToOne: false
             referencedRelation: "secretarias"

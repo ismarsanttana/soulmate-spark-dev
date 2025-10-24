@@ -7,7 +7,8 @@ import {
   PartyPopper, 
   Radio, 
   Podcast, 
-  Megaphone 
+  Megaphone,
+  Users 
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,6 +37,7 @@ const menuItems = [
   { value: "transmissao", title: "Transmissão ao Vivo", icon: Radio },
   { value: "podcast", title: "Podcasts", icon: Podcast },
   { value: "banners", title: "Banners de Campanha", icon: Megaphone },
+  { value: "equipe", title: "Equipe", icon: Users },
 ];
 
 export function SecretarioSidebar({ activeTab, onTabChange }: SecretarioSidebarProps) {
