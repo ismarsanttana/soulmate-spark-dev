@@ -33,6 +33,7 @@ const menuItems = [
   { value: "turmas", title: "Gerenciar Turmas", icon: BookOpen },
   { value: "matriculas", title: "Matrículas", icon: GraduationCap },
   { value: "alunos", title: "Alunos", icon: UserCheck },
+  { value: "ponto", title: "Ponto Eletrônico", icon: Clock },
   { value: "solicitacoes", title: "Solicitações", icon: MessageSquare, showBadge: true },
 ];
 
