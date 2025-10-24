@@ -1166,7 +1166,14 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "prefeito" | "secretario"
+      app_role:
+        | "admin"
+        | "prefeito"
+        | "secretario"
+        | "professor"
+        | "aluno"
+        | "pai"
+        | "cidadao"
       content_status: "draft" | "pending" | "published"
       manifestation_type: "denuncia" | "sugestao" | "elogio" | "reclamacao"
       protocol_status: "aberto" | "em_andamento" | "encerrado"
@@ -1297,7 +1304,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "prefeito", "secretario"],
+      app_role: [
+        "admin",
+        "prefeito",
+        "secretario",
+        "professor",
+        "aluno",
+        "pai",
+        "cidadao",
+      ],
       content_status: ["draft", "pending", "published"],
       manifestation_type: ["denuncia", "sugestao", "elogio", "reclamacao"],
       protocol_status: ["aberto", "em_andamento", "encerrado"],
