@@ -8,7 +8,9 @@ import { Dashboard } from "@/components/educacao/content/Dashboard";
 import { TeamManagement } from "@/components/secretario/content/TeamManagement";
 import { EnrollmentsManagement } from "@/components/educacao/content/EnrollmentsManagement";
 import { StudentsManagement } from "@/components/educacao/content/StudentsManagement";
+import { StudentsManagementComplete } from "@/components/educacao/content/StudentsManagementComplete";
 import { RequestsManagement } from "@/components/secretario/content/RequestsManagement";
+import { ClassesManagement } from "@/components/educacao/content/ClassesManagement";
 
 const PainelEducacaoContent = () => {
   const [activeTab, setActiveTab] = useState("painel");
@@ -62,10 +64,12 @@ const PainelEducacaoContent = () => {
         return <Dashboard secretariaSlug={assignment.secretaria_slug} />;
       case "equipe":
         return <TeamManagement secretariaSlug={assignment.secretaria_slug} />;
+      case "turmas":
+        return <ClassesManagement secretariaSlug={assignment.secretaria_slug} />;
       case "matriculas":
         return <EnrollmentsManagement secretariaSlug={assignment.secretaria_slug} />;
       case "alunos":
-        return <StudentsManagement secretariaSlug={assignment.secretaria_slug} />;
+        return <StudentsManagementComplete secretariaSlug={assignment.secretaria_slug} />;
       case "solicitacoes":
         return <RequestsManagement secretariaSlug={assignment.secretaria_slug} />;
       default:

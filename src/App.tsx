@@ -25,6 +25,7 @@ import Admin from "./pages/Admin";
 import PainelPrefeito from "./pages/PainelPrefeito";
 import PainelSecretario from "@/pages/PainelSecretario";
 import PainelEducacao from "@/pages/PainelEducacao";
+import StudentDetail from "@/pages/StudentDetail";
 import PainelProfessor from "./pages/PainelProfessor";
 import PainelAluno from "./pages/PainelAluno";
 import PainelPais from "./pages/PainelPais";
@@ -76,6 +77,7 @@ const App = () => (
           <Route path="/painel-secretario" element={<PainelSecretario />} />
           <Route path="/ascom" element={<PainelSecretario />} />
           <Route path="/edu" element={<PainelEducacao />} />
+          <Route path="/edu/aluno/:studentId" element={<StudentDetail />} />
           <Route path="/painel-professor" element={<PainelProfessor />} />
           <Route path="/painel-aluno" element={<PainelAluno />} />
           <Route path="/painel-pais" element={<PainelPais />} />

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, GraduationCap, DollarSign, TrendingUp, UserCheck, Clock } from "lucide-react";
+import { EmployeeAttendanceChart } from "./EmployeeAttendanceChart";
 
 interface DashboardProps {
   secretariaSlug: string;
@@ -124,6 +125,8 @@ export function Dashboard({ secretariaSlug }: DashboardProps) {
           </CardContent>
         </Card>
       </div>
+
+      <EmployeeAttendanceChart secretariaSlug={secretariaSlug} />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
