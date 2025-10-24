@@ -725,40 +725,121 @@ export type Database = {
       }
       profiles: {
         Row: {
+          alergias: string | null
+          autorizacao_busca_medica: boolean | null
+          autorizacao_uso_imagem: boolean | null
           avatar_url: string | null
           birth_date: string | null
+          cartao_sus: string | null
+          certidao_nascimento: string | null
           cpf: string | null
           created_at: string
+          doc_certidao_url: string | null
+          doc_comprovante_residencia_url: string | null
+          doc_cpf_url: string | null
+          doc_foto_url: string | null
+          doc_guarda_tutela_url: string | null
+          doc_historico_escolar_url: string | null
+          doc_rg_url: string | null
+          doc_vacinacao_url: string | null
           email: string | null
+          endereco_completo: string | null
+          endereco_transporte: string | null
           full_name: string
           gender: string | null
           id: string
+          laudo_aee_url: string | null
           lgbtqiapn: boolean | null
+          medicacoes_continuas: string | null
+          nacionalidade: string | null
+          naturalidade: string | null
+          necessidades_especiais: string | null
+          nis: string | null
+          ponto_embarque: string | null
+          restricoes_alimentares: string | null
+          rg: string | null
+          telefone: string | null
+          telefone_emergencia: string | null
           updated_at: string
+          usa_transporte_escolar: boolean | null
         }
         Insert: {
+          alergias?: string | null
+          autorizacao_busca_medica?: boolean | null
+          autorizacao_uso_imagem?: boolean | null
           avatar_url?: string | null
           birth_date?: string | null
+          cartao_sus?: string | null
+          certidao_nascimento?: string | null
           cpf?: string | null
           created_at?: string
+          doc_certidao_url?: string | null
+          doc_comprovante_residencia_url?: string | null
+          doc_cpf_url?: string | null
+          doc_foto_url?: string | null
+          doc_guarda_tutela_url?: string | null
+          doc_historico_escolar_url?: string | null
+          doc_rg_url?: string | null
+          doc_vacinacao_url?: string | null
           email?: string | null
+          endereco_completo?: string | null
+          endereco_transporte?: string | null
           full_name: string
           gender?: string | null
           id: string
+          laudo_aee_url?: string | null
           lgbtqiapn?: boolean | null
+          medicacoes_continuas?: string | null
+          nacionalidade?: string | null
+          naturalidade?: string | null
+          necessidades_especiais?: string | null
+          nis?: string | null
+          ponto_embarque?: string | null
+          restricoes_alimentares?: string | null
+          rg?: string | null
+          telefone?: string | null
+          telefone_emergencia?: string | null
           updated_at?: string
+          usa_transporte_escolar?: boolean | null
         }
         Update: {
+          alergias?: string | null
+          autorizacao_busca_medica?: boolean | null
+          autorizacao_uso_imagem?: boolean | null
           avatar_url?: string | null
           birth_date?: string | null
+          cartao_sus?: string | null
+          certidao_nascimento?: string | null
           cpf?: string | null
           created_at?: string
+          doc_certidao_url?: string | null
+          doc_comprovante_residencia_url?: string | null
+          doc_cpf_url?: string | null
+          doc_foto_url?: string | null
+          doc_guarda_tutela_url?: string | null
+          doc_historico_escolar_url?: string | null
+          doc_rg_url?: string | null
+          doc_vacinacao_url?: string | null
           email?: string | null
+          endereco_completo?: string | null
+          endereco_transporte?: string | null
           full_name?: string
           gender?: string | null
           id?: string
+          laudo_aee_url?: string | null
           lgbtqiapn?: boolean | null
+          medicacoes_continuas?: string | null
+          nacionalidade?: string | null
+          naturalidade?: string | null
+          necessidades_especiais?: string | null
+          nis?: string | null
+          ponto_embarque?: string | null
+          restricoes_alimentares?: string | null
+          rg?: string | null
+          telefone?: string | null
+          telefone_emergencia?: string | null
           updated_at?: string
+          usa_transporte_escolar?: boolean | null
         }
         Relationships: []
       }
@@ -1319,6 +1400,7 @@ export type Database = {
         | "aluno"
         | "pai"
         | "cidadao"
+        | "responsavel"
       content_status: "draft" | "pending" | "published"
       manifestation_type: "denuncia" | "sugestao" | "elogio" | "reclamacao"
       protocol_status: "aberto" | "em_andamento" | "encerrado"
@@ -1457,6 +1539,7 @@ export const Constants = {
         "aluno",
         "pai",
         "cidadao",
+        "responsavel",
       ],
       content_status: ["draft", "pending", "published"],
       manifestation_type: ["denuncia", "sugestao", "elogio", "reclamacao"],
