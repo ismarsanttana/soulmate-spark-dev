@@ -329,6 +329,53 @@ export type Database = {
           },
         ]
       }
+      employee_absences: {
+        Row: {
+          absence_date: string
+          absence_type: string
+          attachment_url: string | null
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          id: string
+          is_justified: boolean | null
+          justification: string | null
+          updated_at: string
+        }
+        Insert: {
+          absence_date: string
+          absence_type: string
+          attachment_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          id?: string
+          is_justified?: boolean | null
+          justification?: string | null
+          updated_at?: string
+        }
+        Update: {
+          absence_date?: string
+          absence_type?: string
+          attachment_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          id?: string
+          is_justified?: boolean | null
+          justification?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_absences_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "secretaria_employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_timeclock: {
         Row: {
           approved_by: string | null
@@ -756,6 +803,51 @@ export type Database = {
           },
         ]
       }
+      school_classes: {
+        Row: {
+          class_name: string
+          created_at: string
+          created_by: string | null
+          grade_level: string
+          id: string
+          max_students: number | null
+          school_name: string | null
+          school_year: string
+          shift: string | null
+          status: string | null
+          teacher_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          class_name: string
+          created_at?: string
+          created_by?: string | null
+          grade_level: string
+          id?: string
+          max_students?: number | null
+          school_name?: string | null
+          school_year: string
+          shift?: string | null
+          status?: string | null
+          teacher_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          class_name?: string
+          created_at?: string
+          created_by?: string | null
+          grade_level?: string
+          id?: string
+          max_students?: number | null
+          school_name?: string | null
+          school_year?: string
+          shift?: string | null
+          status?: string | null
+          teacher_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       secretaria_employees: {
         Row: {
           address: string | null
@@ -1036,9 +1128,51 @@ export type Database = {
           },
         ]
       }
+      student_attendance: {
+        Row: {
+          attendance_date: string
+          class_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          status: string
+          student_user_id: string
+        }
+        Insert: {
+          attendance_date: string
+          class_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          status: string
+          student_user_id: string
+        }
+        Update: {
+          attendance_date?: string
+          class_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          student_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_attendance_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "school_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_enrollments: {
         Row: {
           attendance: Json | null
+          class_id: string | null
           class_name: string | null
           created_at: string
           created_by: string | null
@@ -1055,6 +1189,7 @@ export type Database = {
         }
         Insert: {
           attendance?: Json | null
+          class_id?: string | null
           class_name?: string | null
           created_at?: string
           created_by?: string | null
@@ -1071,6 +1206,7 @@ export type Database = {
         }
         Update: {
           attendance?: Json | null
+          class_id?: string | null
           class_name?: string | null
           created_at?: string
           created_by?: string | null
@@ -1085,7 +1221,15 @@ export type Database = {
           student_user_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "student_enrollments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "school_classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_relationships: {
         Row: {
@@ -1157,6 +1301,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_enrollment_number: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
