@@ -727,6 +727,7 @@ export type Database = {
         Row: {
           alergias: string | null
           autorizacao_busca_medica: boolean | null
+          autorizacao_reconhecimento_facial: boolean | null
           autorizacao_uso_imagem: boolean | null
           avatar_url: string | null
           birth_date: string | null
@@ -745,6 +746,7 @@ export type Database = {
           email: string | null
           endereco_completo: string | null
           endereco_transporte: string | null
+          facial_photos: Json | null
           full_name: string
           gender: string | null
           id: string
@@ -766,6 +768,7 @@ export type Database = {
         Insert: {
           alergias?: string | null
           autorizacao_busca_medica?: boolean | null
+          autorizacao_reconhecimento_facial?: boolean | null
           autorizacao_uso_imagem?: boolean | null
           avatar_url?: string | null
           birth_date?: string | null
@@ -784,6 +787,7 @@ export type Database = {
           email?: string | null
           endereco_completo?: string | null
           endereco_transporte?: string | null
+          facial_photos?: Json | null
           full_name: string
           gender?: string | null
           id: string
@@ -805,6 +809,7 @@ export type Database = {
         Update: {
           alergias?: string | null
           autorizacao_busca_medica?: boolean | null
+          autorizacao_reconhecimento_facial?: boolean | null
           autorizacao_uso_imagem?: boolean | null
           avatar_url?: string | null
           birth_date?: string | null
@@ -823,6 +828,7 @@ export type Database = {
           email?: string | null
           endereco_completo?: string | null
           endereco_transporte?: string | null
+          facial_photos?: Json | null
           full_name?: string
           gender?: string | null
           id?: string
@@ -1311,6 +1317,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      student_entry_log: {
+        Row: {
+          created_at: string | null
+          device_id: string | null
+          entry_type: string
+          id: string
+          notes: string | null
+          photo_url: string | null
+          recognition_confidence: number | null
+          student_user_id: string
+          timestamp: string
+        }
+        Insert: {
+          created_at?: string | null
+          device_id?: string | null
+          entry_type: string
+          id?: string
+          notes?: string | null
+          photo_url?: string | null
+          recognition_confidence?: number | null
+          student_user_id: string
+          timestamp?: string
+        }
+        Update: {
+          created_at?: string | null
+          device_id?: string | null
+          entry_type?: string
+          id?: string
+          notes?: string | null
+          photo_url?: string | null
+          recognition_confidence?: number | null
+          student_user_id?: string
+          timestamp?: string
+        }
+        Relationships: []
       }
       user_relationships: {
         Row: {

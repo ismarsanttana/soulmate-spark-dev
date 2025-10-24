@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Plus, Search, User, Users, GraduationCap } from "lucide-react";
+import { FacialCaptureTab } from "./FacialCaptureTab";
 
 interface EnrollmentsManagementProps {
   secretariaSlug: string;
@@ -80,6 +81,9 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
     doc_guarda_tutela: null as File | null,
   });
 
+  const [facialPhotos, setFacialPhotos] = useState<any[]>([]);
+  const [facialConsent, setFacialConsent] = useState(false);
+
   const queryClient = useQueryClient();
 
   const { data: classes = [] } = useQuery({
@@ -129,6 +133,22 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
     return publicUrl;
   };
 
+  const uploadFacialPhoto = async (blob: Blob, userId: string, angle: string) => {
+    const fileName = `${userId}/face_${angle}_${Date.now()}.jpg`;
+    
+    const { error } = await supabase.storage
+      .from('facial-photos')
+      .upload(fileName, blob);
+    
+    if (error) throw error;
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('facial-photos')
+      .getPublicUrl(fileName);
+    
+    return publicUrl;
+  };
+
   const createStudentAndEnrollment = useMutation({
     mutationFn: async () => {
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -149,6 +169,15 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
       if (studentDocs.doc_comprovante_residencia) docUrls.doc_comprovante_residencia_url = await uploadDocument(studentDocs.doc_comprovante_residencia, studentUserId, 'comprovante');
       if (studentDocs.doc_foto) docUrls.doc_foto_url = await uploadDocument(studentDocs.doc_foto, studentUserId, 'foto');
       if (studentDocs.doc_historico_escolar) docUrls.doc_historico_escolar_url = await uploadDocument(studentDocs.doc_historico_escolar, studentUserId, 'historico');
+
+      // Upload de fotos faciais
+      const facialPhotoUrls: any[] = [];
+      for (const photo of facialPhotos) {
+        if (photo.blob) {
+          const url = await uploadFacialPhoto(photo.blob, studentUserId, photo.angle);
+          facialPhotoUrls.push({ angle: photo.angle, url });
+        }
+      }
 
       // Atualizar perfil do aluno com todos os dados
       await supabase.from("profiles").update({
@@ -172,6 +201,8 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
         usa_transporte_escolar: studentInfo.usa_transporte_escolar,
         endereco_transporte: studentInfo.endereco_transporte,
         ponto_embarque: studentInfo.ponto_embarque,
+        facial_photos: facialPhotoUrls,
+        autorizacao_reconhecimento_facial: facialConsent,
         ...docUrls,
       }).eq("id", studentUserId);
 
@@ -222,7 +253,7 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["student-enrollments"] });
-      toast.success("Aluno matriculado com sucesso!");
+      toast.success("Aluno matriculado e cadastro facial registrado com sucesso!");
       resetForm();
       setIsDialogOpen(false);
     },
@@ -253,6 +284,8 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
       telefone_emergencia: "", endereco_completo: "", relationship_type: "pai"
     });
     setResponsibleDocs({ doc_rg: null, doc_cpf: null, doc_guarda_tutela: null });
+    setFacialPhotos([]);
+    setFacialConsent(false);
     setActiveTab("student");
   };
 
@@ -294,9 +327,10 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid w-full grid-cols-5">
+                  <TabsList className="grid w-full grid-cols-6">
                     <TabsTrigger value="student">Dados Pessoais</TabsTrigger>
                     <TabsTrigger value="documents">Documentos</TabsTrigger>
+                    <TabsTrigger value="facial">Cadastro Facial</TabsTrigger>
                     <TabsTrigger value="info">Info. Complementares</TabsTrigger>
                     <TabsTrigger value="enrollment">Turma</TabsTrigger>
                     <TabsTrigger value="responsible">Responsável</TabsTrigger>
@@ -392,6 +426,18 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
                     </div>
                     <div className="flex justify-between">
                       <Button type="button" variant="outline" onClick={() => setActiveTab("student")}>Voltar</Button>
+                      <Button type="button" onClick={() => setActiveTab("facial")}>Próximo: Cadastro Facial</Button>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="facial">
+                    <FacialCaptureTab
+                      onPhotosCapture={setFacialPhotos}
+                      consent={facialConsent}
+                      onConsentChange={setFacialConsent}
+                    />
+                    <div className="flex justify-between mt-4">
+                      <Button type="button" variant="outline" onClick={() => setActiveTab("documents")}>Voltar</Button>
                       <Button type="button" onClick={() => setActiveTab("info")}>Próximo: Info. Complementares</Button>
                     </div>
                   </TabsContent>
@@ -440,7 +486,7 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
                       )}
                     </div>
                     <div className="flex justify-between">
-                      <Button type="button" variant="outline" onClick={() => setActiveTab("documents")}>Voltar</Button>
+                      <Button type="button" variant="outline" onClick={() => setActiveTab("facial")}>Voltar</Button>
                       <Button type="button" onClick={() => setActiveTab("enrollment")}>Próximo: Turma</Button>
                     </div>
                   </TabsContent>

@@ -31,6 +31,7 @@ import PainelAluno from "./pages/PainelAluno";
 import PainelPais from "./pages/PainelPais";
 import SecretariaDetalhes from "./pages/SecretariaDetalhes";
 import SecretariasList from "./pages/SecretariasList";
+import FacialTest from "./pages/FacialTest";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +82,7 @@ const App = () => (
           <Route path="/painel-professor" element={<PainelProfessor />} />
           <Route path="/painel-aluno" element={<PainelAluno />} />
           <Route path="/painel-pais" element={<PainelPais />} />
+          <Route path="/facial-test" element={<FacialTest />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

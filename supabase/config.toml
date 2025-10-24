@@ -1,1 +1,4 @@
 project_id = "hqhjbelcouanvcrqudbj"
+
+[functions.facial-recognition]
+verify_jwt = false

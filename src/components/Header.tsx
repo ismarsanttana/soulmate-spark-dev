@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "./theme-toggle";
+import { NotificationDropdown } from "./NotificationDropdown";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@supabase/supabase-js";
@@ -115,6 +116,7 @@ export const Header = ({ pageTitle }: HeaderProps) => {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <NotificationDropdown userId={user?.id} />
             <button
               className="bg-white/15 p-2 rounded-xl hover:bg-white/20 transition"
               aria-label="Compartilhar"
