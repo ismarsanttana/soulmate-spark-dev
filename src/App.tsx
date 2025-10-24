@@ -23,7 +23,8 @@ import NoticiaDetalhes from "./pages/NoticiaDetalhes";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import PainelPrefeito from "./pages/PainelPrefeito";
-import PainelSecretario from "./pages/PainelSecretario";
+import PainelSecretario from "@/pages/PainelSecretario";
+import PainelEducacao from "@/pages/PainelEducacao";
 import PainelProfessor from "./pages/PainelProfessor";
 import PainelAluno from "./pages/PainelAluno";
 import PainelPais from "./pages/PainelPais";
@@ -49,7 +50,6 @@ const App = () => (
           
           {/* Redirects for backwards compatibility */}
           <Route path="/saude" element={<Navigate to="/secretarias/saude" replace />} />
-          <Route path="/educacao" element={<Navigate to="/secretarias/educacao" replace />} />
           <Route path="/assistencia" element={<Navigate to="/secretarias/assistencia" replace />} />
           <Route path="/financas" element={<Navigate to="/secretarias/financas" replace />} />
           <Route path="/cultura" element={<Navigate to="/secretarias/cultura" replace />} />
@@ -71,6 +71,7 @@ const App = () => (
           <Route path="/painel-prefeito" element={<PainelPrefeito />} />
           <Route path="/painel-secretario" element={<PainelSecretario />} />
           <Route path="/ascom" element={<PainelSecretario />} />
+          <Route path="/educacao" element={<PainelEducacao />} />
           <Route path="/painel-professor" element={<PainelProfessor />} />
           <Route path="/painel-aluno" element={<PainelAluno />} />
           <Route path="/painel-pais" element={<PainelPais />} />
