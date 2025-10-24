@@ -376,6 +376,53 @@ export type Database = {
           },
         ]
       }
+      employee_audit_log: {
+        Row: {
+          action: string
+          changed_by: string
+          changed_fields: Json
+          created_at: string
+          employee_id: string
+          id: string
+          ip_address: string | null
+          new_values: Json | null
+          old_values: Json | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          changed_by: string
+          changed_fields?: Json
+          created_at?: string
+          employee_id: string
+          id?: string
+          ip_address?: string | null
+          new_values?: Json | null
+          old_values?: Json | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          changed_by?: string
+          changed_fields?: Json
+          created_at?: string
+          employee_id?: string
+          id?: string
+          ip_address?: string | null
+          new_values?: Json | null
+          old_values?: Json | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_audit_log_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "secretaria_employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_timeclock: {
         Row: {
           approved_by: string | null
@@ -942,6 +989,7 @@ export type Database = {
           ato_nomeacao_arquivo_url: string | null
           ato_nomeacao_data: string | null
           ato_nomeacao_numero: string | null
+          autorizacao_reconhecimento_facial: boolean | null
           birth_date: string | null
           cargo: string | null
           chefe_imediato: string | null
@@ -951,6 +999,7 @@ export type Database = {
           data_exercicio: string | null
           email: string | null
           equipamentos: Json | null
+          facial_photos: Json | null
           full_name: string
           funcao: string
           id: string
@@ -975,6 +1024,7 @@ export type Database = {
           ato_nomeacao_arquivo_url?: string | null
           ato_nomeacao_data?: string | null
           ato_nomeacao_numero?: string | null
+          autorizacao_reconhecimento_facial?: boolean | null
           birth_date?: string | null
           cargo?: string | null
           chefe_imediato?: string | null
@@ -984,6 +1034,7 @@ export type Database = {
           data_exercicio?: string | null
           email?: string | null
           equipamentos?: Json | null
+          facial_photos?: Json | null
           full_name: string
           funcao: string
           id?: string
@@ -1008,6 +1059,7 @@ export type Database = {
           ato_nomeacao_arquivo_url?: string | null
           ato_nomeacao_data?: string | null
           ato_nomeacao_numero?: string | null
+          autorizacao_reconhecimento_facial?: boolean | null
           birth_date?: string | null
           cargo?: string | null
           chefe_imediato?: string | null
@@ -1017,6 +1069,7 @@ export type Database = {
           data_exercicio?: string | null
           email?: string | null
           equipamentos?: Json | null
+          facial_photos?: Json | null
           full_name?: string
           funcao?: string
           id?: string

@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileUpload } from "@/components/admin/FileUpload";
+import { FacialCaptureTab } from "@/components/educacao/content/FacialCaptureTab";
 
 const FUNCOES = [
   { category: "Liderança e planejamento", options: [
@@ -123,6 +124,8 @@ export function EmployeeForm({ secretariaSlug, employee, onSuccess }: EmployeeFo
   const [atoArquivo, setAtoArquivo] = useState(employee?.ato_nomeacao_arquivo_url || "");
   const [lgpdArquivo, setLgpdArquivo] = useState(employee?.termo_lgpd_arquivo_url || "");
   const [respArquivo, setRespArquivo] = useState(employee?.termo_responsabilidade_arquivo_url || "");
+  const [facialPhotos, setFacialPhotos] = useState<any[]>(employee?.facial_photos || []);
+  const [facialConsent, setFacialConsent] = useState(employee?.autorizacao_reconhecimento_facial || false);
 
   const {
     register,
@@ -176,6 +179,8 @@ export function EmployeeForm({ secretariaSlug, employee, onSuccess }: EmployeeFo
         data_exercicio: data.data_exercicio || null,
         situacao: data.situacao,
         created_by: user?.id,
+        facial_photos: facialPhotos,
+        autorizacao_reconhecimento_facial: facialConsent,
       };
 
       if (employee) {
@@ -205,11 +210,12 @@ export function EmployeeForm({ secretariaSlug, employee, onSuccess }: EmployeeFo
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <Tabs defaultValue="pessoais" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="pessoais">Dados Pessoais</TabsTrigger>
           <TabsTrigger value="funcionais">Dados Funcionais</TabsTrigger>
           <TabsTrigger value="nomeacao">Nomeação/Contrato</TabsTrigger>
           <TabsTrigger value="equipamentos">Equipamentos/Termos</TabsTrigger>
+          <TabsTrigger value="facial">Reconhecimento Facial</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pessoais" className="space-y-4 mt-4">
@@ -424,6 +430,14 @@ export function EmployeeForm({ secretariaSlug, employee, onSuccess }: EmployeeFo
               </div>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="facial" className="space-y-4 mt-4">
+          <FacialCaptureTab
+            onPhotosCapture={setFacialPhotos}
+            consent={facialConsent}
+            onConsentChange={setFacialConsent}
+          />
         </TabsContent>
       </Tabs>
 

@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, Save } from "lucide-react";
+import { Clock, Save, FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { generateTimeclockPDF } from "@/lib/pdfGenerator";
 
 interface TimeclockManagementProps {
   secretariaSlug: string;
@@ -148,6 +149,47 @@ export function TimeclockManagement({ secretariaSlug }: TimeclockManagementProps
     return timeclockRecords.map((record) => new Date(record.clock_in));
   };
 
+  const handleGeneratePDF = async () => {
+    if (!selectedEmployeeId || !selectedDate) return;
+
+    const employee = employees.find((e: any) => e.id === selectedEmployeeId);
+    if (!employee) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user?.id)
+        .single();
+
+      await generateTimeclockPDF({
+        employee: {
+          full_name: employee.full_name,
+          cpf: employee.cpf,
+          funcao: employee.funcao,
+          matricula: employee.matricula,
+          jornada: employee.jornada,
+        },
+        month: format(selectedDate, "MM", { locale: ptBR }),
+        year: format(selectedDate, "yyyy", { locale: ptBR }),
+        records: timeclockRecords.map((record: any) => ({
+          clock_in: record.clock_in,
+          clock_out: record.clock_out,
+          location: record.location,
+          notes: record.notes,
+        })),
+        totalHours: getTotalHoursForMonth(),
+        generatedBy: profile?.full_name || "Sistema",
+      });
+
+      toast.success("Relatório PDF gerado com sucesso!");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Erro ao gerar relatório PDF");
+    }
+  };
+
   const selectedEmployee = employees.find((emp) => emp.id === selectedEmployeeId);
 
   return (
@@ -244,6 +286,11 @@ export function TimeclockManagement({ secretariaSlug }: TimeclockManagementProps
                     <p className="text-lg font-semibold">{getDatesWithRecords().length} dias</p>
                   </div>
                 </div>
+
+                <Button onClick={handleGeneratePDF} className="w-full" variant="default">
+                  <FileText className="mr-2 h-4 w-4" />
+                  Gerar Relatório PDF
+                </Button>
               </CardContent>
             </Card>
           </div>

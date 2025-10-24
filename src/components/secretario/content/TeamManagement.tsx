@@ -9,10 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Search, Clock, UserPlus, Edit, AlertCircle } from "lucide-react";
+import { Plus, Search, Clock, UserPlus, Edit, AlertCircle, History } from "lucide-react";
 import { EmployeeForm } from "./EmployeeForm";
 import { TimeclockView } from "./TimeclockView";
 import { EmployeeAbsenceDialog } from "@/components/educacao/content/EmployeeAbsenceDialog";
+import { EmployeeAuditLog } from "@/components/educacao/content/EmployeeAuditLog";
 
 interface TeamManagementProps {
   secretariaSlug: string;
@@ -22,6 +23,8 @@ export function TeamManagement({ secretariaSlug }: TeamManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [isAuditDialogOpen, setIsAuditDialogOpen] = useState(false);
+  const [auditEmployeeId, setAuditEmployeeId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: employees, isLoading } = useQuery({
@@ -50,6 +53,11 @@ export function TeamManagement({ secretariaSlug }: TeamManagementProps) {
     setSelectedEmployee(null);
     queryClient.invalidateQueries({ queryKey: ["secretaria-employees"] });
     toast.success("Funcionário salvo com sucesso!");
+  };
+
+  const handleViewAudit = (employeeId: string) => {
+    setAuditEmployeeId(employeeId);
+    setIsAuditDialogOpen(true);
   };
 
   const getSituacaoColor = (situacao: string) => {
@@ -176,6 +184,13 @@ export function TeamManagement({ secretariaSlug }: TeamManagementProps) {
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewAudit(employee.id)}
+                              >
+                                <History className="h-4 w-4" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -192,6 +207,15 @@ export function TeamManagement({ secretariaSlug }: TeamManagementProps) {
           </Tabs>
         </CardContent>
       </Card>
+
+      <Dialog open={isAuditDialogOpen} onOpenChange={setIsAuditDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Histórico de Alterações</DialogTitle>
+          </DialogHeader>
+          {auditEmployeeId && <EmployeeAuditLog employeeId={auditEmployeeId} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
