@@ -71,7 +71,7 @@ const App = () => (
           <Route path="/painel-prefeito" element={<PainelPrefeito />} />
           <Route path="/painel-secretario" element={<PainelSecretario />} />
           <Route path="/ascom" element={<PainelSecretario />} />
-          <Route path="/educacao" element={<PainelEducacao />} />
+          <Route path="/edu" element={<PainelEducacao />} />
           <Route path="/painel-professor" element={<PainelProfessor />} />
           <Route path="/painel-aluno" element={<PainelAluno />} />
           <Route path="/painel-pais" element={<PainelPais />} />
