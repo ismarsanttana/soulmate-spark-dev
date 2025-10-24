@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      advertising_expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          expense_date: string
+          id: string
+          secretaria_slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          expense_date?: string
+          id?: string
+          secretaria_slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          expense_date?: string
+          id?: string
+          secretaria_slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           app_name: string
@@ -744,6 +780,7 @@ export type Database = {
           matricula: string
           phone: string | null
           regime_juridico: string | null
+          salario: number | null
           secretaria_slug: string
           situacao: string | null
           termo_lgpd_arquivo_url: string | null
@@ -776,6 +813,7 @@ export type Database = {
           matricula: string
           phone?: string | null
           regime_juridico?: string | null
+          salario?: number | null
           secretaria_slug: string
           situacao?: string | null
           termo_lgpd_arquivo_url?: string | null
@@ -808,6 +846,7 @@ export type Database = {
           matricula?: string
           phone?: string | null
           regime_juridico?: string | null
+          salario?: number | null
           secretaria_slug?: string
           situacao?: string | null
           termo_lgpd_arquivo_url?: string | null

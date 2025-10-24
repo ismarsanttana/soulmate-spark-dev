@@ -70,6 +70,7 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/painel-prefeito" element={<PainelPrefeito />} />
           <Route path="/painel-secretario" element={<PainelSecretario />} />
+          <Route path="/ascom" element={<PainelSecretario />} />
           <Route path="/painel-professor" element={<PainelProfessor />} />
           <Route path="/painel-aluno" element={<PainelAluno />} />
           <Route path="/painel-pais" element={<PainelPais />} />

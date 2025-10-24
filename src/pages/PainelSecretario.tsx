@@ -16,9 +16,10 @@ import { PodcastManagement } from "@/components/secretario/content/PodcastManage
 import { BannersManagement } from "@/components/secretario/content/BannersManagement";
 import { TeamManagement } from "@/components/secretario/content/TeamManagement";
 import { RequestsManagement } from "@/components/secretario/content/RequestsManagement";
+import { Dashboard } from "@/components/secretario/content/Dashboard";
 
 const PainelSecretarioContent = () => {
-  const [activeTab, setActiveTab] = useState("noticias");
+  const [activeTab, setActiveTab] = useState("painel");
   
   const { data: assignment } = useQuery({
     queryKey: ["secretary-assignment"],
@@ -65,6 +66,8 @@ const PainelSecretarioContent = () => {
 
   const renderContent = () => {
     switch (activeTab) {
+      case "painel":
+        return <Dashboard secretariaSlug={assignment.secretaria_slug} />;
       case "noticias":
         return <NewsManagementSec />;
       case "stories":

@@ -9,7 +9,8 @@ import {
   Podcast, 
   Megaphone,
   Users,
-  MessageSquare
+  MessageSquare,
+  LayoutDashboard
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +33,7 @@ interface SecretarioSidebarProps {
 }
 
 const menuItems = [
+  { value: "painel", title: "Painel", icon: LayoutDashboard },
   { value: "noticias", title: "Notícias", icon: Newspaper },
   { value: "stories", title: "Stories", icon: Video },
   { value: "push", title: "Push Notifications", icon: Bell },
