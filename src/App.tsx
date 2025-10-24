@@ -55,6 +55,9 @@ const App = () => (
           <Route path="/cultura" element={<Navigate to="/secretarias/cultura" replace />} />
           <Route path="/obras" element={<Navigate to="/secretarias/obras" replace />} />
           
+          {/* Página pública de Educação */}
+          <Route path="/educacao" element={<Educacao />} />
+          
           {/* Specific Services */}
           <Route path="/iptu" element={<Iptu />} />
           <Route path="/agendar-consulta" element={<AgendarConsulta />} />
