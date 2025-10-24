@@ -5,7 +5,8 @@ import {
   UserCheck,
   MessageSquare,
   Clock,
-  BookOpen
+  BookOpen,
+  FileText
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +35,7 @@ const menuItems = [
   { value: "matriculas", title: "Matrículas", icon: GraduationCap },
   { value: "alunos", title: "Alunos", icon: UserCheck },
   { value: "ponto", title: "Ponto Eletrônico", icon: Clock },
+  { value: "relatorios", title: "Relatórios", icon: FileText },
   { value: "solicitacoes", title: "Solicitações", icon: MessageSquare, showBadge: true },
 ];
 
