@@ -896,6 +896,65 @@ export type Database = {
         }
         Relationships: []
       }
+      report_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          employee_id: string
+          full_data_requested: boolean
+          id: string
+          rejection_reason: string | null
+          report_data: Json
+          report_period: string
+          report_type: string
+          requested_by: string
+          secretaria_slug: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          employee_id: string
+          full_data_requested?: boolean
+          id?: string
+          rejection_reason?: string | null
+          report_data: Json
+          report_period: string
+          report_type: string
+          requested_by: string
+          secretaria_slug: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          employee_id?: string
+          full_data_requested?: boolean
+          id?: string
+          rejection_reason?: string | null
+          report_data?: Json
+          report_period?: string
+          report_type?: string
+          requested_by?: string
+          secretaria_slug?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "secretaria_employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roles: {
         Row: {
           created_at: string

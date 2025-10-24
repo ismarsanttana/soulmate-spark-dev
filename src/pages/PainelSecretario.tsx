@@ -17,6 +17,7 @@ import { BannersManagement } from "@/components/secretario/content/BannersManage
 import { TeamManagement } from "@/components/secretario/content/TeamManagement";
 import { RequestsManagement } from "@/components/secretario/content/RequestsManagement";
 import { Dashboard } from "@/components/secretario/content/Dashboard";
+import ReportsManagement from "@/components/secretario/content/ReportsManagement";
 
 const PainelSecretarioContent = () => {
   const [activeTab, setActiveTab] = useState("painel");
@@ -86,6 +87,8 @@ const PainelSecretarioContent = () => {
         return <PodcastManagement />;
       case "banners":
         return <BannersManagement />;
+      case "relatorios":
+        return <ReportsManagement />;
       case "solicitacoes":
         return <RequestsManagement secretariaSlug={assignment.secretaria_slug} />;
       case "equipe":

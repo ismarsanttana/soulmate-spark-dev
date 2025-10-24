@@ -10,7 +10,8 @@ import {
   Megaphone,
   Users,
   MessageSquare,
-  LayoutDashboard
+  LayoutDashboard,
+  FileText
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +44,7 @@ const menuItems = [
   { value: "transmissao", title: "Transmissão ao Vivo", icon: Radio },
   { value: "podcast", title: "Podcasts", icon: Podcast },
   { value: "banners", title: "Banners de Campanha", icon: Megaphone },
+  { value: "relatorios", title: "Relatórios", icon: FileText },
   { value: "solicitacoes", title: "Solicitações", icon: MessageSquare, showBadge: true },
   { value: "equipe", title: "Equipe", icon: Users },
 ];

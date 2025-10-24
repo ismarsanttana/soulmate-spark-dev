@@ -10,9 +10,10 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, Save, FileText } from "lucide-react";
+import { Clock, Save, FileText, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { generateTimeclockPDF } from "@/lib/pdfGenerator";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TimeclockManagementProps {
   secretariaSlug: string;
@@ -25,6 +26,7 @@ export function TimeclockManagement({ secretariaSlug }: TimeclockManagementProps
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [clockIn, setClockIn] = useState("");
   const [clockOut, setClockOut] = useState("");
+  const [requestFullData, setRequestFullData] = useState<boolean>(false);
   
   const queryClient = useQueryClient();
 
@@ -163,6 +165,38 @@ export function TimeclockManagement({ secretariaSlug }: TimeclockManagementProps
         .eq("id", user?.id)
         .single();
 
+      // Se solicitar dados completos, criar solicitação para admin
+      if (requestFullData) {
+        const reportData = {
+          employee: {
+            full_name: employee.full_name,
+            cpf: employee.cpf,
+            funcao: employee.funcao,
+            matricula: employee.matricula,
+            jornada: employee.jornada,
+          },
+          totalHours: getTotalHoursForMonth(),
+        };
+
+        const { error } = await supabase.from("report_requests").insert({
+          employee_id: selectedEmployeeId,
+          requested_by: user?.id,
+          secretaria_slug: secretariaSlug,
+          report_type: "ponto-eletronico",
+          report_period: `${format(selectedDate, "MM", { locale: ptBR })}/${format(selectedDate, "yyyy", { locale: ptBR })}`,
+          full_data_requested: true,
+          status: "pending",
+          report_data: reportData,
+        });
+
+        if (error) throw error;
+
+        toast.success("Solicitação de relatório com dados completos enviada para aprovação!");
+        setRequestFullData(false);
+        return;
+      }
+
+      // Gerar relatório com dados mascarados
       await generateTimeclockPDF({
         employee: {
           full_name: employee.full_name,
@@ -181,9 +215,10 @@ export function TimeclockManagement({ secretariaSlug }: TimeclockManagementProps
         })),
         totalHours: getTotalHoursForMonth(),
         generatedBy: profile?.full_name || "Sistema",
+        maskSensitiveData: true,
       });
 
-      toast.success("Relatório PDF gerado com sucesso!");
+      toast.success("Relatório PDF gerado com sucesso (dados sensíveis mascarados)!");
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast.error("Erro ao gerar relatório PDF");
@@ -287,9 +322,29 @@ export function TimeclockManagement({ secretariaSlug }: TimeclockManagementProps
                   </div>
                 </div>
 
+                <div className="flex items-center space-x-2 p-4 rounded-lg border bg-card">
+                  <Checkbox
+                    id="request-full-data"
+                    checked={requestFullData}
+                    onCheckedChange={(checked) => setRequestFullData(checked as boolean)}
+                  />
+                  <div className="flex-1">
+                    <Label
+                      htmlFor="request-full-data"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
+                    >
+                      <Lock className="h-4 w-4" />
+                      Solicitar Dados Completos
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Requer aprovação do administrador
+                    </p>
+                  </div>
+                </div>
+
                 <Button onClick={handleGeneratePDF} className="w-full" variant="default">
                   <FileText className="mr-2 h-4 w-4" />
-                  Gerar Relatório PDF
+                  {requestFullData ? "Solicitar Relatório" : "Gerar Relatório PDF"}
                 </Button>
               </CardContent>
             </Card>

@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import QRCode from "qrcode";
+import { maskCPF, maskRG } from "./dataMasking";
 
 interface PDFReportData {
   title: string;
@@ -12,6 +13,7 @@ interface TimeclockReportData {
   employee: {
     full_name: string;
     cpf: string;
+    rg?: string;
     funcao: string;
     matricula: string;
     jornada?: string;
@@ -26,6 +28,7 @@ interface TimeclockReportData {
   }>;
   totalHours: string;
   generatedBy: string;
+  maskSensitiveData?: boolean;
 }
 
 export const generatePDFReport = async ({ title, data, type }: PDFReportData) => {
@@ -187,8 +190,23 @@ export const generateTimeclockPDF = async (reportData: TimeclockReportData) => {
   pdf.setFont("helvetica", "normal");
   pdf.text(`Nome: ${reportData.employee.full_name}`, margin, currentY);
   currentY += 6;
-  pdf.text(`CPF: ${reportData.employee.cpf}`, margin, currentY);
+  
+  // Aplicar máscara de CPF se necessário
+  const cpfDisplay = reportData.maskSensitiveData 
+    ? maskCPF(reportData.employee.cpf) 
+    : reportData.employee.cpf;
+  pdf.text(`CPF: ${cpfDisplay}`, margin, currentY);
   currentY += 6;
+  
+  // Mostrar RG se existir
+  if (reportData.employee.rg) {
+    const rgDisplay = reportData.maskSensitiveData 
+      ? maskRG(reportData.employee.rg) 
+      : reportData.employee.rg;
+    pdf.text(`RG: ${rgDisplay}`, margin, currentY);
+    currentY += 6;
+  }
+  
   pdf.text(`Matrícula: ${reportData.employee.matricula}`, margin, currentY);
   currentY += 6;
   pdf.text(`Função: ${reportData.employee.funcao}`, margin, currentY);
