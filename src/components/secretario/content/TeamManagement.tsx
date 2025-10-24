@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Search, Clock, UserPlus, Edit } from "lucide-react";
+import { Plus, Search, Clock, UserPlus, Edit, AlertCircle } from "lucide-react";
 import { EmployeeForm } from "./EmployeeForm";
 import { TimeclockView } from "./TimeclockView";
+import { EmployeeAbsenceDialog } from "@/components/educacao/content/EmployeeAbsenceDialog";
 
 interface TeamManagementProps {
   secretariaSlug: string;
@@ -158,16 +159,24 @@ export function TeamManagement({ secretariaSlug }: TeamManagementProps) {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedEmployee(employee);
-                                setIsAddDialogOpen(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-2">
+                              <EmployeeAbsenceDialog 
+                                employeeId={employee.id}
+                                employeeName={employee.full_name}
+                                open={false}
+                                onOpenChange={() => {}}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedEmployee(employee);
+                                  setIsAddDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
