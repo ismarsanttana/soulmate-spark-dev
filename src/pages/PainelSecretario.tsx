@@ -15,6 +15,7 @@ import { LiveStreamManagement } from "@/components/secretario/content/LiveStream
 import { PodcastManagement } from "@/components/secretario/content/PodcastManagement";
 import { BannersManagement } from "@/components/secretario/content/BannersManagement";
 import { TeamManagement } from "@/components/secretario/content/TeamManagement";
+import { RequestsManagement } from "@/components/secretario/content/RequestsManagement";
 
 const PainelSecretarioContent = () => {
   const [activeTab, setActiveTab] = useState("noticias");
@@ -82,6 +83,8 @@ const PainelSecretarioContent = () => {
         return <PodcastManagement />;
       case "banners":
         return <BannersManagement />;
+      case "solicitacoes":
+        return <RequestsManagement secretariaSlug={assignment.secretaria_slug} />;
       case "equipe":
         return <TeamManagement secretariaSlug={assignment.secretaria_slug} />;
       default:

@@ -8,8 +8,11 @@ import {
   Radio, 
   Podcast, 
   Megaphone,
-  Users 
+  Users,
+  MessageSquare
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
@@ -21,6 +24,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
 
 interface SecretarioSidebarProps {
   activeTab: string;
@@ -37,11 +41,38 @@ const menuItems = [
   { value: "transmissao", title: "Transmissão ao Vivo", icon: Radio },
   { value: "podcast", title: "Podcasts", icon: Podcast },
   { value: "banners", title: "Banners de Campanha", icon: Megaphone },
+  { value: "solicitacoes", title: "Solicitações", icon: MessageSquare, showBadge: true },
   { value: "equipe", title: "Equipe", icon: Users },
 ];
 
 export function SecretarioSidebar({ activeTab, onTabChange }: SecretarioSidebarProps) {
   const { open } = useSidebar();
+
+  // Buscar contagem de solicitações pendentes
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: ["pending-requests-count"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+
+      const { data: assignment } = await supabase
+        .from("secretary_assignments")
+        .select("secretaria_slug")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!assignment) return 0;
+
+      const { count } = await supabase
+        .from("secretary_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("to_secretary_slug", assignment.secretaria_slug)
+        .eq("status", "pendente");
+
+      return count || 0;
+    },
+    refetchInterval: 30000, // Atualizar a cada 30 segundos
+  });
 
   return (
     <Sidebar 
@@ -67,7 +98,14 @@ export function SecretarioSidebar({ activeTab, onTabChange }: SecretarioSidebarP
                     } ${!open ? "justify-center" : ""}`}
                   >
                     <item.icon className={`h-5 w-5 ${!open ? "" : "mr-3"}`} />
-                    {open && <span className="truncate">{item.title}</span>}
+                    {open && (
+                      <span className="truncate flex-1">{item.title}</span>
+                    )}
+                    {item.showBadge && pendingCount > 0 && (
+                      <Badge variant="destructive" className="ml-auto">
+                        {pendingCount}
+                      </Badge>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

@@ -899,6 +899,54 @@ export type Database = {
         }
         Relationships: []
       }
+      secretary_requests: {
+        Row: {
+          created_at: string
+          description: string
+          from_secretary_slug: string
+          from_user_id: string
+          id: string
+          priority: string
+          responded_at: string | null
+          responded_by: string | null
+          response: string | null
+          status: string
+          title: string
+          to_secretary_slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          from_secretary_slug: string
+          from_user_id: string
+          id?: string
+          priority?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          response?: string | null
+          status?: string
+          title: string
+          to_secretary_slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          from_secretary_slug?: string
+          from_user_id?: string
+          id?: string
+          priority?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          response?: string | null
+          status?: string
+          title?: string
+          to_secretary_slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stories: {
         Row: {
           created_at: string
