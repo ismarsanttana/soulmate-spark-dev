@@ -19,12 +19,70 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
+        
         toast.success("Login realizado com sucesso!");
+        
+        // Verifica roles e redireciona para o painel apropriado
+        if (data.user) {
+          const { data: roles } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", data.user.id);
+
+          if (roles && roles.length > 0) {
+            // Verifica se é admin
+            if (roles.some(r => r.role === "admin")) {
+              navigate("/admin");
+              return;
+            }
+            
+            // Verifica se é prefeito
+            if (roles.some(r => r.role === "prefeito")) {
+              navigate("/painel-prefeito");
+              return;
+            }
+
+            // Verifica se é secretário e redireciona baseado na secretaria
+            if (roles.some(r => r.role === "secretario")) {
+              const { data: assignment } = await supabase
+                .from("secretary_assignments")
+                .select("secretaria_slug")
+                .eq("user_id", data.user.id)
+                .maybeSingle();
+
+              if (assignment?.secretaria_slug === "educacao") {
+                navigate("/edu");
+                return;
+              } else if (assignment?.secretaria_slug === "comunicacao") {
+                navigate("/ascom");
+                return;
+              } else {
+                navigate("/painel-secretario");
+                return;
+              }
+            }
+
+            // Verifica outros roles
+            if (roles.some(r => r.role === "professor")) {
+              navigate("/painel-professor");
+              return;
+            }
+            if (roles.some(r => r.role === "aluno")) {
+              navigate("/painel-aluno");
+              return;
+            }
+            if (roles.some(r => r.role === "pai")) {
+              navigate("/painel-pais");
+              return;
+            }
+          }
+        }
+        
         navigate("/");
       } else {
         const { error } = await supabase.auth.signUp({
