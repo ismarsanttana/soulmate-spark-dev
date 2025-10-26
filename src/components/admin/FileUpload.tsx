@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,26 +20,25 @@ export function FileUpload({
   onUploadComplete,
   currentUrl,
   onRemove,
-  accept = "image/*",
-  maxSizeMB = 2,
+  accept = "image/*,.pdf,.doc,.docx",
+  maxSizeMB = 20,
 }: FileUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
+  const [fileType, setFileType] = useState<string>("");
   const { toast } = useToast();
+
+  const isImage = (url: string) => {
+    return /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+  };
+
+  const isPDF = (url: string) => {
+    return /\.pdf$/i.test(url);
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Erro",
-        description: "Apenas arquivos de imagem são permitidos",
-        variant: "destructive",
-      });
-      return;
-    }
 
     // Validate file size
     const fileSizeMB = file.size / 1024 / 1024;
@@ -51,6 +50,8 @@ export function FileUpload({
       });
       return;
     }
+
+    setFileType(file.type);
 
     setUploading(true);
 
@@ -79,13 +80,13 @@ export function FileUpload({
 
       toast({
         title: "Sucesso",
-        description: "Imagem enviada com sucesso",
+        description: "Arquivo enviado com sucesso",
       });
     } catch (error: any) {
       console.error("Error uploading file:", error);
       toast({
         title: "Erro",
-        description: error.message || "Erro ao enviar imagem",
+        description: error.message || "Erro ao enviar arquivo",
         variant: "destructive",
       });
     } finally {
@@ -109,13 +110,13 @@ export function FileUpload({
 
       toast({
         title: "Sucesso",
-        description: "Imagem removida com sucesso",
+        description: "Arquivo removido com sucesso",
       });
     } catch (error: any) {
       console.error("Error removing file:", error);
       toast({
         title: "Erro",
-        description: "Erro ao remover imagem",
+        description: "Erro ao remover arquivo",
         variant: "destructive",
       });
     }
@@ -125,11 +126,28 @@ export function FileUpload({
     <div className="space-y-4">
       {preview ? (
         <div className="relative">
-          <img
-            src={preview}
-            alt="Preview"
-            className="w-full h-48 object-contain rounded-lg border border-border bg-muted"
-          />
+          {isImage(preview) ? (
+            <img
+              src={preview}
+              alt="Preview"
+              className="w-full h-48 object-contain rounded-lg border border-border bg-muted"
+            />
+          ) : (
+            <div className="w-full h-48 flex flex-col items-center justify-center rounded-lg border border-border bg-muted">
+              <FileText className="h-16 w-16 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">
+                {isPDF(preview) ? "Arquivo PDF" : "Documento"} enviado
+              </p>
+              <a
+                href={preview}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline mt-2"
+              >
+                Visualizar arquivo
+              </a>
+            </div>
+          )}
           {onRemove && (
             <Button
               type="button"
@@ -154,7 +172,7 @@ export function FileUpload({
               <span className="font-semibold">Clique para enviar</span> ou arraste
             </p>
             <p className="text-xs text-muted-foreground">
-              PNG, JPG, WEBP (máx. {maxSizeMB}MB)
+              PNG, JPG, WEBP, PDF, DOC, DOCX (máx. {maxSizeMB}MB)
             </p>
           </div>
           <input
