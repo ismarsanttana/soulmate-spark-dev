@@ -9,16 +9,19 @@ import afogadosImage from "@/assets/afogados_da_ingazeira_pe.png";
 import { getIconComponent } from "@/lib/iconMapper";
 import { StoryViewer } from "@/components/StoryViewer";
 
-// Importar secretarias hardcoded
+// Importar secretarias e serviços
 const defaultSecretarias = [
-  { slug: "assistencia", title: "Assistência Social", icon: "Heart", color: "#10b981" },
+  { slug: "saude", title: "Saúde", icon: "HeartPulse", color: "#10b981" },
   { slug: "educacao", title: "Educação", icon: "GraduationCap", color: "#3b82f6" },
-  { slug: "saude", title: "Saúde", icon: "HeartPulse", color: "#ef4444" },
-  { slug: "financas", title: "Finanças", icon: "Wallet", color: "#f59e0b" },
-  { slug: "cultura", title: "Cultura", icon: "Music", color: "#8b5cf6" },
-  { slug: "obras", title: "Obras", icon: "HardHat", color: "#eab308" },
-  { slug: "esporte", title: "Esporte", icon: "Trophy", color: "#06b6d4" },
-  { slug: "comunicacao", title: "Comunicação", icon: "Megaphone", color: "#ec4899" }
+  { slug: "assistencia", title: "Assistência", icon: "Heart", color: "#f43f5e" },
+  { slug: "obras", title: "Obras", icon: "HardHat", color: "#f59e0b" },
+  { slug: "financas", title: "Finanças", icon: "Wallet", color: "#a855f7" },
+  { slug: "cultura", title: "Cultura e Turismo", icon: "Music", color: "#ec4899" },
+  { slug: "iptu", title: "2ª via IPTU", icon: "FileText", color: "#8b5cf6" },
+  { slug: "agendar-consulta", title: "Agendar Consulta", icon: "Calendar", color: "#14b8a6" },
+  { slug: "iluminacao", title: "Iluminação Pública", icon: "Lightbulb", color: "#60a5fa" },
+  { slug: "esporte", title: "Esporte", icon: "Trophy", color: "#22c55e" },
+  { slug: "comunicacao", title: "Comunicação", icon: "Megaphone", color: "#06b6d4" }
 ];
 
 const Index = () => {
@@ -152,7 +155,7 @@ const Index = () => {
         </Link>
       </div>
       <div className="grid grid-cols-3 gap-3 mb-3">
-        {secretarias.slice(0, 6).map((secretaria) => {
+        {secretarias.map((secretaria) => {
           const IconComponent = getIconComponent(secretaria.icon);
           
           return (
