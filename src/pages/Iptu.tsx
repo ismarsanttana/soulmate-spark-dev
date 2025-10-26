@@ -377,7 +377,7 @@ const Iptu = () => {
       {/* Assistente Virtual Flutuante */}
       <button
         onClick={() => setAssistantOpen(!assistantOpen)}
-        className={`fixed bottom-24 right-6 h-14 w-14 rounded-full bg-primary text-white shadow-lg hover:shadow-xl transition-all z-50 flex items-center justify-center ${
+        className={`fixed bottom-[335px] right-6 h-14 w-14 rounded-full bg-primary text-white shadow-lg hover:shadow-xl transition-all z-40 flex items-center justify-center ${
           assistantOpen ? "scale-110" : ""
         }`}
         aria-label="Assistente Virtual"

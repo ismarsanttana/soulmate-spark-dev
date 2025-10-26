@@ -362,7 +362,7 @@ const AgendarConsulta = () => {
       </section>
 
       {/* Assistente Virtual Flutuante */}
-      <div className="fixed bottom-24 right-4 z-30 flex flex-col items-end gap-3">
+      <div className="fixed bottom-[335px] right-6 z-40 flex flex-col items-end gap-3">
         <button
           onClick={() => setAssistantOpen(!assistantOpen)}
           className={`h-14 w-14 rounded-full bg-primary hover:bg-primary/90 text-white shadow-2xl flex items-center justify-center transition ${

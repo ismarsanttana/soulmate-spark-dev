@@ -442,7 +442,7 @@ export default function Financas() {
       </main>
 
       {/* Assistente Virtual Flutuante */}
-      <div className="fixed bottom-24 right-4 z-30 flex flex-col items-end gap-3">
+      <div className="fixed bottom-[335px] right-6 z-40 flex flex-col items-end gap-3">
         {assistantOpen && (
           <div className="w-72 max-w-full rounded-2xl bg-card shadow-2xl border border-border animate-in slide-in-from-right-5">
             <div className="flex items-start justify-between p-4 border-b border-border">
