@@ -2,39 +2,53 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, Users, Calendar, FileText } from "lucide-react";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { BookOpen, Users, Calendar, FileText, ClipboardCheck, GraduationCap, MessageSquare, BarChart3 } from "lucide-react";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { useState } from "react";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+
+const menuItems = [
+  { value: "overview", title: "Visão Geral", icon: BarChart3 },
+  { value: "turmas", title: "Minhas Turmas", icon: Users },
+  { value: "presenca", title: "Registro de Presença", icon: ClipboardCheck },
+  { value: "notas", title: "Notas e Avaliações", icon: GraduationCap },
+  { value: "aulas", title: "Diário de Aulas", icon: BookOpen },
+  { value: "calendario", title: "Calendário de Provas", icon: Calendar },
+  { value: "relatorios", title: "Relatórios", icon: FileText },
+  { value: "chamados", title: "Chamados", icon: MessageSquare },
+];
 
 const ProfessorSidebar = ({ activeTab, onTabChange }: { activeTab: string; onTabChange: (tab: string) => void }) => {
   return (
-    <div className="w-64 border-r bg-background p-6 space-y-2">
-      <h2 className="text-lg font-semibold mb-4">Painel do Professor</h2>
-      <button
-        onClick={() => onTabChange("overview")}
-        className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-          activeTab === "overview" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-        }`}
-      >
-        Visão Geral
-      </button>
-      <button
-        onClick={() => onTabChange("classes")}
-        className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-          activeTab === "classes" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-        }`}
-      >
-        Minhas Turmas
-      </button>
-      <button
-        onClick={() => onTabChange("students")}
-        className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-          activeTab === "students" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-        }`}
-      >
-        Alunos
-      </button>
-    </div>
+    <Sidebar>
+      <SidebarContent>
+        <SidebarGroup>
+          <div className="px-4 py-2">
+            <h2 className="text-lg font-semibold">Painel do Professor</h2>
+            <p className="text-sm text-muted-foreground">Gestão de Turmas</p>
+          </div>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <SidebarMenuItem key={item.value}>
+                    <SidebarMenuButton
+                      onClick={() => onTabChange(item.value)}
+                      isActive={activeTab === item.value}
+                      tooltip={item.title}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   );
 };
 
@@ -49,71 +63,177 @@ const ProfessorContent = () => {
     },
   });
 
+  const { data: classes } = useQuery({
+    queryKey: ["professor-classes", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("school_classes")
+        .select("*")
+        .eq("teacher_user_id", user.id)
+        .eq("status", "active");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
   const renderContent = () => {
     switch (activeTab) {
       case "overview":
         return (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Turmas Ativas</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{classes?.length || 0}</div>
+                  <p className="text-xs text-muted-foreground">turmas sob sua responsabilidade</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Aulas Esta Semana</CardTitle>
+                  <BookOpen className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">-</div>
+                  <p className="text-xs text-muted-foreground">aulas registradas</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Próximas Avaliações</CardTitle>
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">-</div>
+                  <p className="text-xs text-muted-foreground">provas agendadas</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Pendências</CardTitle>
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">-</div>
+                  <p className="text-xs text-muted-foreground">notas para lançar</p>
+                </CardContent>
+              </Card>
+            </div>
+            
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Turmas Ativas</CardTitle>
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
+              <CardHeader>
+                <CardTitle>Minhas Turmas</CardTitle>
+                <CardDescription>Visão rápida das suas turmas ativas</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">5</div>
-                <p className="text-xs text-muted-foreground">turmas sob sua responsabilidade</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total de Alunos</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">142</div>
-                <p className="text-xs text-muted-foreground">alunos matriculados</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Aulas Hoje</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">6</div>
-                <p className="text-xs text-muted-foreground">aulas programadas</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pendências</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">atividades para corrigir</p>
+                {classes && classes.length > 0 ? (
+                  <div className="space-y-4">
+                    {classes.map((cls) => (
+                      <div key={cls.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h3 className="font-semibold">{cls.class_name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {cls.grade_level} - {cls.shift} - {cls.school_name}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">{cls.school_year}</p>
+                          <p className="text-xs text-muted-foreground">Ano Letivo</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">Nenhuma turma atribuída</p>
+                )}
               </CardContent>
             </Card>
           </div>
         );
-      case "classes":
+      case "turmas":
         return (
           <Card>
             <CardHeader>
               <CardTitle>Minhas Turmas</CardTitle>
-              <CardDescription>Gerencie suas turmas e planos de aula</CardDescription>
+              <CardDescription>Gerencie suas turmas e visualize informações detalhadas</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">Em desenvolvimento...</p>
             </CardContent>
           </Card>
         );
-      case "students":
+      case "presenca":
         return (
           <Card>
             <CardHeader>
-              <CardTitle>Meus Alunos</CardTitle>
-              <CardDescription>Visualize e gerencie informações dos alunos</CardDescription>
+              <CardTitle>Registro de Presença</CardTitle>
+              <CardDescription>Faça a chamada diária dos alunos</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Em desenvolvimento...</p>
+            </CardContent>
+          </Card>
+        );
+      case "notas":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Notas e Avaliações</CardTitle>
+              <CardDescription>Gerencie notas, avaliações e trabalhos dos alunos</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Em desenvolvimento...</p>
+            </CardContent>
+          </Card>
+        );
+      case "aulas":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Diário de Aulas</CardTitle>
+              <CardDescription>Registre o conteúdo ministrado em cada aula</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Em desenvolvimento...</p>
+            </CardContent>
+          </Card>
+        );
+      case "calendario":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Calendário de Provas</CardTitle>
+              <CardDescription>Agende e visualize o calendário de avaliações</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Em desenvolvimento...</p>
+            </CardContent>
+          </Card>
+        );
+      case "relatorios":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Relatórios</CardTitle>
+              <CardDescription>Gere relatórios detalhados de notas e desempenho</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Em desenvolvimento...</p>
+            </CardContent>
+          </Card>
+        );
+      case "chamados":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Chamados para Secretaria</CardTitle>
+              <CardDescription>Abra e acompanhe chamados para a secretaria de educação</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">Em desenvolvimento...</p>
@@ -127,26 +247,14 @@ const ProfessorContent = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="flex min-h-screen w-full">
         <ProfessorSidebar activeTab={activeTab} onTabChange={setActiveTab} />
         
-        <div className="flex-1 flex flex-col">
-          <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-            <div className="flex h-full items-center gap-4 px-6">
-              <SidebarTrigger className="-ml-2" />
-              <div className="flex items-center gap-3">
-                <BookOpen className="h-6 w-6 text-primary" />
-                <h1 className="text-2xl font-bold">Painel do Professor</h1>
-              </div>
-            </div>
-          </header>
-
-          <main className="flex-1 p-8 bg-gradient-to-br from-background to-secondary/5 overflow-auto">
-            <div className="max-w-7xl mx-auto">
-              {renderContent()}
-            </div>
-          </main>
-        </div>
+        <main className="flex-1 overflow-auto">
+          <div className="container mx-auto p-6 space-y-6">
+            {renderContent()}
+          </div>
+        </main>
       </div>
     </SidebarProvider>
   );
