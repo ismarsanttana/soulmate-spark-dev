@@ -21,7 +21,8 @@ const defaultSecretarias = [
   { slug: "agendar-consulta", title: "Agendar Consulta", icon: "Calendar", color: "#14b8a6" },
   { slug: "iluminacao", title: "Iluminação Pública", icon: "Lightbulb", color: "#60a5fa" },
   { slug: "esporte", title: "Esporte", icon: "Trophy", color: "#22c55e" },
-  { slug: "comunicacao", title: "Comunicação", icon: "Megaphone", color: "#06b6d4" }
+  { slug: "agricultura", title: "Agricultura", icon: "Tractor", color: "#84cc16" },
+  { slug: "mulher", title: "Secretaria da Mulher", icon: "Heart", color: "#f472b6" }
 ];
 
 const Index = () => {
@@ -159,7 +160,8 @@ const Index = () => {
       'agendar-consulta': '/agendar-consulta',
       'iluminacao': '/iluminacao-publica',
       'esporte': '/esporte',
-      'comunicacao': '/secretarias/comunicacao'
+      'agricultura': '/agricultura',
+      'mulher': '/mulher'
     };
     return routeMap[slug] || `/secretarias/${slug}`;
   };

@@ -41,9 +41,14 @@ const secretarias: Secretaria[] = [
     description: "Campeonatos, quadras, campos e programas esportivos"
   },
   {
-    slug: "comunicacao",
-    title: "Secretaria de Comunicação",
-    description: "Comunicação institucional, notícias, eventos e campanhas da cidade"
+    slug: "agricultura",
+    title: "Secretaria de Agricultura",
+    description: "Apoio ao produtor rural, programas agrícolas e desenvolvimento rural"
+  },
+  {
+    slug: "mulher",
+    title: "Secretaria da Mulher",
+    description: "Políticas públicas para mulheres, acolhimento e apoio"
   }
 ];
 

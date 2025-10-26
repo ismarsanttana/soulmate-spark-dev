@@ -18,6 +18,8 @@ import IluminacaoPublica from "./pages/IluminacaoPublica";
 import Ouvidoria from "./pages/Ouvidoria";
 import Notificacoes from "./pages/Notificacoes";
 import Esporte from "./pages/Esporte";
+import Agricultura from "./pages/Agricultura";
+import Mulher from "./pages/Mulher";
 import Noticias from "./pages/Noticias";
 import NoticiaDetalhes from "./pages/NoticiaDetalhes";
 import NotFound from "./pages/NotFound";
@@ -57,6 +59,8 @@ const App = () => (
           <Route path="/cultura" element={<Cultura />} />
           <Route path="/obras" element={<Obras />} />
           <Route path="/esporte" element={<Esporte />} />
+          <Route path="/agricultura" element={<Agricultura />} />
+          <Route path="/mulher" element={<Mulher />} />
           
           {/* Página pública de Educação */}
           <Route path="/educacao" element={<Educacao />} />
