@@ -58,6 +58,24 @@ const SecretariasList = () => {
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Mapeia os slugs para as rotas corretas
+  const getRouteForSlug = (slug: string) => {
+    const routeMap: Record<string, string> = {
+      'saude': '/saude',
+      'educacao': '/educacao',
+      'assistencia': '/assistencia',
+      'obras': '/obras',
+      'financas': '/financas',
+      'cultura': '/cultura',
+      'iptu': '/iptu',
+      'agendar-consulta': '/agendar-consulta',
+      'iluminacao': '/iluminacao-publica',
+      'esporte': '/esporte',
+      'comunicacao': '/secretarias/comunicacao'
+    };
+    return routeMap[slug] || `/secretarias/${slug}`;
+  };
+
   return (
     <Layout>
       <div className="mb-6">
@@ -82,7 +100,11 @@ const SecretariasList = () => {
           const IconComponent = getIconComponent(secretaria.icon);
 
           return (
-            <Link key={secretaria.id} to={`/secretarias/${secretaria.slug}`}>
+              <Link
+                key={secretaria.id}
+                to={getRouteForSlug(secretaria.slug)}
+                className="block"
+              >
               <Card 
                 className="card-hover h-full"
                 style={{ borderLeft: `4px solid ${secretaria.color}` }}

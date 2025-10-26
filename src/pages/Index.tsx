@@ -146,6 +146,24 @@ const Index = () => {
     .join("")
     .substring(0, 2) || "U";
 
+  // Mapeia os slugs para as rotas corretas
+  const getRouteForSlug = (slug: string) => {
+    const routeMap: Record<string, string> = {
+      'saude': '/saude',
+      'educacao': '/educacao',
+      'assistencia': '/assistencia',
+      'obras': '/obras',
+      'financas': '/financas',
+      'cultura': '/cultura',
+      'iptu': '/iptu',
+      'agendar-consulta': '/agendar-consulta',
+      'iluminacao': '/iluminacao-publica',
+      'esporte': '/esporte',
+      'comunicacao': '/secretarias/comunicacao'
+    };
+    return routeMap[slug] || `/secretarias/${slug}`;
+  };
+
   const SecretariasGrid = () => (
     <div className="mb-5">
       <div className="flex justify-between items-center mb-4">
@@ -161,7 +179,7 @@ const Index = () => {
           return (
             <Link
               key={secretaria.id}
-              to={`/secretarias/${secretaria.slug}`}
+              to={getRouteForSlug(secretaria.slug)}
               className="service-btn rounded-2xl p-3 text-center cursor-pointer card-hover"
               style={{ 
                 backgroundColor: `${secretaria.color}15`,
