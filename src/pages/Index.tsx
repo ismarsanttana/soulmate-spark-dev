@@ -97,12 +97,10 @@ const Index = () => {
   const { data: stories } = useQuery({
     queryKey: ["stories"],
     queryFn: async () => {
-      const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("stories")
         .select("*")
         .eq("status", "published")
-        .gte("expires_at", now)
         .order("created_at", { ascending: false })
         .limit(10);
       
