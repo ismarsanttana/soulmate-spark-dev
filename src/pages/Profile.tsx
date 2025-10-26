@@ -30,7 +30,7 @@ const protocolStatusBadge: Record<
   { label: string; badgeClass: string; cardClass: string }
 > = {
   aberto: {
-    label: "Em anÃ¡lise",
+    label: "Em análise",
     badgeClass:
       "px-3 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
     cardClass: "bg-gray-50 dark:bg-gray-900",
@@ -42,7 +42,7 @@ const protocolStatusBadge: Record<
     cardClass: "bg-white dark:bg-gray-900",
   },
   encerrado: {
-    label: "ConcluÃ­do",
+    label: "Concluído",
     badgeClass:
       "px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
     cardClass: "bg-white dark:bg-gray-900",
@@ -211,9 +211,9 @@ const Profile = () => {
   }, []);
 
   const greetingName = useMemo(() => {
-    if (!formState.fullName) return "OlÃ¡!";
+    if (!formState.fullName) return "Olá!";
     const firstName = formState.fullName.split(" ")[0] || "";
-    return `OlÃ¡, ${firstName}!`;
+    return `Olá, ${firstName}!`;
   }, [formState.fullName]);
 
   const memberSinceLabel = useMemo(() => {
@@ -245,7 +245,7 @@ const Profile = () => {
   const protocolSuggestions = useMemo(() => {
     if (!protocols.length) {
       return [
-        "Como atualizar meu endereÃ§o?",
+        "Como atualizar meu endereço?",
         "Quero falar sobre um protocolo encerrado",
         "Quais documentos preciso para um novo protocolo?",
       ];
@@ -263,7 +263,7 @@ const Profile = () => {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     if (!user) {
-      toast.error("Faca login para atualizar sua foto.");
+      toast.error("Faça login para atualizar sua foto.");
       return;
     }
 
@@ -271,14 +271,14 @@ const Profile = () => {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Selecione um arquivo de imagem valido.");
+      toast.error("Selecione um arquivo de imagem válido.");
       event.target.value = "";
       return;
     }
 
     const MAX_AVATAR_SIZE = 3 * 1024 * 1024;
     if (file.size > MAX_AVATAR_SIZE) {
-      toast.error("A imagem deve ter no maximo 3MB.");
+      toast.error("A imagem deve ter no máximo 3MB.");
       event.target.value = "";
       return;
     }
@@ -321,7 +321,7 @@ const Profile = () => {
       toast.success("Foto atualizada com sucesso.");
     } catch (error: unknown) {
       console.error(error);
-      toast.error("NÃ£o foi possÃ­vel atualizar a foto do perfil.");
+      toast.error("Não foi possível atualizar a foto do perfil.");
     } finally {
       setAvatarUploading(false);
       if (event.target) {
@@ -396,7 +396,7 @@ const Profile = () => {
       toast.success("Dados pessoais atualizados com sucesso.");
     } catch (error: unknown) {
       console.error(error);
-      toast.error("NÃ£o foi possÃ­vel salvar as alteraÃ§Ãµes.");
+      toast.error("Não foi possível salvar as alterações.");
     } finally {
       setSavingProfile(false);
     }
@@ -416,7 +416,7 @@ const Profile = () => {
     if (!user) return;
 
     if (securityForm.newPassword !== securityForm.confirmPassword) {
-      toast.error("As senhas nÃ£o coincidem.");
+      toast.error("As senhas não coincidem.");
       return;
     }
 
@@ -428,7 +428,7 @@ const Profile = () => {
     setUpdatingPassword(true);
     try {
       if (!user.email) {
-        toast.error("NÃ£o foi possÃ­vel validar o usuÃ¡rio.");
+        toast.error("Não foi possível validar o usuário.");
         return;
       }
 
@@ -459,7 +459,7 @@ const Profile = () => {
       });
     } catch (error: unknown) {
       console.error(error);
-      toast.error("NÃ£o foi possÃ­vel atualizar a senha.");
+      toast.error("Não foi possível atualizar a senha.");
     } finally {
       setUpdatingPassword(false);
     }
@@ -507,7 +507,7 @@ const Profile = () => {
               )}
             </div>
             <div>
-              <p className="text-xs opacity-80 mb-1">Perfil do cidadao</p>
+              <p className="text-xs opacity-80 mb-1">Perfil do cidadão</p>
               <h1 className="text-xl font-bold">{greetingName}</h1>
               <div className="flex flex-wrap gap-2 mt-2 text-xs">
                 <span className="px-3 py-1 rounded-full bg-white/20">
@@ -524,20 +524,20 @@ const Profile = () => {
           <Link
             to="/"
             className="bg-white/15 p-2 rounded-xl hover:bg-white/20 transition"
-            aria-label="Voltar para inÃ­cio"
+            aria-label="Voltar para início"
           >
             <i className="fas fa-arrow-left text-white"></i>
           </Link>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3 text-xs">
           <div className="bg-white/15 rounded-xl p-3">
-            <span className="block opacity-75">SolicitaÃ§Ãµes em andamento</span>
+            <span className="block opacity-75">Solicitações em andamento</span>
             <strong className="text-lg">
               {String(inProgressProtocols).padStart(2, "0")}
             </strong>
           </div>
           <div className="bg-white/15 rounded-xl p-3">
-            <span className="block opacity-75">Protocolos concluÃ­dos</span>
+            <span className="block opacity-75">Protocolos concluídos</span>
             <strong className="text-lg">
               {String(closedProtocols).padStart(2, "0")}
             </strong>
@@ -551,7 +551,7 @@ const Profile = () => {
             <div>
               <h2 className="font-semibold text-lg">Dados pessoais</h2>
               <p className="text-xs text-muted-foreground">
-                Mantenha suas informaÃ§Ãµes sempre atualizadas.
+                Mantenha suas informações sempre atualizadas.
               </p>
             </div>
             <span className="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-primary/10 text-primary">
@@ -567,7 +567,7 @@ const Profile = () => {
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
-                    alt="Foto do cidadao"
+                    alt="Foto do cidadão"
                     className="h-16 w-16 rounded-2xl object-cover border border-border bg-muted/40"
                   />
                 ) : (
@@ -649,14 +649,14 @@ const Profile = () => {
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wide">
-                EndereÃ§o
+                Endereço
               </label>
               <input
                 type="text"
                 value={formState.address}
                 onChange={handleInputChange("address")}
                 className="w-full rounded-xl border border-border px-4 py-3 bg-muted/40 dark:bg-muted/20 focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Rua, nÃºmero, bairro"
+                placeholder="Rua, número, bairro"
               />
             </div>
             <div className="flex gap-2">
@@ -665,7 +665,7 @@ const Profile = () => {
                 disabled={savingProfile}
                 className="flex-1 bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-semibold transition disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {savingProfile ? "Salvando..." : "Salvar alteraÃ§Ãµes"}
+                {savingProfile ? "Salvando..." : "Salvar alterações"}
               </button>
               <button
                 type="button"
@@ -681,13 +681,13 @@ const Profile = () => {
         <section className="bg-card dark:bg-card rounded-2xl p-5 shadow-sm mb-5 card-hover border border-border">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-semibold text-lg">SeguranÃ§a da conta</h2>
+              <h2 className="font-semibold text-lg">Segurança da conta</h2>
               <p className="text-xs text-muted-foreground">
                 Altere sua senha e revise os acessos recentes.
               </p>
             </div>
             <span className="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300">
-              <i className="fas fa-shield-alt"></i> AutenticaÃ§Ã£o ativa
+              <i className="fas fa-shield-alt"></i> Autenticação ativa
             </span>
           </div>
           <form className="space-y-3 text-sm" onSubmit={handlePasswordSubmit}>
@@ -746,7 +746,7 @@ const Profile = () => {
               {!cardLoading && protocols.length === 0 && (
                 <li className="flex items-center gap-2">
                   <i className="fas fa-info-circle text-primary"></i>
-                  Nenhuma atividade registrada atÃ© o momento.
+                  Nenhuma atividade registrada até o momento.
                 </li>
               )}
               {!cardLoading &&
@@ -768,7 +768,7 @@ const Profile = () => {
         <section className="bg-card dark:bg-card rounded-2xl p-5 shadow-sm card-hover mb-5 border border-border">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-semibold text-lg">Status das solicitaÃ§Ãµes</h2>
+              <h2 className="font-semibold text-lg">Status das solicitações</h2>
               <p className="text-xs text-muted-foreground">
                 Acompanhe o andamento dos seus protocolos.
               </p>
@@ -777,7 +777,7 @@ const Profile = () => {
               to="/ouvidoria#acompanhar"
               className="text-xs text-primary font-semibold"
             >
-              Ver histÃ³rico completo
+              Ver histórico completo
             </Link>
           </div>
           <div className="space-y-4">
@@ -790,8 +790,8 @@ const Profile = () => {
 
             {!cardLoading && protocols.length === 0 && (
               <div className="p-4 rounded-2xl border border-dashed border-border text-sm text-muted-foreground">
-                VocÃª ainda nÃ£o possui protocolos. Inicie uma solicitaÃ§Ã£o na
-                Ã¡rea de Ouvidoria.
+                Você ainda não possui protocolos. Inicie uma solicitação na
+                área de Ouvidoria.
               </div>
             )}
 
@@ -815,13 +815,13 @@ const Profile = () => {
                       {protocol.category}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Aberto em {formatDate(protocol.created_at)} â€¢{" "}
+                      Aberto em {formatDate(protocol.created_at)} •{" "}
                       {protocol.manifestation_type.replace("_", " ")}
                     </p>
                     <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                       <i className="fas fa-comments"></i>
                       {protocol.response
-                        ? `Ãšltima atualizaÃ§Ã£o em ${formatDate(
+                        ? `Última atualização em ${formatDate(
                             protocol.updated_at
                           )}`
                         : "Aguardando retorno da equipe."}
@@ -858,11 +858,11 @@ const Profile = () => {
           <div className="p-4 space-y-3 text-xs text-muted-foreground">
             <div className="rounded-xl bg-primary/10 p-3">
               <p className="font-semibold text-primary mb-1">
-                SugestÃµes rÃ¡pidas
+                Sugestões rápidas
               </p>
               <ul className="space-y-1">
                 {protocolSuggestions.map((suggestion) => (
-                  <li key={suggestion}>â€¢ {suggestion}</li>
+                  <li key={suggestion}>• {suggestion}</li>
                 ))}
               </ul>
             </div>
