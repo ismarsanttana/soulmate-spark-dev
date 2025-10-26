@@ -13,6 +13,8 @@ import { RequestsManagement } from "@/components/secretario/content/RequestsMana
 import { ClassesManagement } from "@/components/educacao/content/ClassesManagement";
 import { TimeclockManagement } from "@/components/educacao/content/TimeclockManagement";
 import ReportsManagement from "@/components/secretario/content/ReportsManagement";
+import { ComprasManagement } from "@/components/educacao/content/ComprasManagement";
+import { FrotaManagement } from "@/components/educacao/content/FrotaManagement";
 
 const PainelEducacaoContent = () => {
   const [activeTab, setActiveTab] = useState("painel");
@@ -74,6 +76,10 @@ const PainelEducacaoContent = () => {
         return <StudentsManagementComplete secretariaSlug={assignment.secretaria_slug} />;
       case "ponto":
         return <TimeclockManagement secretariaSlug={assignment.secretaria_slug} />;
+      case "compras":
+        return <ComprasManagement />;
+      case "frota":
+        return <FrotaManagement />;
       case "relatorios":
         return <ReportsManagement />;
       case "solicitacoes":
