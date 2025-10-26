@@ -345,7 +345,7 @@ const Educacao = () => {
         {/* Virtual Assistant FAB */}
         <button
           onClick={() => setAssistantOpen(true)}
-          className="fixed bottom-20 right-4 w-14 h-14 bg-secondary text-secondary-foreground rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform z-40"
+          className="fixed bottom-52 right-6 w-14 h-14 bg-secondary text-secondary-foreground rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform z-40"
           aria-label="Abrir assistente virtual"
         >
           <MessageCircle className="w-6 h-6" />
