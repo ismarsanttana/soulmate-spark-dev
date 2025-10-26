@@ -465,6 +465,19 @@ const Profile = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast.success("Logout realizado com sucesso");
+      navigate("/auth");
+    } catch (error: unknown) {
+      console.error(error);
+      toast.error("Não foi possível fazer logout.");
+    }
+  };
+
   const handleAssistantToggle = () => {
     setAssistantOpen((previous) => !previous);
   };
@@ -737,6 +750,16 @@ const Profile = () => {
               {updatingPassword ? "Atualizando..." : "Atualizar senha"}
             </button>
           </form>
+          <div className="mt-5 border-t border-border pt-4">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2"
+            >
+              <i className="fas fa-sign-out-alt"></i>
+              Sair da conta
+            </button>
+          </div>
           <div className="mt-5 border-t border-border pt-4">
             <h3 className="text-sm font-semibold mb-3">Atividades recentes</h3>
             <ul className="text-xs space-y-2 text-muted-foreground">
