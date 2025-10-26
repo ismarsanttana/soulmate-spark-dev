@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ThemeToggle } from "./theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@supabase/supabase-js";
@@ -112,15 +111,6 @@ export const Header = ({ pageTitle }: HeaderProps) => {
                 {pageTitle ? `${pageTitle} • ` : ""}Prefeitura de Afogados da Ingazeira-PE
               </p>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <button
-              className="bg-white/15 p-2 rounded-xl hover:bg-white/20 transition"
-              aria-label="Compartilhar"
-            >
-              <i className="fas fa-share-nodes text-white"></i>
-            </button>
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { FloatingThemeToggle } from "./FloatingThemeToggle";
 
 interface LayoutProps {
   children: ReactNode;
@@ -13,6 +14,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <FloatingThemeToggle />
       <div className="max-w-md mx-auto px-4 py-6">
         {children}
 
