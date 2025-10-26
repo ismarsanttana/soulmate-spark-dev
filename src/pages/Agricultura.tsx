@@ -114,8 +114,8 @@ const Agricultura = () => {
 
       <div className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Agricultura</h2>
-          <p className="text-xs text-muted-foreground">
+          <h2 className="text-2xl font-semibold text-foreground">Agricultura</h2>
+          <p className="text-sm text-muted-foreground">
             Programas de apoio ao produtor rural, assistência técnica, patrulha mecanizada e incentivo à agricultura familiar.
           </p>
         </div>
@@ -124,10 +124,10 @@ const Agricultura = () => {
         <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-foreground">
+              <h3 className="text-lg font-semibold text-foreground">
                 Assistência Técnica e Extensão Rural (ATER)
               </h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Acompanhe visitas, orientações de plantio e sanidade animal.
               </p>
             </div>
@@ -263,8 +263,8 @@ const Agricultura = () => {
         <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Solicitar serviços rurais</h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <h3 className="text-lg font-semibold text-foreground">Solicitar serviços rurais</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Patrulha mecanizada, análises e programas de apoio ao produtor.
               </p>
             </div>
@@ -351,8 +351,8 @@ const Agricultura = () => {
         <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Serviços ao produtor</h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <h3 className="text-lg font-semibold text-foreground">Serviços ao produtor</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Acesso rápido a programas e orientações agrícolas.
               </p>
             </div>

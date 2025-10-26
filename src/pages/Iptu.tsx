@@ -30,8 +30,8 @@ const Iptu = () => {
       <main className="pb-24">
         {/* Intro */}
         <div className="mb-4">
-          <h2 className="font-semibold text-lg">2ª Via do IPTU</h2>
-          <p className="text-xs text-muted-foreground">
+          <h2 className="font-semibold text-2xl">2ª Via do IPTU</h2>
+          <p className="text-sm text-muted-foreground">
             Emita guias, consulte débitos e acompanhe seu imóvel sem sair de casa.
           </p>
         </div>
@@ -89,8 +89,8 @@ const Iptu = () => {
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <h3 className="font-semibold">Emitir guia rápida</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h3 className="font-semibold text-lg">Emitir guia rápida</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Informe inscrição e CPF/CNPJ para gerar a 2ª via.
                 </p>
               </div>
@@ -172,8 +172,8 @@ const Iptu = () => {
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <h3 className="font-semibold">Débitos e parcelamentos</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h3 className="font-semibold text-lg">Débitos e parcelamentos</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Visualize débitos por exercício, parcelas e situação do imóvel.
                 </p>
               </div>
@@ -239,8 +239,8 @@ const Iptu = () => {
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <h3 className="font-semibold">Certidões e comprovantes</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h3 className="font-semibold text-lg">Certidões e comprovantes</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Emitir certidão negativa, recibos e histórico de pagamentos.
                 </p>
               </div>
@@ -287,8 +287,8 @@ const Iptu = () => {
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <h3 className="font-semibold">Perguntas frequentes</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h3 className="font-semibold text-lg">Perguntas frequentes</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Dúvidas sobre descontos, parcelamentos e documentação.
                 </p>
               </div>
@@ -337,8 +337,8 @@ const Iptu = () => {
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <h3 className="font-semibold">Canais de atendimento IPTU</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h3 className="font-semibold text-lg">Canais de atendimento IPTU</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Secretaria de Finanças • (83) 3356-1177 • financas@afogados.pe.gov.br
                 </p>
               </div>

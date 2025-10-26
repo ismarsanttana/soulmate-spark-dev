@@ -163,10 +163,10 @@ const AssistenciaSocial = () => {
 
       <div className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">
+          <h2 className="text-2xl font-semibold text-foreground">
             Assistência Social
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Programas sociais, benefícios e serviços de proteção ao cidadão.
           </p>
         </div>
@@ -174,10 +174,10 @@ const AssistenciaSocial = () => {
         <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-foreground">
+              <h3 className="text-lg font-semibold text-foreground">
                 Acompanhamento CRAS
               </h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Veja o status do seu acompanhamento familiar e agende novos
                 atendimentos.
               </p>
@@ -308,10 +308,10 @@ const AssistenciaSocial = () => {
         <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-foreground">
+              <h3 className="text-lg font-semibold text-foreground">
                 Solicitar benefício eventual
               </h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Auxílio cesta básica, aluguel social, passagens e outros apoios
                 emergenciais.
               </p>
@@ -399,10 +399,10 @@ const AssistenciaSocial = () => {
         <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-foreground">
+              <h3 className="text-lg font-semibold text-foreground">
                 Serviços ao cidadão
               </h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Acesso rápido aos programas municipais e federais.
               </p>
             </div>

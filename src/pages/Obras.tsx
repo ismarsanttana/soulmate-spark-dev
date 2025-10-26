@@ -123,8 +123,8 @@ const Obras = () => {
       <main className="pb-24">
         {/* Intro */}
         <div className="mb-4">
-          <h2 className="font-semibold text-lg">Obras e Infraestrutura</h2>
-          <p className="text-xs text-muted-foreground">
+          <h2 className="font-semibold text-2xl">Obras e Infraestrutura</h2>
+          <p className="text-sm text-muted-foreground">
             Acompanhe o andamento das obras públicas, investimentos e próximos marcos.
           </p>
         </div>
@@ -180,8 +180,8 @@ const Obras = () => {
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <h3 className="font-semibold">Mapa das obras</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h3 className="font-semibold text-lg">Mapa das obras</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Use os filtros para localizar trabalhos por bairro e acompanhar o avanço no território.
                 </p>
               </div>
@@ -259,8 +259,8 @@ const Obras = () => {
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <h3 className="font-semibold">Status das obras</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h3 className="font-semibold text-lg">Status das obras</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Filtre por fase para entender o avanço de cada projeto.
                 </p>
               </div>

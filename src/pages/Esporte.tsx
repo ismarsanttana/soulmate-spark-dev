@@ -133,7 +133,7 @@ const Esporte = () => {
 
         {/* Ações da Secretaria */}
         <div>
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <i className="fas fa-clipboard-list text-green-600"></i>
             Ações e Programas
           </h2>
@@ -163,7 +163,7 @@ const Esporte = () => {
 
         {/* Galeria de Fotos */}
         <div>
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <i className="fas fa-images text-green-600"></i>
             Galeria de Eventos
           </h2>
@@ -190,7 +190,7 @@ const Esporte = () => {
 
         {/* Campeonatos */}
         <div>
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <Trophy className="text-green-600" size={24} />
             Campeonatos
           </h2>
@@ -223,7 +223,7 @@ const Esporte = () => {
 
         {/* Quadras e Campos */}
         <div>
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <MapPin className="text-green-600" size={24} />
             Quadras e Campos
           </h2>

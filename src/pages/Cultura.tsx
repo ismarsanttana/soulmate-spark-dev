@@ -15,8 +15,8 @@ const Cultura = () => {
       <main className="pb-24">
         {/* Intro */}
         <div className="mb-4">
-          <h2 className="font-semibold text-lg">Cultura, Turismo e Economia Criativa</h2>
-          <p className="text-xs text-muted-foreground">
+          <h2 className="font-semibold text-2xl">Cultura, Turismo e Economia Criativa</h2>
+          <p className="text-sm text-muted-foreground">
             Serviços, fomento e agenda para quem faz cultura em Afogados da Ingazeira.
           </p>
         </div>
@@ -74,8 +74,8 @@ const Cultura = () => {
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <h3 className="font-semibold">Serviços para fazedores de cultura</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h3 className="font-semibold text-lg">Serviços para fazedores de cultura</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Cadastre projetos, acompanhe prestações e acesse editais.
                 </p>
               </div>
@@ -169,8 +169,8 @@ const Cultura = () => {
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <h3 className="font-semibold">Agenda cultural</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h3 className="font-semibold text-lg">Agenda cultural</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Eventos, festivais e oficinas dos próximos 30 dias.
                 </p>
               </div>
@@ -231,8 +231,8 @@ const Cultura = () => {
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <h3 className="font-semibold">Pontos turísticos e patrimônio</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h3 className="font-semibold text-lg">Pontos turísticos e patrimônio</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Descubra locais históricos, trilhas e experiências culturais.
                 </p>
               </div>
@@ -291,8 +291,8 @@ const Cultura = () => {
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <h3 className="font-semibold">Editais e chamadas públicas</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h3 className="font-semibold text-lg">Editais e chamadas públicas</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Oportunidades de financiamento para projetos culturais.
                 </p>
               </div>

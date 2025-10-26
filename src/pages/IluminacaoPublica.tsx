@@ -82,8 +82,8 @@ const IluminacaoPublica = () => {
       <section className="bg-card rounded-2xl p-4 shadow-sm mb-5">
         <div className="flex items-start justify-between gap-3 mb-4">
           <div>
-            <h3 className="font-semibold">Solicitar troca de lâmpada queimada</h3>
-            <p className="text-xs text-muted-foreground mt-1">Informe o endereço, ponto de referência e a situação observada.</p>
+            <h3 className="font-semibold text-lg">Solicitar troca de lâmpada queimada</h3>
+            <p className="text-sm text-muted-foreground mt-1">Informe o endereço, ponto de referência e a situação observada.</p>
           </div>
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
             <Lightbulb className="h-3 w-3" />
@@ -221,8 +221,8 @@ const IluminacaoPublica = () => {
       <section className="bg-card rounded-2xl p-4 shadow-sm mb-5">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <h3 className="font-semibold">Mapa de ocorrências</h3>
-            <p className="text-xs text-muted-foreground mt-1">Visualize chamados recentes e equipes em atendimento.</p>
+            <h3 className="font-semibold text-lg">Mapa de ocorrências</h3>
+            <p className="text-sm text-muted-foreground mt-1">Visualize chamados recentes e equipes em atendimento.</p>
           </div>
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-muted text-muted-foreground text-[11px] font-semibold">
             <Map className="h-3 w-3" />
@@ -262,8 +262,8 @@ const IluminacaoPublica = () => {
       <section className="bg-card rounded-2xl p-4 shadow-sm mb-5">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <h3 className="font-semibold">Cronograma de manutenção</h3>
-            <p className="text-xs text-muted-foreground mt-1">Veja os bairros que receberão equipes nos próximos dias.</p>
+            <h3 className="font-semibold text-lg">Cronograma de manutenção</h3>
+            <p className="text-sm text-muted-foreground mt-1">Veja os bairros que receberão equipes nos próximos dias.</p>
           </div>
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
             <Calendar className="h-3 w-3" />
@@ -311,8 +311,8 @@ const IluminacaoPublica = () => {
       <section className="bg-card rounded-2xl p-4 shadow-sm mb-5">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <h3 className="font-semibold">Canais de atendimento</h3>
-            <p className="text-xs text-muted-foreground mt-1">Fale com a equipe de Iluminação ou acesse o atendimento expresso.</p>
+            <h3 className="font-semibold text-lg">Canais de atendimento</h3>
+            <p className="text-sm text-muted-foreground mt-1">Fale com a equipe de Iluminação ou acesse o atendimento expresso.</p>
           </div>
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/35 dark:text-emerald-300 text-[11px] font-semibold">
             <Phone className="h-3 w-3" />

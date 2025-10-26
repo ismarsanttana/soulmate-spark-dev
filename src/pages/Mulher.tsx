@@ -116,8 +116,8 @@ const Mulher = () => {
 
       <div className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Direitos, proteção e autonomia</h2>
-          <p className="text-xs text-muted-foreground">
+          <h2 className="text-2xl font-semibold text-foreground">Direitos, proteção e autonomia</h2>
+          <p className="text-sm text-muted-foreground">
             Políticas para as mulheres: enfrentamento às violências, acolhimento, orientação
             jurídica/psicossocial e promoção da autonomia econômica.
           </p>
@@ -127,8 +127,8 @@ const Mulher = () => {
         <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Atendimento especializado</h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <h3 className="text-lg font-semibold text-foreground">Atendimento especializado</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Agende atendimento psicossocial e/ou orientação jurídica.
               </p>
             </div>
@@ -260,8 +260,8 @@ const Mulher = () => {
         <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Solicitar apoio e encaminhamento</h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <h3 className="text-lg font-semibold text-foreground">Solicitar apoio e encaminhamento</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Registre uma demanda de orientação, encaminhamento ou participação em grupos.
               </p>
             </div>
@@ -355,8 +355,8 @@ const Mulher = () => {
         <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Serviços para as mulheres</h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <h3 className="text-lg font-semibold text-foreground">Serviços para as mulheres</h3>
+              <p className="text-sm text-muted-foreground mt-1">
                 Acesso rápido a programas, grupos e orientações.
               </p>
             </div>

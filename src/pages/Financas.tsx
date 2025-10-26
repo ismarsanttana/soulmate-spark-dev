@@ -81,8 +81,8 @@ export default function Financas() {
       <main className="space-y-5">
         {/* Título da Seção */}
         <div>
-          <h2 className="font-semibold text-lg text-foreground">Finanças e Tributação</h2>
-          <p className="text-xs text-muted-foreground">
+          <h2 className="font-semibold text-2xl text-foreground">Finanças e Tributação</h2>
+          <p className="text-sm text-muted-foreground">
             Acompanhe arrecadação, tributos e serviços financeiros da Prefeitura de Afogados da Ingazeira.
           </p>
         </div>
@@ -117,8 +117,8 @@ export default function Financas() {
         <Card className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="font-semibold text-foreground">Tributos municipais</h3>
-              <p className="text-xs text-muted-foreground mt-1">
+              <h3 className="font-semibold text-lg text-foreground">Tributos municipais</h3>
+              <p className="text-sm text-muted-foreground mt-1">
                 Emita guias, parcelamentos e certidões sem sair de casa.
               </p>
             </div>
@@ -210,8 +210,8 @@ export default function Financas() {
         <Card className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="font-semibold text-foreground">Consultas rápidas</h3>
-              <p className="text-xs text-muted-foreground mt-1">
+              <h3 className="font-semibold text-lg text-foreground">Consultas rápidas</h3>
+              <p className="text-sm text-muted-foreground mt-1">
                 Emita guias e acompanhe pendências diretamente pelo aplicativo.
               </p>
             </div>
@@ -292,8 +292,8 @@ export default function Financas() {
         <Card className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="font-semibold text-foreground">Alertas de vencimento</h3>
-              <p className="text-xs text-muted-foreground mt-1">
+              <h3 className="font-semibold text-lg text-foreground">Alertas de vencimento</h3>
+              <p className="text-sm text-muted-foreground mt-1">
                 Receba lembretes de IPTU, ISS, taxas e parcelamentos.
               </p>
             </div>
@@ -392,8 +392,8 @@ export default function Financas() {
 
         {/* Transparência e Contato */}
         <Card className="p-4">
-          <h3 className="font-semibold text-foreground">Transparência e contato</h3>
-          <p className="text-xs text-muted-foreground mt-1">
+            <h3 className="font-semibold text-lg text-foreground">Transparência e contato</h3>
+          <p className="text-sm text-muted-foreground mt-1">
             Acesse relatórios oficiais, audiências e canais de atendimento da Secretaria de Finanças.
           </p>
 
