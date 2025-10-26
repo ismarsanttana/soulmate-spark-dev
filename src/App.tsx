@@ -50,12 +50,13 @@ const App = () => (
           <Route path="/servicos" element={<SecretariasList />} />
           <Route path="/secretarias/:slug" element={<SecretariaDetalhes />} />
           
-          {/* Redirects for backwards compatibility */}
-          <Route path="/saude" element={<Navigate to="/secretarias/saude" replace />} />
-          <Route path="/assistencia" element={<Navigate to="/secretarias/assistencia" replace />} />
-          <Route path="/financas" element={<Navigate to="/secretarias/financas" replace />} />
-          <Route path="/cultura" element={<Navigate to="/secretarias/cultura" replace />} />
-          <Route path="/obras" element={<Navigate to="/secretarias/obras" replace />} />
+          {/* Secretarias Routes */}
+          <Route path="/saude" element={<Saude />} />
+          <Route path="/assistencia" element={<AssistenciaSocial />} />
+          <Route path="/financas" element={<Financas />} />
+          <Route path="/cultura" element={<Cultura />} />
+          <Route path="/obras" element={<Obras />} />
+          <Route path="/esporte" element={<Esporte />} />
           
           {/* Página pública de Educação */}
           <Route path="/educacao" element={<Educacao />} />
@@ -67,7 +68,6 @@ const App = () => (
           <Route path="/iluminacao-publica" element={<IluminacaoPublica />} />
           <Route path="/ouvidoria" element={<Ouvidoria />} />
           <Route path="/notificacoes" element={<Notificacoes />} />
-          <Route path="/esporte" element={<Esporte />} />
           <Route path="/noticias" element={<Noticias />} />
           <Route path="/noticia/:id" element={<NoticiaDetalhes />} />
           <Route path="/agenda" element={<Navigate to="/" replace />} />
