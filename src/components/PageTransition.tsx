@@ -1,33 +1,12 @@
-import { ReactNode, useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { ReactNode } from "react";
 
 interface PageTransitionProps {
   children: ReactNode;
 }
 
 export const PageTransition = ({ children }: PageTransitionProps) => {
-  const location = useLocation();
-  const [displayLocation, setDisplayLocation] = useState(location);
-  const [transitionStage, setTransitionStage] = useState("fadeIn");
-
-  useEffect(() => {
-    if (location !== displayLocation) {
-      setTransitionStage("fadeOut");
-    }
-  }, [location, displayLocation]);
-
   return (
-    <div
-      className={`${
-        transitionStage === "fadeOut" ? "animate-fade-out" : "animate-fade-in"
-      }`}
-      onAnimationEnd={() => {
-        if (transitionStage === "fadeOut") {
-          setTransitionStage("fadeIn");
-          setDisplayLocation(location);
-        }
-      }}
-    >
+    <div className="animate-fade-in">
       {children}
     </div>
   );
