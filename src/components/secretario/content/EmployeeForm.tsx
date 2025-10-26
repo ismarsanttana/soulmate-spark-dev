@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileUpload } from "@/components/admin/FileUpload";
 import { FacialCaptureTab } from "@/components/educacao/content/FacialCaptureTab";
+import { Search } from "lucide-react";
 
 const FUNCOES = [
   { category: "Liderança e planejamento", options: [
@@ -118,6 +119,7 @@ interface EmployeeFormProps {
 
 export function EmployeeForm({ secretariaSlug, employee, onSuccess }: EmployeeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [equipamentos, setEquipamentos] = useState<string[]>(employee?.equipamentos || []);
   const [termoLgpd, setTermoLgpd] = useState(employee?.termo_lgpd_assinado || false);
   const [termoResp, setTermoResp] = useState(employee?.termo_responsabilidade_assinado || false);
@@ -145,6 +147,50 @@ export function EmployeeForm({ secretariaSlug, employee, onSuccess }: EmployeeFo
       situacao: "ativo",
     },
   });
+
+  const handleSearchUser = async () => {
+    const cpf = watch("cpf");
+    
+    if (!cpf || cpf.length < 11) {
+      toast.error("Digite um CPF válido para buscar");
+      return;
+    }
+
+    setIsSearching(true);
+    
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("cpf", cpf)
+        .single();
+
+      if (error) {
+        if (error.code === "PGRST116") {
+          toast.error("Nenhum usuário encontrado com este CPF");
+        } else {
+          throw error;
+        }
+        return;
+      }
+
+      if (profile) {
+        // Auto-preencher campos com os dados do perfil
+        setValue("full_name", profile.full_name);
+        if (profile.email) setValue("email", profile.email);
+        if (profile.telefone) setValue("phone", profile.telefone);
+        if (profile.endereco_completo) setValue("address", profile.endereco_completo);
+        if (profile.birth_date) setValue("birth_date", profile.birth_date);
+        
+        toast.success("Dados do usuário carregados com sucesso!");
+      }
+    } catch (error: any) {
+      console.error("Error searching user:", error);
+      toast.error("Erro ao buscar usuário");
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const onSubmit = async (data: EmployeeFormData) => {
     setIsSubmitting(true);
@@ -230,7 +276,19 @@ export function EmployeeForm({ secretariaSlug, employee, onSuccess }: EmployeeFo
 
             <div className="space-y-2">
               <Label htmlFor="cpf">CPF *</Label>
-              <Input id="cpf" {...register("cpf")} />
+              <div className="flex gap-2">
+                <Input id="cpf" {...register("cpf")} placeholder="Digite o CPF" />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleSearchUser}
+                  disabled={isSearching}
+                  className="shrink-0"
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  {isSearching ? "Buscando..." : "Buscar"}
+                </Button>
+              </div>
               {errors.cpf && (
                 <p className="text-sm text-destructive">{errors.cpf.message}</p>
               )}
