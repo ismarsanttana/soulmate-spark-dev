@@ -539,7 +539,7 @@ const AssistenciaSocial = () => {
       </div>
 
       {/* FAB: Virtual Assistant */}
-      <div className="fixed bottom-96 right-6 z-40 flex flex-col items-end gap-3">
+      <div className="fixed bottom-[360px] right-6 z-40 flex flex-col items-end gap-3">
         <div
           id="assistant-panel"
           aria-hidden={!assistantOpen}
