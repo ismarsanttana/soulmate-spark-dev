@@ -9,6 +9,18 @@ import afogadosImage from "@/assets/afogados_da_ingazeira_pe.png";
 import { getIconComponent } from "@/lib/iconMapper";
 import { StoryViewer } from "@/components/StoryViewer";
 
+// Importar secretarias hardcoded
+const defaultSecretarias = [
+  { slug: "assistencia", title: "Assistência Social", icon: "Heart", color: "#10b981" },
+  { slug: "educacao", title: "Educação", icon: "GraduationCap", color: "#3b82f6" },
+  { slug: "saude", title: "Saúde", icon: "HeartPulse", color: "#ef4444" },
+  { slug: "financas", title: "Finanças", icon: "Wallet", color: "#f59e0b" },
+  { slug: "cultura", title: "Cultura", icon: "Music", color: "#8b5cf6" },
+  { slug: "obras", title: "Obras", icon: "HardHat", color: "#eab308" },
+  { slug: "esporte", title: "Esporte", icon: "Trophy", color: "#06b6d4" },
+  { slug: "comunicacao", title: "Comunicação", icon: "Megaphone", color: "#ec4899" }
+];
+
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [storyViewerOpen, setStoryViewerOpen] = useState(false);
@@ -81,17 +93,29 @@ const Index = () => {
     },
   });
 
-  const { data: secretarias } = useQuery({
+  const { data: secretariasDB } = useQuery({
     queryKey: ["secretarias"],
     queryFn: async () => {
       const { data } = await supabase
         .from("secretarias")
         .select("*")
         .eq("is_active", true)
-        .order("name")
-        .limit(6);
+        .order("name");
       return data || [];
     },
+  });
+
+  // Mesclar secretarias do banco com as padrões
+  const secretarias = defaultSecretarias.map(defaultSec => {
+    const dbSec = secretariasDB?.find(db => db.slug === defaultSec.slug);
+    return dbSec || {
+      id: defaultSec.slug,
+      slug: defaultSec.slug,
+      name: defaultSec.title,
+      icon: defaultSec.icon,
+      color: defaultSec.color,
+      is_active: true
+    };
   });
 
   const { data: stories } = useQuery({
@@ -128,7 +152,7 @@ const Index = () => {
         </Link>
       </div>
       <div className="grid grid-cols-3 gap-3 mb-3">
-        {secretarias?.map((secretaria) => {
+        {secretarias.slice(0, 6).map((secretaria) => {
           const IconComponent = getIconComponent(secretaria.icon);
           
           return (
