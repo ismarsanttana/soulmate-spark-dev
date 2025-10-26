@@ -11,11 +11,11 @@ export const FloatingThemeToggle = () => {
     <button
       type="button"
       onClick={toggleTheme}
-      className="fixed left-6 bottom-28 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-xl transition-all duration-200 hover:scale-110 hover:shadow-2xl active:scale-95"
+      className="fixed left-4 bottom-28 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all duration-200 hover:scale-110 hover:shadow-xl active:scale-95"
       aria-label={label}
       title={label}
     >
-      <i className={`${iconClass} text-xl`}></i>
+      <i className={`${iconClass} text-sm`}></i>
     </button>
   );
 };
