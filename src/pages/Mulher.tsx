@@ -488,7 +488,7 @@ const Mulher = () => {
       </div>
 
       {/* FAB: Assistente Virtual */}
-      <div className="fixed bottom-64 right-6 z-40 flex flex-col items-end gap-3">
+      <div className="fixed bottom-80 right-6 z-40 flex flex-col items-end gap-3">
         <div
           id="assistant-panel"
           aria-hidden={!assistantOpen}
