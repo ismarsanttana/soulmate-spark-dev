@@ -205,8 +205,8 @@ const Saude = () => {
       <Header pageTitle="Secretaria de Saúde" />
 
       <div className="mb-4">
-        <h2 className="font-semibold text-lg">Secretaria de Saúde</h2>
-        <p className="text-xs text-muted-foreground">
+        <h2 className="font-semibold text-2xl">Secretaria de Saúde</h2>
+        <p className="text-sm text-muted-foreground">
           Informações, serviços e contatos da saúde municipal.
         </p>
       </div>
@@ -215,22 +215,22 @@ const Saude = () => {
         <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50/80 dark:border-emerald-800 dark:bg-emerald-900/20 p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-300">
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-300">
                 Solicitação recente
               </p>
-              <h3 className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">
+              <h3 className="text-base font-semibold text-emerald-900 dark:text-emerald-100">
                 {latestRequest.serviceLabel}
               </h3>
-              <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-200/80">
+              <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-200/80">
                 {latestRequest.summary}
               </p>
             </div>
-            <span className="inline-flex items-center rounded-xl bg-white px-3 py-1 text-[11px] font-semibold text-emerald-700 shadow-sm dark:bg-emerald-900 dark:text-emerald-200">
+            <span className="inline-flex items-center rounded-xl bg-white px-3 py-1 text-xs font-semibold text-emerald-700 shadow-sm dark:bg-emerald-900 dark:text-emerald-200">
               <i className="fas fa-circle-notch mr-1.5 animate-spin"></i>
               {latestRequest.status}
             </span>
           </div>
-          <p className="mt-3 text-[11px] text-emerald-700/80 dark:text-emerald-200/70">
+          <p className="mt-3 text-xs text-emerald-700/80 dark:text-emerald-200/70">
             Atualizado em {formatDateTime(latestRequest.submittedAt)}. Todas as
             solicitações podem ser acompanhadas no seu perfil e qualquer mudança
             envia uma notificação automática.
@@ -243,11 +243,11 @@ const Saude = () => {
           href="#consulta"
           className="bg-card dark:bg-card rounded-2xl p-4 shadow-sm card-hover block"
         >
-          <div className="flex items-center gap-2 text-sm font-semibold">
+          <div className="flex items-center gap-2 text-base font-semibold">
             <i className="fas fa-calendar-check text-primary"></i>
             <span>Consulta</span>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             Clínico, pediatria, odontologia
           </p>
         </a>
@@ -255,11 +255,11 @@ const Saude = () => {
           href="#tfd"
           className="bg-card dark:bg-card rounded-2xl p-4 shadow-sm card-hover block"
         >
-          <div className="flex items-center gap-2 text-sm font-semibold">
+          <div className="flex items-center gap-2 text-base font-semibold">
             <i className="fas fa-bus text-blue-600"></i>
             <span>TFD</span>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             Tratamento fora do domicílio
           </p>
         </a>
@@ -267,11 +267,11 @@ const Saude = () => {
           href="#exames"
           className="bg-card dark:bg-card rounded-2xl p-4 shadow-sm card-hover block"
         >
-          <div className="flex items-center gap-2 text-sm font-semibold">
+          <div className="flex items-center gap-2 text-base font-semibold">
             <i className="fas fa-vials text-amber-500"></i>
             <span>Exames</span>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             Laboratoriais e imagem
           </p>
         </a>
@@ -279,11 +279,11 @@ const Saude = () => {
           href="#receitas"
           className="bg-card dark:bg-card rounded-2xl p-4 shadow-sm card-hover block"
         >
-          <div className="flex items-center gap-2 text-sm font-semibold">
+          <div className="flex items-center gap-2 text-base font-semibold">
             <i className="fas fa-pills text-rose-500"></i>
             <span>Receitas contínuas</span>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             Renovação simplificada
           </p>
         </a>
@@ -294,18 +294,18 @@ const Saude = () => {
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold">{SERVICES.consulta}</h3>
-            <p className="text-xs text-muted-foreground">
+            <h3 className="text-lg font-semibold">{SERVICES.consulta}</h3>
+            <p className="text-sm text-muted-foreground">
               Agende consultas nas unidades da rede municipal.
             </p>
           </div>
-          <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary">
+          <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
             Prioridade ESF
           </span>
         </div>
 
         <form
-          className="mt-3 space-y-3 text-sm"
+          className="mt-3 space-y-3"
           onSubmit={(event) => {
             event.preventDefault();
             const form = event.currentTarget;
@@ -325,25 +325,25 @@ const Saude = () => {
           }}
         >
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Nome do paciente
             </label>
             <input
               name="patient"
               readOnly
               value={patientName}
-              className="mt-1 w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-foreground"
+              className="mt-1 w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-base text-foreground"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Data desejada
             </label>
             <input
               name="date"
               type="date"
               required
-              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -383,24 +383,24 @@ const Saude = () => {
             </div>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Observações (opcional)
             </label>
             <textarea
               name="notes"
               rows={3}
               placeholder="Informe sintomas, preferências de horário ou necessidades específicas"
-              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
           <button
             type="submit"
-            className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
+            className="w-full rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-primary/90"
           >
             Solicitar consulta
           </button>
           {successMessages.consulta && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-200">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-200">
               <i className="fas fa-check-circle mr-2 text-emerald-500"></i>
               {successMessages.consulta}
             </div>
@@ -413,18 +413,18 @@ const Saude = () => {
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold">{SERVICES.tfd}</h3>
-            <p className="text-xs text-muted-foreground">
+            <h3 className="text-lg font-semibold">{SERVICES.tfd}</h3>
+            <p className="text-sm text-muted-foreground">
               Solicite deslocamento para atendimentos fora do município.
             </p>
           </div>
-          <span className="rounded-full bg-blue-500/10 px-3 py-1 text-[11px] font-semibold text-blue-600">
+          <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-600">
             Transporte sanitário
           </span>
         </div>
 
         <form
-          className="mt-3 space-y-3 text-sm"
+          className="mt-3 space-y-3"
           onSubmit={(event) => {
             event.preventDefault();
             const form = event.currentTarget;
@@ -445,7 +445,7 @@ const Saude = () => {
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Destino
               </label>
               <input
@@ -453,23 +453,23 @@ const Saude = () => {
                 type="text"
                 required
                 placeholder="Ex.: Recife - Hospital das Clínicas"
-                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Data da viagem
               </label>
               <input
                 name="travelDate"
                 type="date"
                 required
-                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
               />
             </div>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Motivo do tratamento
             </label>
             <input
@@ -477,12 +477,12 @@ const Saude = () => {
               type="text"
               required
               placeholder="Informe o motivo da viagem"
-              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
             />
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Acompanhantes
               </label>
               <input
@@ -491,40 +491,40 @@ const Saude = () => {
                 min={0}
                 max={2}
                 defaultValue={0}
-                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Necessidades específicas
               </label>
               <input
                 name="needs"
                 type="text"
                 placeholder="Ex.: cadeira de rodas, suporte clínico"
-                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
               />
             </div>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Observações adicionais (opcional)
             </label>
             <textarea
               name="notes"
               rows={3}
               placeholder="Documentos anexados, horário preferencial de saída, etc."
-              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
             />
           </div>
           <button
             type="submit"
-            className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+            className="w-full rounded-xl bg-blue-600 px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700"
           >
             Solicitar transporte TFD
           </button>
           {successMessages.tfd && (
-            <div className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-200">
+            <div className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-200">
               <i className="fas fa-check-circle mr-2 text-blue-500"></i>
               {successMessages.tfd}
             </div>
@@ -538,18 +538,18 @@ const Saude = () => {
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold">{SERVICES.exames}</h3>
-            <p className="text-xs text-muted-foreground">
+            <h3 className="text-lg font-semibold">{SERVICES.exames}</h3>
+            <p className="text-sm text-muted-foreground">
               Marque exames laboratoriais e de imagem sem sair do portal.
             </p>
           </div>
-          <span className="rounded-full bg-amber-500/10 px-3 py-1 text-[11px] font-semibold text-amber-600">
+          <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-600">
             Resultados no perfil
           </span>
         </div>
 
         <form
-          className="mt-3 space-y-3 text-sm"
+          className="mt-3 space-y-3"
           onSubmit={(event) => {
             event.preventDefault();
             const form = event.currentTarget;
@@ -569,13 +569,13 @@ const Saude = () => {
           }}
         >
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Exame desejado
             </label>
             <select
               name="exam"
               required
-              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
             >
               <option value="">Selecione</option>
               <option value="Hemograma completo">Hemograma completo</option>
@@ -588,13 +588,13 @@ const Saude = () => {
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Unidade preferencial
               </label>
               <select
                 name="unit"
                 required
-                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
               >
                 <option value="">Selecione</option>
                 {HEALTH_UNITS.map((unit) => (
@@ -605,36 +605,36 @@ const Saude = () => {
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Data preferida
               </label>
               <input
                 name="preferredDate"
                 type="date"
                 required
-                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
               />
             </div>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Observações (opcional)
             </label>
             <textarea
               name="notes"
               rows={3}
               placeholder="Informe jejum, condições de saúde ou solicitações médicas"
-              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
             />
           </div>
           <button
             type="submit"
-            className="w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-600"
+            className="w-full rounded-xl bg-amber-500 px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-amber-600"
           >
             Solicitar exame
           </button>
           {successMessages.exames && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
               <i className="fas fa-check-circle mr-2 text-amber-500"></i>
               {successMessages.exames}
             </div>
@@ -648,18 +648,18 @@ const Saude = () => {
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold">{SERVICES.receitas}</h3>
-            <p className="text-xs text-muted-foreground">
+            <h3 className="text-lg font-semibold">{SERVICES.receitas}</h3>
+            <p className="text-sm text-muted-foreground">
               Atualize receitas de medicamentos de uso contínuo sem filas.
             </p>
           </div>
-          <span className="rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold text-rose-600">
+          <span className="rounded-full bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-600">
             Entrega garantida
           </span>
         </div>
 
         <form
-          className="mt-3 space-y-3 text-sm"
+          className="mt-3 space-y-3"
           onSubmit={(event) => {
             event.preventDefault();
             const form = event.currentTarget;
@@ -679,7 +679,7 @@ const Saude = () => {
           }}
         >
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Medicamento
             </label>
             <input
@@ -687,12 +687,12 @@ const Saude = () => {
               type="text"
               required
               placeholder="Informe o medicamento de uso contínuo"
-              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30"
+              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30"
             />
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Quantidade solicitada
               </label>
               <input
@@ -700,28 +700,28 @@ const Saude = () => {
                 type="text"
                 required
                 placeholder="Ex.: 30 comprimidos"
-                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30"
+                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Última consulta
               </label>
               <input
                 name="lastVisit"
                 type="date"
                 required
-                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30"
+                className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30"
               />
             </div>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Renovar por quanto tempo?
             </label>
             <select
               name="duration"
-              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30"
+              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30"
             >
               <option value="30 dias">30 dias</option>
               <option value="60 dias">60 dias</option>
@@ -729,24 +729,24 @@ const Saude = () => {
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Observações (opcional)
             </label>
             <textarea
               name="notes"
               rows={3}
               placeholder="Informar alergias, orientações médicas ou necessidades especiais"
-              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30"
+              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-base focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30"
             />
           </div>
           <button
             type="submit"
-            className="w-full rounded-xl bg-rose-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-600"
+            className="w-full rounded-xl bg-rose-500 px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-rose-600"
           >
             Solicitar renovação
           </button>
           {successMessages.receitas && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-200">
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-200">
               <i className="fas fa-check-circle mr-2 text-rose-500"></i>
               {successMessages.receitas}
             </div>
@@ -756,8 +756,8 @@ const Saude = () => {
       <section className="mb-4 rounded-2xl bg-card dark:bg-card p-4 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold">Acompanhamento de solicitações</h3>
-            <p className="text-xs text-muted-foreground">
+            <h3 className="text-lg font-semibold">Acompanhamento de solicitações</h3>
+            <p className="text-sm text-muted-foreground">
               Visualize as últimas solicitações registradas nesta página. Todas também ficam disponíveis no perfil do usuário.
             </p>
           </div>
@@ -765,7 +765,7 @@ const Saude = () => {
         </div>
         <div className="mt-3 space-y-3">
           {requests.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+            <div className="rounded-xl border border-dashed border-border px-3 py-4 text-center text-sm text-muted-foreground">
               Ainda não há solicitações registradas. Assim que você solicitar um serviço, o status aparecerá aqui e no seu perfil, com alertas nas notificações a cada atualização.
             </div>
           ) : (
@@ -775,18 +775,18 @@ const Saude = () => {
                 className="flex items-start justify-between gap-3 rounded-xl border border-border px-3 py-3"
               >
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {request.serviceLabel}
                   </p>
-                  <p className="text-sm font-semibold text-foreground">
+                  <p className="text-base font-semibold text-foreground">
                     {request.summary}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Registrado em {formatDateTime(request.submittedAt)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="inline-flex items-center rounded-xl bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary">
+                  <span className="inline-flex items-center rounded-xl bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                     {request.status}
                   </span>
                 </div>
@@ -794,14 +794,14 @@ const Saude = () => {
             ))
           )}
         </div>
-        <p className="mt-3 rounded-xl bg-muted/60 px-3 py-2 text-[11px] text-muted-foreground">
+        <p className="mt-3 rounded-xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
           Para acompanhar o histórico completo e anexar documentos, acesse o menu <span className="font-semibold text-foreground">Perfil do Usuário</span>. As notificações em tempo real informam qualquer mudança de status.
         </p>
       </section>
 
       <section className="mb-4 rounded-2xl bg-card dark:bg-card p-4 shadow-sm">
-        <h3 className="text-sm font-semibold">Unidades de Saúde</h3>
-        <p className="text-xs text-muted-foreground">
+        <h3 className="text-lg font-semibold">Unidades de Saúde</h3>
+        <p className="text-sm text-muted-foreground">
           Encontre horários, endereços e contatos das unidades da rede municipal.
         </p>
         <div className="mt-3 space-y-3">
@@ -813,18 +813,18 @@ const Saude = () => {
               {group.map((unit) => (
                 <div
                   key={unit.name}
-                  className="rounded-xl border border-border p-3 text-sm"
+                  className="rounded-xl border border-border p-3"
                 >
                   <div className="flex items-center gap-2">
                     <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                      <i className="fas fa-clinic-medical text-sm"></i>
+                      <i className="fas fa-clinic-medical text-base"></i>
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground">{unit.name}</p>
-                      <p className="text-[11px] text-muted-foreground">{unit.address}</p>
+                      <p className="font-semibold text-base text-foreground">{unit.name}</p>
+                      <p className="text-xs text-muted-foreground">{unit.address}</p>
                     </div>
                   </div>
-                  <div className="mt-2 space-y-1 text-[11px] text-muted-foreground">
+                  <div className="mt-2 space-y-1 text-xs text-muted-foreground">
                     <p>
                       <i className="fas fa-clock mr-2 text-primary"></i>
                       {unit.hours}
@@ -843,10 +843,10 @@ const Saude = () => {
 
       <section className="mb-4 rounded-2xl bg-card dark:bg-card p-4 shadow-sm">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-sm font-semibold">Ações em destaque da Secretaria de Saúde</h3>
+          <h3 className="text-lg font-semibold">Ações em destaque da Secretaria de Saúde</h3>
           <i className="fas fa-bullhorn text-primary"></i>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Campanhas, programas e mutirões ativos. Participe e mantenha a saúde em dia.
         </p>
         <div className="mt-3 space-y-3">
@@ -858,12 +858,12 @@ const Saude = () => {
               <div className="h-10 w-10 flex-shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                 <i className={`fas ${action.icon}`}></i>
               </div>
-              <div className="text-sm">
+              <div>
                 <header className="flex items-center justify-between gap-3">
-                  <h4 className="font-semibold text-foreground">{action.title}</h4>
-                  <span className="text-[11px] font-semibold text-primary">{action.period}</span>
+                  <h4 className="font-semibold text-base text-foreground">{action.title}</h4>
+                  <span className="text-xs font-semibold text-primary">{action.period}</span>
                 </header>
-                <p className="mt-1 text-xs text-muted-foreground">{action.description}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{action.description}</p>
               </div>
             </article>
           ))}
@@ -872,10 +872,10 @@ const Saude = () => {
 
       <section className="mb-4 rounded-2xl bg-card dark:bg-card p-4 shadow-sm">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-sm font-semibold">Histórico de atendimentos</h3>
+          <h3 className="text-lg font-semibold">Histórico de atendimentos</h3>
           <i className="fas fa-history text-primary"></i>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Registro demonstrativo dos últimos atendimentos vinculados ao paciente logado.
         </p>
         <div className="mt-3 space-y-3">
@@ -889,15 +889,15 @@ const Saude = () => {
                 <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${tone.container}`}>
                   <i className={`fas ${item.icon}`}></i>
                 </div>
-                <div className="flex-1 text-sm">
+                <div className="flex-1">
                   <header className="flex items-center justify-between gap-3">
-                    <span className={`text-[11px] font-semibold uppercase tracking-wide ${tone.text}`}>
+                    <span className={`text-xs font-semibold uppercase tracking-wide ${tone.text}`}>
                       {item.specialty}
                     </span>
-                    <span className="text-[11px] text-muted-foreground">{item.date}</span>
+                    <span className="text-xs text-muted-foreground">{item.date}</span>
                   </header>
-                  <p className="mt-1 font-semibold text-foreground">{item.title}</p>
-                  <p className="text-xs text-muted-foreground">{item.professional}</p>
+                  <p className="mt-1 font-semibold text-base text-foreground">{item.title}</p>
+                  <p className="text-sm text-muted-foreground">{item.professional}</p>
                 </div>
               </article>
             );
@@ -905,12 +905,12 @@ const Saude = () => {
         </div>
       </section>
 
-      <section className="mb-4 rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-4 text-sm text-primary dark:border-primary/30 dark:bg-primary/10">
+      <section className="mb-4 rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-4 text-primary dark:border-primary/30 dark:bg-primary/10">
         <div className="flex items-start gap-3">
           <i className="fas fa-info-circle mt-1 text-primary"></i>
           <div>
-            <h3 className="font-semibold text-primary">Acompanhe também pelo aplicativo</h3>
-            <p className="text-xs text-primary/80">
+            <h3 className="font-semibold text-base text-primary">Acompanhe também pelo aplicativo</h3>
+            <p className="text-sm text-primary/80">
               Todas as solicitações feitas aqui ficam disponíveis no seu perfil com documentos anexados, histórico de status e comprovantes. Ative as notificações para ser avisado sobre novas etapas como separação de medicamentos, confirmação de transporte ou liberação de exames.
             </p>
           </div>
