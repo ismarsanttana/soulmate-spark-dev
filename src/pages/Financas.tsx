@@ -441,59 +441,6 @@ export default function Financas() {
         </Card>
       </main>
 
-      {/* Assistente Virtual Flutuante */}
-      <div className="fixed bottom-[335px] right-6 z-40 flex flex-col items-end gap-3">
-        {assistantOpen && (
-          <div className="w-72 max-w-full rounded-2xl bg-card shadow-2xl border border-border animate-in slide-in-from-right-5">
-            <div className="flex items-start justify-between p-4 border-b border-border">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Assistente Virtual</p>
-                <h2 className="text-sm font-semibold">Finanças Municipais</h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAssistantOpen(false)}
-                className="text-muted-foreground hover:text-foreground transition"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="p-4 space-y-3 text-xs">
-              <div className="rounded-xl bg-primary/10 p-3">
-                <p className="font-semibold text-primary mb-1">Sugestões rápidas</p>
-                <ul className="space-y-1 text-muted-foreground">
-                  <li>• Como emitir IPTU</li>
-                  <li>• Parcelamento de dívida ativa</li>
-                  <li>• Link do Portal da Transparência</li>
-                </ul>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="assistant-message" className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                  Pergunte algo
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="assistant-message"
-                    type="text"
-                    placeholder="Digite sua pergunta..."
-                    className="flex-1 h-9 text-sm"
-                  />
-                  <Button size="sm" className="h-9 px-3">
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={() => setAssistantOpen(!assistantOpen)}
-          className="h-14 w-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl flex items-center justify-center transition focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-        >
-          <MessageCircle className="h-6 w-6" />
-        </button>
-      </div>
     </Layout>
   );
 }

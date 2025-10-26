@@ -108,7 +108,7 @@ export const Header = ({ pageTitle }: HeaderProps) => {
             <div>
               <h1 className="text-xl font-bold">{appSettings?.app_name || "Conecta Afogados"}</h1>
               <p className="text-xs opacity-90">
-                {pageTitle ? `${pageTitle} • ` : ""}Prefeitura de Afogados da Ingazeira-PE
+                Prefeitura de Afogados da Ingazeira-PE
               </p>
             </div>
           </div>

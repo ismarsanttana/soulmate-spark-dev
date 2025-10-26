@@ -374,46 +374,6 @@ const Iptu = () => {
         </Card>
       </main>
 
-      {/* Assistente Virtual Flutuante */}
-      <button
-        onClick={() => setAssistantOpen(!assistantOpen)}
-        className={`fixed bottom-[335px] right-6 h-14 w-14 rounded-full bg-primary text-white shadow-lg hover:shadow-xl transition-all z-40 flex items-center justify-center ${
-          assistantOpen ? "scale-110" : ""
-        }`}
-        aria-label="Assistente Virtual"
-      >
-        <i className="fas fa-robot text-xl"></i>
-      </button>
-
-      {assistantOpen && (
-        <div className="fixed bottom-40 right-6 w-72 bg-card rounded-2xl shadow-2xl p-4 z-50 border">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm">Assistente IPTU</h3>
-            <button
-              onClick={() => setAssistantOpen(false)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground mb-3">
-            Pergunte sobre débitos, parcelamentos ou certidões.
-          </p>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Digite sua pergunta..."
-              className="w-full rounded-xl border bg-background px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <button
-              className="absolute right-2 top-2 text-primary"
-              aria-label="Enviar"
-            >
-              <i className="fas fa-paper-plane"></i>
-            </button>
-          </div>
-        </div>
-      )}
     </Layout>
   );
 };

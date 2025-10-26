@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FloatingThemeToggle } from "./FloatingThemeToggle";
+import { ControlCenter } from "./ControlCenter";
 
 interface LayoutProps {
   children: ReactNode;
@@ -14,7 +14,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <FloatingThemeToggle />
+      <ControlCenter />
       <div className="max-w-md mx-auto px-4 py-6">
         {children}
 

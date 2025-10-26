@@ -342,64 +342,6 @@ const IluminacaoPublica = () => {
         </div>
       </section>
 
-      {/* Assistente Virtual Flutuante */}
-      <div className="fixed bottom-[335px] right-6 z-40 flex flex-col items-end gap-3">
-        <button
-          onClick={() => setAssistantOpen(!assistantOpen)}
-          className={`h-14 w-14 rounded-full bg-primary hover:bg-primary/90 text-white shadow-2xl flex items-center justify-center transition ${
-            assistantOpen ? "ring-4 ring-primary/20" : ""
-          }`}
-          aria-label="Assistente Virtual"
-        >
-          <MessageSquare className="h-6 w-6" />
-        </button>
-
-        {assistantOpen && (
-          <div className="w-72 max-w-full rounded-2xl bg-card shadow-2xl border border-border">
-            <div className="flex items-start justify-between p-4 border-b border-border">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Assistente Iluminação</p>
-                <h2 className="text-sm font-semibold">Como podemos ajudar?</h2>
-              </div>
-              <button
-                onClick={() => setAssistantOpen(false)}
-                className="text-muted-foreground hover:text-foreground transition"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-4 space-y-3">
-              <div className="rounded-xl bg-primary/10 p-3">
-                <p className="font-semibold text-primary text-xs mb-1">Sugestões rápidas</p>
-                <ul className="space-y-1 text-xs text-muted-foreground">
-                  <li>• Acompanhar protocolo da minha rua</li>
-                  <li>• Como informar fio solto</li>
-                  <li>• Agenda de manutenções desta semana</li>
-                </ul>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="assistant-message" className="block text-[11px] uppercase tracking-wide text-muted-foreground">
-                  Pergunte algo
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    id="assistant-message"
-                    type="text"
-                    placeholder="Digite sua pergunta..."
-                    className="flex-1 rounded-xl border border-border px-3 py-2 bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <button
-                    type="button"
-                    className="px-3 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-semibold transition"
-                  >
-                    Enviar
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
     </Layout>
   );
 };
