@@ -15,6 +15,7 @@ import { newsSchema } from "@/lib/validationSchemas";
 import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 interface News {
   id: string;
@@ -30,6 +31,9 @@ export function NewsManagementSec() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingNews, setEditingNews] = useState<News | null>(null);
   const [createStory, setCreateStory] = useState(false);
+  
+  // Subscrever atualizações em tempo real
+  useRealtimeSubscription("news", "secretary-news");
   const [formData, setFormData] = useState({
     title: "",
     summary: "",

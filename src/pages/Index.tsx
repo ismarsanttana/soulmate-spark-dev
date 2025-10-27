@@ -9,6 +9,7 @@ import afogadosImage from "@/assets/afogados_da_ingazeira_pe.png";
 import { getIconComponent } from "@/lib/iconMapper";
 import { StoryViewer } from "@/components/StoryViewer";
 import { JobVacanciesSection } from "@/components/JobVacanciesSection";
+import { useRealtimeSubscriptions } from "@/hooks/useRealtimeSubscription";
 
 // Importar secretarias e serviços
 const defaultSecretarias = [
@@ -42,6 +43,19 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Subscrever atualizações em tempo real de todas as tabelas relevantes
+  useRealtimeSubscriptions([
+    { table: "news", queryKey: "news" },
+    { table: "events", queryKey: "events" },
+    { table: "stories", queryKey: "stories" },
+    { table: "secretarias", queryKey: "secretarias" },
+    { table: "campaign_banners", queryKey: "campaign_banners" },
+    { table: "live_streams", queryKey: "live_streams" },
+    { table: "gallery_albums", queryKey: "gallery_albums" },
+    { table: "city_agenda", queryKey: "city_agenda" },
+    { table: "push_notifications", queryKey: ["notifications", user?.id] },
+  ]);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],

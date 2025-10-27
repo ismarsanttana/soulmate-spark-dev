@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 interface Event {
   id: string;
@@ -25,6 +26,9 @@ interface Event {
 export function EventsManagementSec() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  
+  // Subscrever atualizações em tempo real
+  useRealtimeSubscription("events", "secretary-events");
   const [formData, setFormData] = useState({
     title: "",
     description: "",

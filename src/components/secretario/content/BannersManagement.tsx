@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { bannerSchema } from "@/lib/validationSchemas";
 import { z } from "zod";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 interface Banner {
   id: string;
@@ -47,6 +48,9 @@ export function BannersManagement() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Subscrever atualizações em tempo real
+  useRealtimeSubscription("campaign_banners", "secretario-banners");
 
   const { data: banners } = useQuery({
     queryKey: ["secretario-banners"],

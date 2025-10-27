@@ -11,6 +11,7 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { eventSchema, type EventFormData } from "@/lib/validationSchemas";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 interface Event {
   id: string;
@@ -26,6 +27,9 @@ export function EventsManagement() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+
+  // Subscrever atualizações em tempo real
+  useRealtimeSubscription("events", "admin-events");
 
   const [formData, setFormData] = useState({
     title: "",

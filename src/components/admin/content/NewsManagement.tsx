@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileUpload } from "../FileUpload";
 import { newsSchema, type NewsFormData } from "@/lib/validationSchemas";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 interface News {
   id: string;
@@ -28,6 +29,9 @@ export function NewsManagement() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingNews, setEditingNews] = useState<News | null>(null);
+
+  // Subscrever atualizações em tempo real
+  useRealtimeSubscription("news", "admin-news");
 
   const [formData, setFormData] = useState({
     title: "",

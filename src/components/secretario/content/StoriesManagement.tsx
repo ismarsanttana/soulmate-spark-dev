@@ -11,6 +11,7 @@ import { FileUpload } from "@/components/admin/FileUpload";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 interface Story {
   id: string;
@@ -26,6 +27,9 @@ interface Story {
 export function StoriesManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
+  
+  // Subscrever atualizações em tempo real
+  useRealtimeSubscription("stories", "secretary-stories");
   const [formData, setFormData] = useState({
     title: "",
     media_url: "",

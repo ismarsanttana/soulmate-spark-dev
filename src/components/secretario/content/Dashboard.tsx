@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useRealtimeSubscriptions } from "@/hooks/useRealtimeSubscription";
 
 interface DashboardProps {
   secretariaSlug: string;
@@ -14,6 +15,15 @@ interface DashboardProps {
 
 export function Dashboard({ secretariaSlug }: DashboardProps) {
   const [chartPeriod, setChartPeriod] = useState<"day" | "week" | "month" | "year">("week");
+  
+  // Subscrever atualizações em tempo real
+  useRealtimeSubscriptions([
+    { table: "news", queryKey: ["chart-content-data", chartPeriod] },
+    { table: "events", queryKey: ["chart-content-data", chartPeriod] },
+    { table: "stories", queryKey: ["chart-content-data", chartPeriod] },
+    { table: "secretaria_employees", queryKey: ["secretary-dashboard", secretariaSlug] },
+    { table: "advertising_expenses", queryKey: ["secretary-dashboard", secretariaSlug] },
+  ]);
   
   const { data: stats, isLoading } = useQuery({
     queryKey: ["secretary-dashboard", secretariaSlug],
