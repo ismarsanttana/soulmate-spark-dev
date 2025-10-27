@@ -1,15 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Mic, MicOff, Volume2 } from "lucide-react";
+import { Mic, X } from "lucide-react";
 import { AudioRecorder, encodeAudioForAPI, AudioQueue } from "@/utils/RealtimeAudio";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface VoiceInterfaceProps {
   onClose: () => void;
@@ -20,47 +12,34 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [selectedVoice, setSelectedVoice] = useState("alloy");
-  const [transcript, setTranscript] = useState("");
-  const [status, setStatus] = useState("Desconectado");
 
   const wsRef = useRef<WebSocket | null>(null);
   const recorderRef = useRef<AudioRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioQueueRef = useRef<AudioQueue | null>(null);
-
-  const voices = [
-    { value: "alloy", label: "Alloy (Neutro)", gender: "neutral" },
-    { value: "echo", label: "Echo (Masculino)", gender: "male" },
-    { value: "fable", label: "Fable (Masculino)", gender: "male" },
-    { value: "onyx", label: "Onyx (Masculino)", gender: "male" },
-    { value: "nova", label: "Nova (Feminino)", gender: "female" },
-    { value: "shimmer", label: "Shimmer (Feminino)", gender: "female" },
-  ];
+  const autoConnectRef = useRef(false);
 
   const connectWebSocket = () => {
     try {
       const wsUrl = `wss://hqhjbelcouanvcrqudbj.supabase.co/functions/v1/realtime-voice`;
       
       console.log("Connecting to:", wsUrl);
-      setStatus("Conectando...");
 
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
         console.log("WebSocket connected");
         setIsConnected(true);
-        setStatus("Conectado");
         
-        // Start session with selected voice
+        // Start session with Echo voice (masculine)
         wsRef.current?.send(JSON.stringify({
           type: "start_session",
-          voice: selectedVoice
+          voice: "echo"
         }));
 
         toast({
           title: "Conectado",
-          description: "Assistente de voz pronto para uso",
+          description: "Assistente de voz pronto",
         });
       };
 
@@ -75,20 +54,18 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
               break;
 
             case "session.updated":
-              console.log("Session updated");
-              setStatus("Pronto para falar");
+              console.log("Session updated - ready to talk");
               break;
 
             case "input_audio_buffer.speech_started":
               console.log("Speech started");
               setIsRecording(true);
-              setStatus("Escutando...");
+              setIsSpeaking(false);
               break;
 
             case "input_audio_buffer.speech_stopped":
               console.log("Speech stopped");
               setIsRecording(false);
-              setStatus("Processando...");
               break;
 
             case "response.audio.delta":
@@ -106,24 +83,17 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
 
                 await audioQueueRef.current?.addToQueue(bytes);
                 setIsSpeaking(true);
-              }
-              break;
-
-            case "response.audio_transcript.delta":
-              if (data.delta) {
-                setTranscript(prev => prev + data.delta);
+                setIsRecording(false);
               }
               break;
 
             case "response.audio.done":
               console.log("Audio response done");
               setIsSpeaking(false);
-              setStatus("Pronto para falar");
               break;
 
             case "response.done":
               console.log("Response complete");
-              setStatus("Pronto para falar");
               break;
 
             case "error":
@@ -146,7 +116,6 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
 
       wsRef.current.onerror = (error) => {
         console.error("WebSocket error:", error);
-        setStatus("Erro de conexão");
         toast({
           title: "Erro de Conexão",
           description: "Não foi possível conectar ao servidor",
@@ -157,7 +126,8 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
       wsRef.current.onclose = () => {
         console.log("WebSocket closed");
         setIsConnected(false);
-        setStatus("Desconectado");
+        setIsRecording(false);
+        setIsSpeaking(false);
       };
 
     } catch (error) {
@@ -172,9 +142,9 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
 
   const handleReconnect = () => {
     console.log("Attempting to reconnect...");
-    setStatus("Reconectando...");
     setTimeout(() => {
       connectWebSocket();
+      startRecording();
     }, 2000);
   };
 
@@ -214,122 +184,94 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
     setIsConnected(false);
     setIsRecording(false);
     setIsSpeaking(false);
-    setTranscript("");
-    setStatus("Desconectado");
   };
 
-  const handleVoiceChange = (voice: string) => {
-    setSelectedVoice(voice);
-    if (isConnected && wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: "change_voice",
-        voice: voice
-      }));
-      toast({
-        title: "Voz Alterada",
-        description: `Voz mudada para ${voices.find(v => v.value === voice)?.label}`,
-      });
-    }
+  const handleClose = () => {
+    disconnect();
+    onClose();
   };
 
+  // Auto-connect on mount
   useEffect(() => {
+    if (!autoConnectRef.current) {
+      autoConnectRef.current = true;
+      connectWebSocket();
+      startRecording();
+    }
+
     return () => {
       disconnect();
     };
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-background rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Assistente de Voz</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            ✕
-          </Button>
+    <div className="fixed inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-black z-50 flex items-center justify-center">
+      {/* Central Orb */}
+      <div className="relative flex items-center justify-center">
+        {/* Animated rings */}
+        {(isRecording || isSpeaking) && (
+          <>
+            <div className="absolute w-64 h-64 rounded-full border-2 border-blue-500/30 animate-ping" />
+            <div className="absolute w-80 h-80 rounded-full border border-blue-400/20 animate-pulse" />
+          </>
+        )}
+        
+        {/* Main orb */}
+        <div className={`relative w-48 h-48 rounded-full transition-all duration-300 ${
+          isRecording 
+            ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-[0_0_60px_rgba(59,130,246,0.6)]' 
+            : isSpeaking
+            ? 'bg-gradient-to-br from-cyan-400 to-blue-500 shadow-[0_0_60px_rgba(6,182,212,0.6)] animate-pulse'
+            : 'bg-gradient-to-br from-blue-500/50 to-cyan-500/50 shadow-[0_0_40px_rgba(59,130,246,0.3)]'
+        }`}>
+          {/* Inner glow */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent to-white/20" />
+          
+          {/* Pulsing effect when speaking */}
+          {isSpeaking && (
+            <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" />
+          )}
         </div>
+      </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              Selecione a Voz
-            </label>
-            <Select value={selectedVoice} onValueChange={handleVoiceChange}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {voices.map((voice) => (
-                  <SelectItem key={voice.value} value={voice.value}>
-                    {voice.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Bottom controls */}
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-8">
+        {/* Microphone button - always visible but shows state */}
+        <button
+          onClick={() => {
+            if (!isConnected) {
+              connectWebSocket();
+              startRecording();
+            }
+          }}
+          disabled={isConnected}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+            isConnected 
+              ? 'bg-white/10 cursor-not-allowed' 
+              : 'bg-white hover:bg-white/90 shadow-lg'
+          }`}
+        >
+          <Mic className={`w-6 h-6 ${isConnected ? 'text-white/50' : 'text-gray-900'}`} />
+        </button>
 
-          <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
-              <span className="text-sm font-medium">{status}</span>
-            </div>
-          </div>
+        {/* Close button */}
+        <button
+          onClick={handleClose}
+          className="w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
+        >
+          <X className="w-6 h-6 text-white" />
+        </button>
+      </div>
 
-          {!isConnected ? (
-            <Button
-              onClick={() => {
-                connectWebSocket();
-                startRecording();
-              }}
-              className="w-full h-14 text-lg"
-              size="lg"
-            >
-              <Mic className="w-5 h-5 mr-2" />
-              Iniciar Conversa
-            </Button>
-          ) : (
-            <Button
-              onClick={disconnect}
-              variant="destructive"
-              className="w-full h-14 text-lg"
-              size="lg"
-            >
-              <MicOff className="w-5 h-5 mr-2" />
-              Encerrar Conversa
-            </Button>
-          )}
-
-          {isConnected && (
-            <div className="flex items-center justify-center gap-8 py-4">
-              <div className="flex flex-col items-center gap-2">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                  isRecording ? 'bg-red-500 animate-pulse' : 'bg-gray-300'
-                }`}>
-                  <Mic className="w-8 h-8 text-white" />
-                </div>
-                <span className="text-xs font-medium">
-                  {isRecording ? 'Falando' : 'Aguardando'}
-                </span>
-              </div>
-
-              <div className="flex flex-col items-center gap-2">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                  isSpeaking ? 'bg-blue-500 animate-pulse' : 'bg-gray-300'
-                }`}>
-                  <Volume2 className="w-8 h-8 text-white" />
-                </div>
-                <span className="text-xs font-medium">
-                  {isSpeaking ? 'Respondendo' : 'Silêncio'}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {transcript && (
-            <div className="p-4 bg-muted rounded-lg">
-              <p className="text-sm font-medium mb-2">Transcrição:</p>
-              <p className="text-sm opacity-80">{transcript}</p>
-            </div>
-          )}
+      {/* Status indicator */}
+      <div className="absolute top-8 left-1/2 -translate-x-1/2">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm">
+          <div className={`w-2 h-2 rounded-full ${
+            isConnected ? 'bg-green-400' : 'bg-gray-400'
+          } ${isConnected && 'animate-pulse'}`} />
+          <span className="text-sm text-white font-medium">
+            {!isConnected ? 'Conectando...' : isRecording ? 'Escutando...' : isSpeaking ? 'Falando...' : 'Pronto'}
+          </span>
         </div>
       </div>
     </div>
