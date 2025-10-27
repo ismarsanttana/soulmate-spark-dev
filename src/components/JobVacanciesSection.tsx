@@ -110,7 +110,29 @@ export function JobVacanciesSection({ user }: JobVacanciesSectionProps) {
     });
   };
 
-  if (!vacancies || vacancies.length === 0) return null;
+  if (!vacancies || vacancies.length === 0) {
+    return (
+      <div className="mb-5">
+        <div className="flex justify-between items-center mb-3">
+          <div>
+            <h2 className="font-semibold">Vagas de Emprego - SINE</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Oportunidades disponíveis
+            </p>
+          </div>
+        </div>
+        <div className="bg-card dark:bg-card rounded-2xl p-6 shadow-sm text-center">
+          <div className="bg-muted/50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+            <Briefcase className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <p className="text-sm font-semibold mb-1">Nenhuma vaga disponível no momento</p>
+          <p className="text-xs text-muted-foreground">
+            Novas oportunidades serão divulgadas em breve
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
