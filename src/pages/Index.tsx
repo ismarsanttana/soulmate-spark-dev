@@ -194,7 +194,7 @@ const Index = () => {
               >
                 <IconComponent className="service-icon h-5 w-5" />
               </div>
-              <span className="text-xs font-medium">{secretaria.name}</span>
+              <span className="text-xs font-bold">{secretaria.name}</span>
             </Link>
           );
         })}
