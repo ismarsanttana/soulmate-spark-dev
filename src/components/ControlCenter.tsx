@@ -197,7 +197,15 @@ export const ControlCenter = () => {
     <>
       {/* Voice Interface Modal */}
       {showVoiceInterface && (
-        <VoiceInterface onClose={() => setShowVoiceInterface(false)} />
+        <VoiceInterface 
+          onClose={() => {
+            setShowVoiceInterface(false);
+            // Volta para a lateral quando fechar a conversa de voz
+            setTimeout(() => {
+              snapToSide(position.x, position.y);
+            }, 100);
+          }} 
+        />
       )}
 
       {/* Overlay quando o menu está aberto */}
