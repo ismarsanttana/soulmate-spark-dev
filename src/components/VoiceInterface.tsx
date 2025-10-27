@@ -101,7 +101,6 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onClose }) => {
       type: "session.update",
       session: {
         prompt: { id: SAVED_PROMPT_ID },
-        voice: "shimmer",
         turn_detection: {
           type: "server_vad",
           threshold: 0.5,
