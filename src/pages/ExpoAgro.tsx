@@ -1,3 +1,4 @@
+import { Layout } from "@/components/Layout";
 import expoAgroBanner from "@/assets/expo-agro-banner.png";
 import expoQuarta from "@/assets/expo-quarta.jpg";
 import expoQuinta from "@/assets/expo-quinta.jpg";
@@ -6,7 +7,8 @@ import expoSabado from "@/assets/expo-sabado.jpg";
 
 export default function ExpoAgro() {
   return (
-    <div className="min-h-screen" style={{ background: '#111216' }}>
+    <Layout>
+      <div style={{ background: '#111216', margin: '-1.5rem', marginBottom: '0', minHeight: '100vh', paddingBottom: '4rem' }}>
       <style>{`
         .expo-wrap {
           max-width: 980px;
@@ -325,6 +327,7 @@ export default function ExpoAgro() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 }
