@@ -101,7 +101,10 @@ export function SecretarioLayout({ children, activeTab, onTabChange }: Secretari
               <img 
                 src={appSettings.logo_url} 
                 alt="Logo" 
-                className="h-14 w-14 object-contain"
+                className="h-14 w-14 object-contain rounded-lg p-1"
+                style={{
+                  backgroundColor: appSettings.logo_background_color || "transparent",
+                }}
               />
             ) : (
               <Building2 className="h-8 w-8" />
