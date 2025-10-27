@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useUserRole, type UserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -10,6 +10,7 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: roleData, isLoading } = useUserRole();
 
   useEffect(() => {
@@ -17,7 +18,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        navigate("/auth");
+        navigate("/auth", { state: { from: location } });
         return;
       }
 
@@ -25,13 +26,13 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
         const hasAccess = allowedRoles.some(role => roleData.roles.includes(role));
         
         if (!hasAccess) {
-          navigate("/");
+          navigate("/", { replace: true });
         }
       }
     };
 
     checkAuth();
-  }, [navigate, isLoading, roleData, allowedRoles]);
+  }, [navigate, location, isLoading, roleData, allowedRoles]);
 
   if (isLoading) {
     return (

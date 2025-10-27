@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,10 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Captura a URL de origem para redirecionar após login
+  const from = (location.state as any)?.from?.pathname || null;
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +31,13 @@ const Auth = () => {
         
         toast.success("Login realizado com sucesso!");
         
-        // Verifica roles e redireciona para o painel apropriado
+        // Se veio de uma página protegida, redireciona de volta
+        if (from && from !== "/auth") {
+          navigate(from, { replace: true });
+          return;
+        }
+        
+        // Caso contrário, verifica roles e redireciona para o painel apropriado
         if (data.user) {
           const { data: roles } = await supabase
             .from("user_roles")
@@ -37,13 +47,13 @@ const Auth = () => {
           if (roles && roles.length > 0) {
             // Verifica se é admin
             if (roles.some(r => r.role === "admin")) {
-              navigate("/admin");
+              navigate("/admin", { replace: true });
               return;
             }
             
             // Verifica se é prefeito
             if (roles.some(r => r.role === "prefeito")) {
-              navigate("/painel-prefeito");
+              navigate("/painel-prefeito", { replace: true });
               return;
             }
 
@@ -56,34 +66,34 @@ const Auth = () => {
                 .maybeSingle();
 
               if (assignment?.secretaria_slug === "educacao") {
-                navigate("/edu");
+                navigate("/edu", { replace: true });
                 return;
               } else if (assignment?.secretaria_slug === "comunicacao") {
-                navigate("/ascom");
+                navigate("/ascom", { replace: true });
                 return;
               } else {
-                navigate("/painel-secretario");
+                navigate("/painel-secretario", { replace: true });
                 return;
               }
             }
 
             // Verifica outros roles
             if (roles.some(r => r.role === "professor")) {
-              navigate("/painel-professor");
+              navigate("/painel-professor", { replace: true });
               return;
             }
             if (roles.some(r => r.role === "aluno")) {
-              navigate("/painel-aluno");
+              navigate("/painel-aluno", { replace: true });
               return;
             }
             if (roles.some(r => r.role === "pai")) {
-              navigate("/painel-pais");
+              navigate("/painel-pais", { replace: true });
               return;
             }
           }
         }
         
-        navigate("/");
+        navigate("/", { replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
