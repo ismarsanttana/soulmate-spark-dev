@@ -1,3 +1,5 @@
+import expoAgroBanner from "@/assets/expo-agro-banner.png";
+
 export default function ExpoAgro() {
   return (
     <div className="min-h-screen" style={{ background: '#111216' }}>
@@ -200,8 +202,8 @@ export default function ExpoAgro() {
             <section className="expo-hero">
               <div className="expo-banner">
                 <img
-                  src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800"
-                  alt="Expo Agro Banner"
+                  src={expoAgroBanner}
+                  alt="19ª Expo Agro - Afogados da Ingazeira"
                 />
               </div>
 
@@ -219,8 +221,8 @@ export default function ExpoAgro() {
                   <span className="expo-live-pill">ONLINE</span>
                 </div>
                 <iframe
-                  src="https://www.youtube.com/embed/live_stream?channel=YOUR_CHANNEL"
-                  title="Live Stream"
+                  src="https://www.youtube.com/embed/KGp78Im2YmQ"
+                  title="Expo Agro - Transmissão ao Vivo"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
