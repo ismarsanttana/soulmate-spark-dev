@@ -100,7 +100,7 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
               console.error("Error from server:", data.error);
               toast({
                 title: "Erro",
-                description: data.error,
+                description: typeof data.error === 'string' ? data.error : (data.error?.message || 'Erro desconhecido'),
                 variant: "destructive",
               });
               break;
