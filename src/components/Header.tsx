@@ -174,11 +174,21 @@ export const Header = ({ pageTitle }: HeaderProps) => {
           className="bg-card dark:bg-card rounded-2xl p-4 shadow-sm card-hover block focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center text-white font-semibold">
-              {userInitials}
-            </div>
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile.full_name || "Usuário"}
+                className="h-10 w-10 rounded-xl object-cover"
+              />
+            ) : (
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center text-white font-semibold">
+                {userInitials}
+              </div>
+            )}
             <div>
-              <p className="text-sm font-semibold">{firstName}</p>
+              <p className="text-sm font-semibold">
+                {user ? `Olá, ${firstName}` : "Visitante"}
+              </p>
               <p className="text-xs text-muted-foreground">
                 {user ? "Área do usuário" : "Faça login"}
               </p>
