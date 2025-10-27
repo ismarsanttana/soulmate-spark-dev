@@ -101,10 +101,10 @@ export function SecretarioLayout({ children, activeTab, onTabChange }: Secretari
               <img 
                 src={appSettings.logo_url} 
                 alt="Logo" 
-                className="h-10 w-10 object-contain"
+                className="h-14 w-14 object-contain"
               />
             ) : (
-              <Building2 className="h-6 w-6" />
+              <Building2 className="h-8 w-8" />
             )}
             <span className="text-lg font-extrabold tracking-tight">
               {appSettings?.app_name || "Prefeitura Municipal"}

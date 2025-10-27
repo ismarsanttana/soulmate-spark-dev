@@ -51,10 +51,20 @@ export function AgendaManagement() {
   const { data: events } = useQuery({
     queryKey: ["secretario-agenda"],
     queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Not authenticated");
+
+      const { data: assignment } = await supabase
+        .from("secretary_assignments")
+        .select("secretaria_slug")
+        .eq("user_id", user.user.id)
+        .single();
+
       const { data, error } = await supabase
         .from("city_agenda")
         .select("*")
-        .order("event_date", { ascending: false });
+        .eq("secretaria_slug", assignment?.secretaria_slug || "comunicacao")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as AgendaEvent[];

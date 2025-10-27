@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Users } from "lucide-react";
+import { Send, Users, History } from "lucide-react";
 
 export function PushNotifications() {
   const [formData, setFormData] = useState({
@@ -29,6 +29,24 @@ export function PushNotifications() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const { data: sentNotifications } = useQuery({
+    queryKey: ["sent-notifications"],
+    queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("sent_by", user.user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: audienceStats } = useQuery({
     queryKey: ["audience-stats"],
@@ -166,6 +184,39 @@ export function PushNotifications() {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Histórico de Notificações Enviadas</CardTitle>
+          <CardDescription>Últimas 50 notificações enviadas</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {sentNotifications && sentNotifications.length > 0 ? (
+            <div className="space-y-3">
+              {sentNotifications.map((notification) => (
+                <div key={notification.id} className="border rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <h4 className="font-semibold">{notification.title}</h4>
+                      <p className="text-sm text-muted-foreground">{notification.message}</p>
+                      {notification.link && (
+                        <p className="text-xs text-primary">Link: {notification.link}</p>
+                      )}
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(notification.created_at).toLocaleString("pt-BR")}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">
+              Nenhuma notificação enviada ainda.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
