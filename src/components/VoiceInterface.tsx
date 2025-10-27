@@ -246,71 +246,110 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onClose }) => {
   };
 
   useEffect(() => {
+    // Auto-connect quando o componente monta
+    console.log("[realtime] Auto-conectando...");
+    startConnection();
+
     return () => {
       stopConnection();
     };
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-accent/20 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-black z-50 flex items-center justify-center">
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 p-3 rounded-full bg-background/80 backdrop-blur-sm border border-border hover:bg-destructive/20 transition-colors"
+        className="absolute top-8 right-8 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all z-10"
       >
-        <X className="w-5 h-5" />
+        <X className="w-6 h-6 text-white" />
       </button>
 
-      {/* Main content */}
-      <div className="flex flex-col items-center gap-8 p-8 max-w-2xl w-full">
-        <header className="text-center">
-          <h1 className="text-3xl font-bold mb-2">Assistente de Conversação</h1>
-          <p className="text-muted-foreground">
-            {isConnected ? "Fale naturalmente com o assistente" : "Clique em Iniciar para começar"}
-          </p>
-        </header>
-
-        {/* Card com controles */}
-        <div className="w-full bg-card border border-border rounded-2xl p-6 shadow-lg">
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-            <div className="flex gap-2 flex-wrap">
-              {!isConnected ? (
-                <Button onClick={startConnection} size="lg">
-                  Iniciar
-                </Button>
-              ) : (
-                <>
-                  <Button onClick={stopConnection} variant="secondary" size="lg">
-                    Finalizar
-                  </Button>
-                  {isMuted ? (
-                    <Button onClick={unmute} variant="outline" size="lg">
-                      <MicOff className="w-4 h-4 mr-2" />
-                      Ativar mic
-                    </Button>
-                  ) : (
-                    <Button onClick={toggleMute} variant="outline" size="lg">
-                      <Mic className="w-4 h-4 mr-2" />
-                      Mutar
-                    </Button>
-                  )}
-                </>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Status:</span>
-              <span className="text-sm font-medium">{status}</span>
-            </div>
-          </div>
-
-          {/* Áudio remoto (hidden) */}
-          <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
+      {/* Central Orb */}
+      <div className="relative flex items-center justify-center">
+        {/* Animated rings quando está gravando ou falando */}
+        {(status === "ouvindo..." || status === "pronto para falar") && (
+          <>
+            <div className="absolute w-64 h-64 rounded-full border-2 border-blue-500/30 animate-ping" />
+            <div className="absolute w-80 h-80 rounded-full border border-blue-400/20 animate-pulse" />
+            {status === "ouvindo..." && !isMuted && (
+              <>
+                <div className="absolute w-56 h-56 rounded-full border-2 border-blue-400/40 animate-ping animation-delay-150" />
+                <div className="absolute w-72 h-72 rounded-full border border-blue-300/30 animate-pulse animation-delay-300" />
+              </>
+            )}
+          </>
+        )}
+        
+        {/* Main orb */}
+        <div className={`relative w-48 h-48 rounded-full transition-all duration-300 ${
+          status === "ouvindo..." && !isMuted
+            ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-[0_0_80px_rgba(59,130,246,0.8)] animate-pulse' 
+            : status === "pronto para falar"
+            ? 'bg-gradient-to-br from-cyan-400 to-blue-500 shadow-[0_0_60px_rgba(6,182,212,0.6)] animate-pulse'
+            : isMuted
+            ? 'bg-gradient-to-br from-gray-500/50 to-gray-600/50 shadow-[0_0_40px_rgba(107,114,128,0.3)]'
+            : 'bg-gradient-to-br from-blue-500/50 to-cyan-500/50 shadow-[0_0_40px_rgba(59,130,246,0.3)]'
+        }`}>
+          {/* Inner glow */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent to-white/20" />
+          
+          {/* Pulsing effect when speaking */}
+          {status === "pronto para falar" && (
+            <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" />
+          )}
         </div>
-
-        <footer className="text-center text-sm text-muted-foreground">
-          OpenAI Realtime + Supabase Edge Functions
-        </footer>
       </div>
+
+      {/* Status indicator */}
+      <div className="absolute top-8 left-1/2 -translate-x-1/2">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm">
+          <div className={`w-2 h-2 rounded-full ${
+            isConnected ? 'bg-green-400' : 'bg-yellow-400'
+          } ${isConnected && 'animate-pulse'}`} />
+          <span className="text-sm text-white font-medium">
+            {status === "conectando..." ? 'Conectando...' : 
+             status === "ouvindo..." ? (isMuted ? 'Mutado' : 'Escutando...') : 
+             status === "pronto para falar" ? 'Pronto' : 
+             status === "obtendo token..." ? 'Iniciando...' :
+             status === "negociando conexão..." ? 'Conectando...' :
+             status === "prompt configurado" ? 'Configurando...' :
+             'Conectando...'}
+          </span>
+        </div>
+      </div>
+
+      {/* Bottom controls - apenas quando conectado */}
+      {isConnected && (
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-4">
+          <button
+            onClick={stopConnection}
+            className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium transition-all backdrop-blur-sm border border-white/20"
+          >
+            Finalizar
+          </button>
+          {isMuted ? (
+            <button
+              onClick={unmute}
+              className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium transition-all backdrop-blur-sm border border-white/20 flex items-center gap-2"
+            >
+              <MicOff className="w-4 h-4" />
+              Ativar mic
+            </button>
+          ) : (
+            <button
+              onClick={toggleMute}
+              className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium transition-all backdrop-blur-sm border border-white/20 flex items-center gap-2"
+            >
+              <Mic className="w-4 h-4" />
+              Mutar
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Áudio remoto (hidden) */}
+      <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
     </div>
   );
 };
