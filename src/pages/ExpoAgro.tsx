@@ -234,57 +234,6 @@ export default function ExpoAgro() {
               </div>
             </section>
 
-            {/* Grid Section */}
-            <section className="expo-grid cols-2">
-              <div className="expo-card">
-                <h3>🌾 Agricultura</h3>
-                <div className="expo-line">
-                  <span>Inovações</span>
-                  <span className="expo-pill">NOVO</span>
-                </div>
-                <div className="expo-line">
-                  <span>Tecnologia</span>
-                  <span className="expo-pill">HOT</span>
-                </div>
-              </div>
-
-              <div className="expo-card">
-                <h3>🐄 Pecuária</h3>
-                <div className="expo-line">
-                  <span>Exposição</span>
-                  <span className="expo-pill">2 dias</span>
-                </div>
-                <div className="expo-line">
-                  <span>Leilões</span>
-                  <span className="expo-pill">5 lotes</span>
-                </div>
-              </div>
-
-              <div className="expo-card">
-                <h3>🎯 Workshops</h3>
-                <div className="expo-line">
-                  <span>Inscrições</span>
-                  <span className="expo-pill">Abertas</span>
-                </div>
-                <div className="expo-line">
-                  <span>Vagas</span>
-                  <span className="expo-pill">50</span>
-                </div>
-              </div>
-
-              <div className="expo-card">
-                <h3>🍴 Gastronomia</h3>
-                <div className="expo-line">
-                  <span>Food Trucks</span>
-                  <span className="expo-pill">15+</span>
-                </div>
-                <div className="expo-line">
-                  <span>Regional</span>
-                  <span className="expo-pill">Top</span>
-                </div>
-              </div>
-            </section>
-
             {/* Posters Section */}
             <section className="expo-strip">
               <div className="expo-poster-row">
