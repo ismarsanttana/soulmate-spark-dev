@@ -6,7 +6,9 @@ export const ControlCenter = () => {
   const { theme, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ x: window.innerWidth - 80, y: window.innerHeight - 350 });
+  const [savedPosition, setSavedPosition] = useState({ x: window.innerWidth - 80, y: window.innerHeight - 350 });
   const [isDragging, setIsDragging] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; initialX: number; initialY: number } | null>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -33,6 +35,28 @@ export const ControlCenter = () => {
     setPosition({ x: newX, y: newY });
   };
 
+  const snapToSide = (currentX: number, currentY: number) => {
+    const centerX = window.innerWidth / 2;
+    const isLeftSide = currentX < centerX;
+    const newX = isLeftSide ? 20 : window.innerWidth - 76;
+    
+    setIsAnimating(true);
+    setPosition({ x: newX, y: currentY });
+    setSavedPosition({ x: newX, y: currentY });
+    
+    setTimeout(() => setIsAnimating(false), 300);
+  };
+
+  const moveToCenter = () => {
+    const centerX = window.innerWidth / 2 - 28;
+    const centerY = window.innerHeight / 2 - 28;
+    
+    setIsAnimating(true);
+    setPosition({ x: centerX, y: centerY });
+    
+    setTimeout(() => setIsAnimating(false), 300);
+  };
+
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!isDragging) return;
     
@@ -43,11 +67,24 @@ export const ControlCenter = () => {
     );
     
     setIsDragging(false);
-    dragRef.current = null;
     
     if (distance < 10) {
-      setIsOpen(!isOpen);
+      if (!isOpen) {
+        moveToCenter();
+        setTimeout(() => setIsOpen(true), 300);
+      } else {
+        setIsOpen(false);
+        setTimeout(() => {
+          setIsAnimating(true);
+          setPosition(savedPosition);
+          setTimeout(() => setIsAnimating(false), 300);
+        }, 100);
+      }
+    } else {
+      snapToSide(position.x, position.y);
     }
+    
+    dragRef.current = null;
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -84,11 +121,24 @@ export const ControlCenter = () => {
       );
       
       setIsDragging(false);
-      dragRef.current = null;
       
       if (distance < 10) {
-        setIsOpen(!isOpen);
+        if (!isOpen) {
+          moveToCenter();
+          setTimeout(() => setIsOpen(true), 300);
+        } else {
+          setIsOpen(false);
+          setTimeout(() => {
+            setIsAnimating(true);
+            setPosition(savedPosition);
+            setTimeout(() => setIsAnimating(false), 300);
+          }, 100);
+        }
+      } else {
+        snapToSide(position.x, position.y);
       }
+      
+      dragRef.current = null;
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -148,21 +198,32 @@ export const ControlCenter = () => {
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity"
-          onClick={() => setIsOpen(false)}
+          onClick={() => {
+            setIsOpen(false);
+            setTimeout(() => {
+              setIsAnimating(true);
+              setPosition(savedPosition);
+              setTimeout(() => setIsAnimating(false), 300);
+            }, 100);
+          }}
         />
       )}
 
       {/* Botão principal */}
       <div
-        className="fixed z-50 touch-none"
-        style={{ left: `${position.x}px`, top: `${position.y}px` }}
+        className={`fixed touch-none ${isOpen ? "z-50" : "z-40"}`}
+        style={{ 
+          left: `${position.x}px`, 
+          top: `${position.y}px`,
+          transition: isAnimating ? "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" : "none"
+        }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown}
       >
         <button
-          className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-blue-600 text-white shadow-lg transition-all duration-300 ${
+          className={`flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-600 text-white shadow-lg transition-all duration-300 ${
             isDragging ? "scale-110" : "scale-100"
           } ${isOpen ? "shadow-2xl" : "hover:scale-110"}`}
         >
