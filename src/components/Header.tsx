@@ -90,18 +90,32 @@ export const Header = ({ pageTitle }: HeaderProps) => {
 
   const firstName = profile?.full_name?.split(" ")[0] || "Cidadão";
 
+  // Função para normalizar texto (remover acentos e converter para minúsculas)
+  const normalizeText = (text: string) => {
+    return text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  };
+
   // Busca em tempo real
   const { data: searchNews } = useQuery({
     queryKey: ["search-news", searchQuery],
     queryFn: async () => {
       if (!searchQuery || searchQuery.length < 2) return [];
+      const normalized = normalizeText(searchQuery);
       const { data } = await supabase
         .from("news")
         .select("*")
-        .or(`title.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
         .eq("status", "published")
-        .limit(3);
-      return data || [];
+        .limit(20);
+      
+      // Filtrar no lado do cliente considerando acentos
+      return (data || []).filter(item => 
+        normalizeText(item.title).includes(normalized) ||
+        normalizeText(item.summary || "").includes(normalized) ||
+        normalizeText(item.content || "").includes(normalized)
+      ).slice(0, 3);
     },
     enabled: searchQuery.length >= 2,
   });
@@ -110,13 +124,18 @@ export const Header = ({ pageTitle }: HeaderProps) => {
     queryKey: ["search-protocols", searchQuery, user?.id],
     queryFn: async () => {
       if (!searchQuery || searchQuery.length < 2 || !user) return [];
+      const normalized = normalizeText(searchQuery);
       const { data } = await supabase
         .from("ombudsman_protocols")
         .select("*")
         .eq("user_id", user.id)
-        .or(`protocol_number.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`)
-        .limit(3);
-      return data || [];
+        .limit(20);
+      
+      return (data || []).filter(item =>
+        normalizeText(item.protocol_number).includes(normalized) ||
+        normalizeText(item.description).includes(normalized) ||
+        normalizeText(item.category || "").includes(normalized)
+      ).slice(0, 3);
     },
     enabled: searchQuery.length >= 2 && !!user,
   });
@@ -125,13 +144,18 @@ export const Header = ({ pageTitle }: HeaderProps) => {
     queryKey: ["search-events", searchQuery],
     queryFn: async () => {
       if (!searchQuery || searchQuery.length < 2) return [];
+      const normalized = normalizeText(searchQuery);
       const { data } = await supabase
         .from("city_agenda")
         .select("*")
-        .or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`)
         .eq("status", "published")
-        .limit(3);
-      return data || [];
+        .limit(20);
+      
+      return (data || []).filter(item =>
+        normalizeText(item.title).includes(normalized) ||
+        normalizeText(item.description || "").includes(normalized) ||
+        normalizeText(item.location || "").includes(normalized)
+      ).slice(0, 3);
     },
     enabled: searchQuery.length >= 2,
   });
@@ -140,13 +164,17 @@ export const Header = ({ pageTitle }: HeaderProps) => {
     queryKey: ["search-appointments", searchQuery, user?.id],
     queryFn: async () => {
       if (!searchQuery || searchQuery.length < 2 || !user) return [];
+      const normalized = normalizeText(searchQuery);
       const { data } = await supabase
         .from("appointments")
         .select("*")
         .eq("user_id", user.id)
-        .or(`specialty.ilike.%${searchQuery}%,notes.ilike.%${searchQuery}%`)
-        .limit(3);
-      return data || [];
+        .limit(20);
+      
+      return (data || []).filter(item =>
+        normalizeText(item.specialty).includes(normalized) ||
+        normalizeText(item.notes || "").includes(normalized)
+      ).slice(0, 3);
     },
     enabled: searchQuery.length >= 2 && !!user,
   });
@@ -154,23 +182,23 @@ export const Header = ({ pageTitle }: HeaderProps) => {
   // Serviços/Secretarias
   const services = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
+    const normalized = normalizeText(searchQuery);
     const allServices = [
-      { name: "Agendar Consulta", slug: "/agendar-consulta", keywords: ["consulta", "médico", "saúde", "agendamento"] },
-      { name: "Secretaria de Saúde", slug: "/saude", keywords: ["saúde", "médico", "hospital", "ubs"] },
-      { name: "Secretaria de Educação", slug: "/educacao", keywords: ["educação", "escola", "ensino", "aluno"] },
-      { name: "Assistência Social", slug: "/assistencia", keywords: ["assistência", "benefício", "auxílio", "social"] },
-      { name: "Ouvidoria", slug: "/ouvidoria", keywords: ["ouvidoria", "reclamação", "denúncia", "sugestão"] },
+      { name: "Agendar Consulta", slug: "/agendar-consulta", keywords: ["consulta", "medico", "saude", "agendamento"] },
+      { name: "Secretaria de Saúde", slug: "/saude", keywords: ["saude", "medico", "hospital", "ubs"] },
+      { name: "Secretaria de Educação", slug: "/educacao", keywords: ["educacao", "escola", "ensino", "aluno"] },
+      { name: "Assistência Social", slug: "/assistencia", keywords: ["assistencia", "beneficio", "auxilio", "social"] },
+      { name: "Ouvidoria", slug: "/ouvidoria", keywords: ["ouvidoria", "reclamacao", "denuncia", "sugestao"] },
       { name: "2ª via IPTU", slug: "/iptu", keywords: ["iptu", "imposto", "segunda via", "pagamento"] },
-      { name: "Iluminação Pública", slug: "/iluminacao-publica", keywords: ["iluminação", "luz", "poste", "rua"] },
-      { name: "Obras", slug: "/obras", keywords: ["obras", "construção", "infraestrutura"] },
+      { name: "Iluminação Pública", slug: "/iluminacao-publica", keywords: ["iluminacao", "luz", "poste", "rua"] },
+      { name: "Obras", slug: "/obras", keywords: ["obras", "construcao", "infraestrutura"] },
       { name: "Cultura", slug: "/cultura", keywords: ["cultura", "evento", "turismo", "lazer"] },
       { name: "Esporte", slug: "/esporte", keywords: ["esporte", "academia", "futebol", "quadra"] },
     ];
     
-    const query = searchQuery.toLowerCase();
     return allServices.filter(service => 
-      service.name.toLowerCase().includes(query) ||
-      service.keywords.some(keyword => keyword.includes(query))
+      normalizeText(service.name).includes(normalized) ||
+      service.keywords.some(keyword => normalizeText(keyword).includes(normalized))
     ).slice(0, 3);
   }, [searchQuery]);
 

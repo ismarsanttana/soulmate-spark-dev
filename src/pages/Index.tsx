@@ -363,38 +363,38 @@ const Index = () => {
           {campaignBanners.map((banner) => (
             <div 
               key={banner.id} 
-              className="overflow-hidden rounded-2xl shadow-md card-hover"
+              className="bg-card dark:bg-card rounded-2xl overflow-hidden shadow-sm card-hover"
             >
               {banner.link ? (
-                <a href={banner.link} target="_blank" rel="noopener noreferrer">
-                  <div className="relative">
+                <a href={banner.link} target="_blank" rel="noopener noreferrer" className="block">
+                  <div className="relative h-32">
                     <img 
                       src={banner.image_url} 
                       alt={banner.title}
-                      className="w-full h-auto object-cover"
+                      className="w-full h-full object-cover"
                     />
                     {(banner.title || banner.description) && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
-                        {banner.title && <h3 className="font-semibold">{banner.title}</h3>}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-white">
+                        {banner.title && <h3 className="text-sm font-semibold">{banner.title}</h3>}
                         {banner.description && (
-                          <p className="text-xs mt-0.5">{banner.description}</p>
+                          <p className="text-xs mt-0.5 line-clamp-1">{banner.description}</p>
                         )}
                       </div>
                     )}
                   </div>
                 </a>
               ) : (
-                <div className="relative">
+                <div className="relative h-32">
                   <img 
                     src={banner.image_url} 
                     alt={banner.title}
-                    className="w-full h-auto object-cover"
+                    className="w-full h-full object-cover"
                   />
                   {(banner.title || banner.description) && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
-                      {banner.title && <h3 className="font-semibold">{banner.title}</h3>}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-white">
+                      {banner.title && <h3 className="text-sm font-semibold">{banner.title}</h3>}
                       {banner.description && (
-                        <p className="text-xs mt-0.5">{banner.description}</p>
+                        <p className="text-xs mt-0.5 line-clamp-1">{banner.description}</p>
                       )}
                     </div>
                   )}
