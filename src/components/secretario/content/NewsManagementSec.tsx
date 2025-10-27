@@ -17,6 +17,8 @@ import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { SocialMediaPublishDialog } from "./SocialMediaPublishDialog";
+import { Share2 } from "lucide-react";
 
 interface News {
   id: string;
@@ -32,6 +34,8 @@ export function NewsManagementSec() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingNews, setEditingNews] = useState<News | null>(null);
   const [createStory, setCreateStory] = useState(false);
+  const [socialDialogOpen, setSocialDialogOpen] = useState(false);
+  const [createdNewsId, setCreatedNewsId] = useState<string | null>(null);
   
   // Subscrever atualizações em tempo real
   useRealtimeSubscription("news", "secretary-news");
@@ -90,13 +94,15 @@ export function NewsManagementSec() {
       
       return newsData;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["secretario-news"] });
       queryClient.invalidateQueries({ queryKey: ["stories"] });
       toast({ 
         title: createStory ? "Notícia e story criados com sucesso!" : "Notícia criada com sucesso!" 
       });
-      resetForm();
+      setCreatedNewsId(data.id);
+      setSocialDialogOpen(true);
+      setDialogOpen(false);
     },
     onError: () => {
       toast({ title: "Erro ao criar notícia", variant: "destructive" });
@@ -140,6 +146,7 @@ export function NewsManagementSec() {
     setStoryData({ story_title: "", story_image: "" });
     setCreateStory(false);
     setEditingNews(null);
+    setCreatedNewsId(null);
     setDialogOpen(false);
   };
 
@@ -355,6 +362,28 @@ export function NewsManagementSec() {
           </TableBody>
         </Table>
       </CardContent>
+
+      {createdNewsId && (
+        <SocialMediaPublishDialog
+          open={socialDialogOpen}
+          onOpenChange={(open) => {
+            setSocialDialogOpen(open);
+            if (!open) {
+              resetForm();
+            }
+          }}
+          contentType="news"
+          contentId={createdNewsId}
+          contentData={{
+            title: formData.title,
+            summary: formData.summary,
+            content: formData.content,
+            image_url: formData.image_url,
+            gallery_images: formData.gallery_images,
+          }}
+          secretariaSlug="comunicacao"
+        />
+      )}
     </Card>
   );
 }

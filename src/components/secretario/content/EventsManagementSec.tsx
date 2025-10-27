@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { SocialMediaPublishDialog } from "./SocialMediaPublishDialog";
+import { Share2 } from "lucide-react";
 
 interface Event {
   id: string;
@@ -26,6 +28,8 @@ interface Event {
 export function EventsManagementSec() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [socialDialogOpen, setSocialDialogOpen] = useState(false);
+  const [createdEventId, setCreatedEventId] = useState<string | null>(null);
   
   // Subscrever atualizações em tempo real
   useRealtimeSubscription("events", "secretary-events");
@@ -56,13 +60,16 @@ export function EventsManagementSec() {
 
   const createEvent = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase.from("events").insert([data]);
+      const { data: eventData, error } = await supabase.from("events").insert([data]).select().single();
       if (error) throw error;
+      return eventData;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["secretario-events"] });
       toast({ title: "Evento criado com sucesso!" });
-      resetForm();
+      setCreatedEventId(data.id);
+      setSocialDialogOpen(true);
+      setDialogOpen(false);
     },
     onError: () => {
       toast({ title: "Erro ao criar evento", variant: "destructive" });
@@ -108,6 +115,7 @@ export function EventsManagementSec() {
       status: "published",
     });
     setEditingEvent(null);
+    setCreatedEventId(null);
     setDialogOpen(false);
   };
 
@@ -259,6 +267,27 @@ export function EventsManagementSec() {
           </TableBody>
         </Table>
       </CardContent>
+
+      {createdEventId && (
+        <SocialMediaPublishDialog
+          open={socialDialogOpen}
+          onOpenChange={(open) => {
+            setSocialDialogOpen(open);
+            if (!open) {
+              resetForm();
+            }
+          }}
+          contentType="event"
+          contentId={createdEventId}
+          contentData={{
+            title: formData.title,
+            description: formData.description,
+            location: formData.location,
+            event_date: formData.event_date,
+          }}
+          secretariaSlug="comunicacao"
+        />
+      )}
     </Card>
   );
 }

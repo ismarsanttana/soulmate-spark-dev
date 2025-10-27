@@ -17,6 +17,8 @@ import { format } from "date-fns";
 import { bannerSchema } from "@/lib/validationSchemas";
 import { z } from "zod";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { SocialMediaPublishDialog } from "./SocialMediaPublishDialog";
+import { Share2 } from "lucide-react";
 
 interface Banner {
   id: string;
@@ -34,6 +36,8 @@ interface Banner {
 export function BannersManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
+  const [socialDialogOpen, setSocialDialogOpen] = useState(false);
+  const [createdBannerId, setCreatedBannerId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -78,13 +82,16 @@ export function BannersManagement() {
         created_by: user?.id,
       };
       
-      const { error } = await supabase.from("campaign_banners").insert([cleanData]);
+      const { data: bannerData, error } = await supabase.from("campaign_banners").insert([cleanData]).select().single();
       if (error) throw error;
+      return bannerData;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["secretario-banners"] });
       toast({ title: "Banner criado com sucesso!" });
-      resetForm();
+      setCreatedBannerId(data.id);
+      setSocialDialogOpen(true);
+      setDialogOpen(false);
     },
     onError: (error) => {
       console.error("Erro ao criar banner:", error);
@@ -143,6 +150,7 @@ export function BannersManagement() {
       secretaria_slug: "comunicacao",
     });
     setEditingBanner(null);
+    setCreatedBannerId(null);
     setDialogOpen(false);
   };
 
@@ -317,6 +325,26 @@ export function BannersManagement() {
           </TableBody>
         </Table>
       </CardContent>
+
+      {createdBannerId && (
+        <SocialMediaPublishDialog
+          open={socialDialogOpen}
+          onOpenChange={(open) => {
+            setSocialDialogOpen(open);
+            if (!open) {
+              resetForm();
+            }
+          }}
+          contentType="banner"
+          contentId={createdBannerId}
+          contentData={{
+            title: formData.title,
+            description: formData.description,
+            image_url: formData.image_url,
+          }}
+          secretariaSlug="comunicacao"
+        />
+      )}
     </Card>
   );
 }

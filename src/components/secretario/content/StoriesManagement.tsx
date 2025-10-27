@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { SocialMediaPublishDialog } from "./SocialMediaPublishDialog";
+import { Share2 } from "lucide-react";
 
 interface Story {
   id: string;
@@ -27,6 +29,8 @@ interface Story {
 export function StoriesManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
+  const [socialDialogOpen, setSocialDialogOpen] = useState(false);
+  const [createdStoryId, setCreatedStoryId] = useState<string | null>(null);
   
   // Subscrever atualizações em tempo real
   useRealtimeSubscription("stories", "secretary-stories");
@@ -73,18 +77,21 @@ export function StoriesManagement() {
         .eq("user_id", user.user?.id)
         .single();
 
-      const { error } = await supabase.from("stories").insert([{
+      const { data: storyData, error } = await supabase.from("stories").insert([{
         ...data,
         secretaria_slug: assignment?.secretaria_slug,
         created_by: user.user?.id,
         status: "published",
-      }]);
+      }]).select().single();
       if (error) throw error;
+      return storyData;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["secretario-stories"] });
       toast({ title: "Story criado com sucesso!" });
-      resetForm();
+      setCreatedStoryId(data.id);
+      setSocialDialogOpen(true);
+      setDialogOpen(false);
     },
   });
 
@@ -102,6 +109,7 @@ export function StoriesManagement() {
   const resetForm = () => {
     setFormData({ title: "", media_url: "", media_type: "image", duration: 5, link: "" });
     setEditingStory(null);
+    setCreatedStoryId(null);
     setDialogOpen(false);
   };
 
@@ -203,6 +211,25 @@ export function StoriesManagement() {
           </TableBody>
         </Table>
       </CardContent>
+
+      {createdStoryId && (
+        <SocialMediaPublishDialog
+          open={socialDialogOpen}
+          onOpenChange={(open) => {
+            setSocialDialogOpen(open);
+            if (!open) {
+              resetForm();
+            }
+          }}
+          contentType="story"
+          contentId={createdStoryId}
+          contentData={{
+            title: formData.title,
+            media_url: formData.media_url,
+          }}
+          secretariaSlug="comunicacao"
+        />
+      )}
     </Card>
   );
 }

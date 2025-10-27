@@ -12,6 +12,8 @@ import { FileUpload } from "@/components/admin/FileUpload";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { SocialMediaPublishDialog } from "./SocialMediaPublishDialog";
+import { Share2 } from "lucide-react";
 
 interface AgendaEvent {
   id: string;
@@ -29,6 +31,8 @@ interface AgendaEvent {
 export function AgendaManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<AgendaEvent | null>(null);
+  const [socialDialogOpen, setSocialDialogOpen] = useState(false);
+  const [createdEventId, setCreatedEventId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -60,16 +64,19 @@ export function AgendaManagement() {
   const createEvent = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from("city_agenda").insert([{
+      const { data: eventData, error } = await supabase.from("city_agenda").insert([{
         ...data,
         created_by: user?.id,
-      }]);
+      }]).select().single();
       if (error) throw error;
+      return eventData;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["secretario-agenda"] });
       toast({ title: "Evento criado com sucesso!" });
-      resetForm();
+      setCreatedEventId(data.id);
+      setSocialDialogOpen(true);
+      setDialogOpen(false);
     },
     onError: () => {
       toast({ title: "Erro ao criar evento", variant: "destructive" });
@@ -118,6 +125,7 @@ export function AgendaManagement() {
       secretaria_slug: "comunicacao",
     });
     setEditingEvent(null);
+    setCreatedEventId(null);
     setDialogOpen(false);
   };
 
@@ -293,6 +301,28 @@ export function AgendaManagement() {
           </TableBody>
         </Table>
       </CardContent>
+
+      {createdEventId && (
+        <SocialMediaPublishDialog
+          open={socialDialogOpen}
+          onOpenChange={(open) => {
+            setSocialDialogOpen(open);
+            if (!open) {
+              resetForm();
+            }
+          }}
+          contentType="agenda"
+          contentId={createdEventId}
+          contentData={{
+            title: formData.title,
+            description: formData.description,
+            location: formData.location,
+            event_date: formData.event_date,
+            image_url: formData.image_url,
+          }}
+          secretariaSlug="comunicacao"
+        />
+      )}
     </Card>
   );
 }
