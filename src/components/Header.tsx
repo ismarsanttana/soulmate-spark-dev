@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@supabase/supabase-js";
+import { X } from "lucide-react";
 
 interface HeaderProps {
   pageTitle?: string;
@@ -12,6 +13,8 @@ export const Header = ({ pageTitle }: HeaderProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [user, setUser] = useState<User | null>(null);
+  const [showResults, setShowResults] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentDate(new Date()), 60000);
@@ -87,6 +90,98 @@ export const Header = ({ pageTitle }: HeaderProps) => {
 
   const firstName = profile?.full_name?.split(" ")[0] || "Cidadão";
 
+  // Busca em tempo real
+  const { data: searchNews } = useQuery({
+    queryKey: ["search-news", searchQuery],
+    queryFn: async () => {
+      if (!searchQuery || searchQuery.length < 2) return [];
+      const { data } = await supabase
+        .from("news")
+        .select("*")
+        .or(`title.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
+        .eq("status", "published")
+        .limit(3);
+      return data || [];
+    },
+    enabled: searchQuery.length >= 2,
+  });
+
+  const { data: searchProtocols } = useQuery({
+    queryKey: ["search-protocols", searchQuery, user?.id],
+    queryFn: async () => {
+      if (!searchQuery || searchQuery.length < 2 || !user) return [];
+      const { data } = await supabase
+        .from("ombudsman_protocols")
+        .select("*")
+        .eq("user_id", user.id)
+        .or(`protocol_number.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`)
+        .limit(3);
+      return data || [];
+    },
+    enabled: searchQuery.length >= 2 && !!user,
+  });
+
+  const { data: searchEvents } = useQuery({
+    queryKey: ["search-events", searchQuery],
+    queryFn: async () => {
+      if (!searchQuery || searchQuery.length < 2) return [];
+      const { data } = await supabase
+        .from("city_agenda")
+        .select("*")
+        .or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`)
+        .eq("status", "published")
+        .limit(3);
+      return data || [];
+    },
+    enabled: searchQuery.length >= 2,
+  });
+
+  const { data: searchAppointments } = useQuery({
+    queryKey: ["search-appointments", searchQuery, user?.id],
+    queryFn: async () => {
+      if (!searchQuery || searchQuery.length < 2 || !user) return [];
+      const { data } = await supabase
+        .from("appointments")
+        .select("*")
+        .eq("user_id", user.id)
+        .or(`specialty.ilike.%${searchQuery}%,notes.ilike.%${searchQuery}%`)
+        .limit(3);
+      return data || [];
+    },
+    enabled: searchQuery.length >= 2 && !!user,
+  });
+
+  // Serviços/Secretarias
+  const services = useMemo(() => {
+    if (!searchQuery || searchQuery.length < 2) return [];
+    const allServices = [
+      { name: "Agendar Consulta", slug: "/agendar-consulta", keywords: ["consulta", "médico", "saúde", "agendamento"] },
+      { name: "Secretaria de Saúde", slug: "/saude", keywords: ["saúde", "médico", "hospital", "ubs"] },
+      { name: "Secretaria de Educação", slug: "/educacao", keywords: ["educação", "escola", "ensino", "aluno"] },
+      { name: "Assistência Social", slug: "/assistencia", keywords: ["assistência", "benefício", "auxílio", "social"] },
+      { name: "Ouvidoria", slug: "/ouvidoria", keywords: ["ouvidoria", "reclamação", "denúncia", "sugestão"] },
+      { name: "2ª via IPTU", slug: "/iptu", keywords: ["iptu", "imposto", "segunda via", "pagamento"] },
+      { name: "Iluminação Pública", slug: "/iluminacao-publica", keywords: ["iluminação", "luz", "poste", "rua"] },
+      { name: "Obras", slug: "/obras", keywords: ["obras", "construção", "infraestrutura"] },
+      { name: "Cultura", slug: "/cultura", keywords: ["cultura", "evento", "turismo", "lazer"] },
+      { name: "Esporte", slug: "/esporte", keywords: ["esporte", "academia", "futebol", "quadra"] },
+    ];
+    
+    const query = searchQuery.toLowerCase();
+    return allServices.filter(service => 
+      service.name.toLowerCase().includes(query) ||
+      service.keywords.some(keyword => keyword.includes(query))
+    ).slice(0, 3);
+  }, [searchQuery]);
+
+  const hasResults = (searchNews?.length || 0) + (searchProtocols?.length || 0) + 
+                     (searchEvents?.length || 0) + (searchAppointments?.length || 0) + 
+                     services.length > 0;
+
+  useEffect(() => {
+    setShowResults(searchQuery.length >= 2);
+  }, [searchQuery]);
+
   return (
     <>
       <div className="bg-gradient-to-br from-primary to-blue-700 text-white rounded-2xl p-5 shadow-lg mb-5">
@@ -135,9 +230,142 @@ export const Header = ({ pageTitle }: HeaderProps) => {
             placeholder="Buscar serviços, protocolos, notícias..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl bg-white/90 text-gray-900 px-4 py-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/60"
+            onFocus={() => setShowResults(searchQuery.length >= 2)}
+            className="w-full rounded-xl bg-white/90 text-gray-900 px-4 py-3 pr-20 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/60"
           />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setShowResults(false);
+              }}
+              className="absolute right-10 top-3.5 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
           <i className="fas fa-search absolute right-3 top-3.5 text-gray-400"></i>
+
+          {/* Resultados da busca */}
+          {showResults && searchQuery.length >= 2 && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg max-h-96 overflow-y-auto z-50">
+              {!hasResults ? (
+                <div className="p-4 text-center text-gray-500 text-sm">
+                  Nenhum resultado encontrado
+                </div>
+              ) : (
+                <div className="p-2">
+                  {/* Serviços */}
+                  {services.length > 0 && (
+                    <div className="mb-3">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase px-3 py-2">Serviços</h3>
+                      {services.map((service, index) => (
+                        <Link
+                          key={index}
+                          to={service.slug}
+                          onClick={() => {
+                            setSearchQuery("");
+                            setShowResults(false);
+                          }}
+                          className="block px-3 py-2 hover:bg-gray-50 rounded-lg"
+                        >
+                          <p className="text-sm font-medium text-gray-900">{service.name}</p>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Notícias */}
+                  {searchNews && searchNews.length > 0 && (
+                    <div className="mb-3">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase px-3 py-2">Notícias</h3>
+                      {searchNews.map((news) => (
+                        <Link
+                          key={news.id}
+                          to={`/noticia/${news.id}`}
+                          onClick={() => {
+                            setSearchQuery("");
+                            setShowResults(false);
+                          }}
+                          className="block px-3 py-2 hover:bg-gray-50 rounded-lg"
+                        >
+                          <p className="text-sm font-medium text-gray-900">{news.title}</p>
+                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{news.summary}</p>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Protocolos */}
+                  {searchProtocols && searchProtocols.length > 0 && (
+                    <div className="mb-3">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase px-3 py-2">Meus Protocolos</h3>
+                      {searchProtocols.map((protocol) => (
+                        <Link
+                          key={protocol.id}
+                          to="/ouvidoria"
+                          onClick={() => {
+                            setSearchQuery("");
+                            setShowResults(false);
+                          }}
+                          className="block px-3 py-2 hover:bg-gray-50 rounded-lg"
+                        >
+                          <p className="text-sm font-medium text-gray-900">
+                            Protocolo #{protocol.protocol_number}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{protocol.description}</p>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Agendamentos */}
+                  {searchAppointments && searchAppointments.length > 0 && (
+                    <div className="mb-3">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase px-3 py-2">Meus Agendamentos</h3>
+                      {searchAppointments.map((appointment) => (
+                        <div
+                          key={appointment.id}
+                          className="block px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                          onClick={() => {
+                            setSearchQuery("");
+                            setShowResults(false);
+                          }}
+                        >
+                          <p className="text-sm font-medium text-gray-900">{appointment.specialty}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {new Date(appointment.preferred_date).toLocaleDateString("pt-BR")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Eventos */}
+                  {searchEvents && searchEvents.length > 0 && (
+                    <div className="mb-3">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase px-3 py-2">Eventos</h3>
+                      {searchEvents.map((event) => (
+                        <div
+                          key={event.id}
+                          className="block px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                          onClick={() => {
+                            setSearchQuery("");
+                            setShowResults(false);
+                          }}
+                        >
+                          <p className="text-sm font-medium text-gray-900">{event.title}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {event.location} • {new Date(event.event_date).toLocaleDateString("pt-BR")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
