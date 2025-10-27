@@ -190,6 +190,21 @@ const Index = () => {
     },
   });
 
+  const { data: campaignBanners } = useQuery({
+    queryKey: ["campaign_banners"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("campaign_banners")
+        .select("*")
+        .eq("is_active", true)
+        .lte("start_date", new Date().toISOString())
+        .or(`end_date.is.null,end_date.gte.${new Date().toISOString()}`)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      return data || [];
+    },
+  });
+
   const userInitials = profile?.full_name
     ?.split(" ")
     .map((n: string) => n[0])
@@ -342,20 +357,53 @@ const Index = () => {
       {/* Secretarias Dinâmicas */}
       <SecretariasGrid />
 
-      {/* Banner de Campanha */}
-      <div className="mb-5 overflow-hidden rounded-2xl shadow-md card-hover">
-        <div className="relative">
-          <div className="h-32 bg-gradient-to-r from-primary to-blue-600 flex items-center justify-center">
-            <i className="fas fa-syringe text-white text-4xl"></i>
-          </div>
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
-            <h3 className="font-semibold">Campanha de Vacinação Contra Gripe</h3>
-            <p className="text-xs mt-0.5">
-              Procure a unidade de saúde mais próxima
-            </p>
-          </div>
+      {/* Banners de Campanhas */}
+      {campaignBanners && campaignBanners.length > 0 && (
+        <div className="mb-5 space-y-3">
+          {campaignBanners.map((banner) => (
+            <div 
+              key={banner.id} 
+              className="overflow-hidden rounded-2xl shadow-md card-hover"
+            >
+              {banner.link ? (
+                <a href={banner.link} target="_blank" rel="noopener noreferrer">
+                  <div className="relative">
+                    <img 
+                      src={banner.image_url} 
+                      alt={banner.title}
+                      className="w-full h-auto object-cover"
+                    />
+                    {(banner.title || banner.description) && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
+                        {banner.title && <h3 className="font-semibold">{banner.title}</h3>}
+                        {banner.description && (
+                          <p className="text-xs mt-0.5">{banner.description}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </a>
+              ) : (
+                <div className="relative">
+                  <img 
+                    src={banner.image_url} 
+                    alt={banner.title}
+                    className="w-full h-auto object-cover"
+                  />
+                  {(banner.title || banner.description) && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
+                      {banner.title && <h3 className="font-semibold">{banner.title}</h3>}
+                      {banner.description && (
+                        <p className="text-xs mt-0.5">{banner.description}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
-      </div>
+      )}
 
       {/* Ouvidoria */}
       <div className="mb-5 bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 rounded-2xl p-4 shadow-sm card-hover">
