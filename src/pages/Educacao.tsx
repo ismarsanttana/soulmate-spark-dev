@@ -16,27 +16,8 @@ const Educacao = () => {
   const [boletimMatricula, setBoletimMatricula] = useState("");
   const [boletimData, setBoletimData] = useState<any>(null);
   const [matriculaSuccess, setMatriculaSuccess] = useState("");
-  const [assistantOpen, setAssistantOpen] = useState(false);
-  const [assistantMessage, setAssistantMessage] = useState("");
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
   const [calendarModalEvent, setCalendarModalEvent] = useState<{ day: number; event: string } | null>(null);
-  const assistantInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (assistantOpen && assistantInputRef.current) {
-      assistantInputRef.current.focus();
-    }
-  }, [assistantOpen]);
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && assistantOpen) {
-        setAssistantOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [assistantOpen]);
 
   const handleBoletimSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,14 +62,6 @@ const Educacao = () => {
     setMatriculaSuccess(`Solicitação enviada com sucesso! Dados: ${nomeAluno}, ${serie}, ${escola}. Em breve entraremos em contato.`);
     e.currentTarget.reset();
     setTimeout(() => setMatriculaSuccess(""), 8000);
-  };
-
-  const handleAssistantSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (assistantMessage.trim()) {
-      console.log("Mensagem do assistente:", assistantMessage);
-      setAssistantMessage("");
-    }
   };
 
   const calendarEvents: Record<number, string> = {
@@ -327,7 +300,7 @@ const Educacao = () => {
           </Card>
         </div>
 
-      {/* Calendar Event Modal */}
+        {/* Calendar Event Modal */}
         <AlertDialog open={calendarModalOpen} onOpenChange={setCalendarModalOpen}>
           <AlertDialogContent className="max-w-sm">
             <AlertDialogHeader>
@@ -341,64 +314,7 @@ const Educacao = () => {
             <Button onClick={() => setCalendarModalOpen(false)}>Fechar</Button>
           </AlertDialogContent>
         </AlertDialog>
-
-        {/* Virtual Assistant FAB */}
-        <button
-          onClick={() => setAssistantOpen(true)}
-          className="fixed bottom-[335px] right-6 w-14 h-14 bg-secondary text-secondary-foreground rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform z-40"
-          aria-label="Abrir assistente virtual"
-        >
-          <MessageCircle className="w-6 h-6" />
-        </button>
-
-        {/* Virtual Assistant Panel */}
-        {assistantOpen && (
-          <div className="fixed inset-0 z-50 flex items-end justify-end">
-            <div
-              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-              onClick={() => setAssistantOpen(false)}
-            />
-            <div className="relative bg-card border-l border-t border-border w-full max-w-sm h-[70vh] shadow-2xl flex flex-col animate-in slide-in-from-right">
-              <div className="flex items-center justify-between p-4 border-b border-border">
-                <h3 className="font-bold text-lg">Assistente Virtual</h3>
-                <button
-                  onClick={() => setAssistantOpen(false)}
-                  className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
-                  aria-label="Fechar assistente"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-4">
-                <div className="bg-muted p-3 rounded-lg mb-4">
-                  <p className="text-sm font-semibold mb-2">Sugestões rápidas:</p>
-                  <ul className="space-y-1 text-xs">
-                    <li>• Como consultar o boletim escolar?</li>
-                    <li>• Informações sobre matrícula</li>
-                    <li>• Horários do transporte escolar</li>
-                  </ul>
-                </div>
-              </div>
-
-              <form onSubmit={handleAssistantSubmit} className="p-4 border-t border-border">
-                <div className="flex gap-2">
-                  <Input
-                    ref={assistantInputRef}
-                    type="text"
-                    placeholder="Digite sua mensagem..."
-                    value={assistantMessage}
-                    onChange={(e) => setAssistantMessage(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button type="submit" size="icon">
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+      </div>
     </Layout>
   );
 };

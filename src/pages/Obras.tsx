@@ -10,7 +10,6 @@ type WorkStatus = "todas" | "em-andamento" | "planejada" | "paralisada" | "concl
 type MapFilter = "todos" | "Centro" | "São Sebastião" | "Vila Nova" | "Alto Alegre";
 
 const Obras = () => {
-  const [assistantOpen, setAssistantOpen] = useState(false);
   const [workFilter, setWorkFilter] = useState<WorkStatus>("todas");
   const [mapFilter, setMapFilter] = useState<MapFilter>("todos");
 

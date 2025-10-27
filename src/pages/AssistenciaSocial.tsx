@@ -28,32 +28,6 @@ const AssistenciaSocial = () => {
   const [beneficioSuccess, setBeneficioSuccess] = useState<string | null>(null);
   const atendimentoSuccessRef = useRef<HTMLDivElement | null>(null);
   const beneficioSuccessRef = useRef<HTMLDivElement | null>(null);
-  const [assistantOpen, setAssistantOpen] = useState(false);
-  const [assistantMessage, setAssistantMessage] = useState("");
-  const [assistantFeedback, setAssistantFeedback] = useState<string | null>(null);
-  const assistantInputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    if (!assistantOpen) {
-      return;
-    }
-    const focusTimeout = setTimeout(
-      () => assistantInputRef.current?.focus(),
-      150
-    );
-    return () => clearTimeout(focusTimeout);
-  }, [assistantOpen]);
-
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setAssistantOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, []);
 
   const minDate = useMemo(() => {
     const today = new Date();
@@ -127,23 +101,6 @@ const AssistenciaSocial = () => {
     }, 120);
 
     form.reset();
-  };
-
-  const handleAssistantSubmit = (event?: FormEvent) => {
-    event?.preventDefault();
-    if (!assistantMessage.trim()) {
-      return;
-    }
-
-    setAssistantFeedback(
-      "Recebemos sua mensagem e retornaremos com orientações assim que possível."
-    );
-    setAssistantMessage("");
-  };
-
-  const openAssistant = () => {
-    setAssistantFeedback(null);
-    setAssistantOpen(true);
   };
 
   if (!secretaria) {
@@ -433,7 +390,6 @@ const AssistenciaSocial = () => {
                 </p>
                 <button
                   type="button"
-                  onClick={openAssistant}
                   className="mt-3 inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-white transition-transform duration-150 hover:bg-primary/90 active:scale-95"
                 >
                   <i className="fas fa-upload"></i>
@@ -463,7 +419,6 @@ const AssistenciaSocial = () => {
                 </p>
                 <button
                   type="button"
-                  onClick={openAssistant}
                   className="mt-3 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition-transform duration-150 hover:bg-emerald-700 active:scale-95"
                 >
                   <i className="fas fa-clipboard-check"></i>

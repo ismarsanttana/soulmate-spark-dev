@@ -15,7 +15,6 @@ const AgendarConsulta = () => {
     observacoes: ""
   });
   const [protocol, setProtocol] = useState("");
-  const [assistantOpen, setAssistantOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

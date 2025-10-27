@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 const Cultura = () => {
-  const [assistantOpen, setAssistantOpen] = useState(false);
-
   return (
     <Layout>
       <Header pageTitle="Cultura e Turismo" />

@@ -13,23 +13,6 @@ const Mulher = () => {
   const atendimentoSuccessRef = useRef<HTMLDivElement | null>(null);
   const apoioSuccessRef = useRef<HTMLDivElement | null>(null);
 
-  const [assistantOpen, setAssistantOpen] = useState(false);
-  const [assistantMessage, setAssistantMessage] = useState("");
-  const [assistantFeedback, setAssistantFeedback] = useState<string | null>(null);
-  const assistantInputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    if (!assistantOpen) return;
-    const t = setTimeout(() => assistantInputRef.current?.focus(), 150);
-    return () => clearTimeout(t);
-  }, [assistantOpen]);
-
-  useEffect(() => {
-    const onEsc = (e: KeyboardEvent) => e.key === "Escape" && setAssistantOpen(false);
-    window.addEventListener("keydown", onEsc);
-    return () => window.removeEventListener("keydown", onEsc);
-  }, []);
-
   const minDate = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -86,18 +69,6 @@ const Mulher = () => {
     }, 120);
 
     form.reset();
-  };
-
-  const handleAssistantSubmit = (event?: FormEvent) => {
-    event?.preventDefault();
-    if (!assistantMessage.trim()) return;
-    setAssistantFeedback("Recebemos sua mensagem. Em breve retornaremos com orientações.");
-    setAssistantMessage("");
-  };
-
-  const openAssistant = () => {
-    setAssistantFeedback(null);
-    setAssistantOpen(true);
   };
 
   if (!secretaria) {
@@ -387,7 +358,6 @@ const Mulher = () => {
                 </p>
                 <button
                   type="button"
-                  onClick={openAssistant}
                   className="mt-3 inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-white transition-transform duration-150 hover:bg-primary/90 active:scale-95"
                 >
                   <i className="fas fa-comments"></i>
@@ -441,7 +411,6 @@ const Mulher = () => {
                 </p>
                 <button
                   type="button"
-                  onClick={openAssistant}
                   className="mt-3 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition-transform duration-150 hover:bg-indigo-700 active:scale-95"
                 >
                   <i className="fas fa-clipboard-check"></i>

@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/card";
 import { MessageCircle, X, Send } from "lucide-react";
 
 export default function Financas() {
-  const [assistantOpen, setAssistantOpen] = useState(false);
   const [iptuResult, setIptuResult] = useState("");
   const [taxaResult, setTaxaResult] = useState("");
   const [alertaResult, setAlertaResult] = useState("");

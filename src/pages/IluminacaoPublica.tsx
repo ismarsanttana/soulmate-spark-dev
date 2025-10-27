@@ -324,7 +324,6 @@ const IluminacaoPublica = () => {
             <h4 className="text-sm font-semibold">Central de Iluminação</h4>
             <p className="text-xs text-muted-foreground">Telefone (83) 3356-1185 • segunda a sábado, 07h às 22h</p>
             <button
-              onClick={() => setAssistantOpen(true)}
               className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-semibold transition"
             >
               <MessageSquare className="h-3 w-3" />

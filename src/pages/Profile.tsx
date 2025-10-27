@@ -69,8 +69,6 @@ const getInitials = (name?: string | null) => {
 const Profile = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
-  const [assistantOpen, setAssistantOpen] = useState(false);
-  const [assistantMessage, setAssistantMessage] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initialAvatarUrl, setInitialAvatarUrl] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -210,15 +208,6 @@ const Profile = () => {
     setInitialAvatarUrl(derivedAvatarUrl);
   }, [profile, user]);
 
-  useEffect(() => {
-    const listener = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setAssistantOpen(false);
-      }
-    };
-    document.addEventListener("keydown", listener);
-    return () => document.removeEventListener("keydown", listener);
-  }, []);
 
   const greetingName = useMemo(() => {
     if (!formState.fullName) return "Olá!";
@@ -250,18 +239,6 @@ const Profile = () => {
 
   const closedProtocols = useMemo(() => {
     return protocols.filter((protocol) => protocol.status === "encerrado").length;
-  }, [protocols]);
-
-  const protocolSuggestions = useMemo(() => {
-    if (!protocols.length) {
-      return [
-        "Como atualizar meu endereço?",
-        "Quero falar sobre um protocolo encerrado",
-        "Quais documentos preciso para um novo protocolo?",
-      ];
-    }
-
-    return protocols.map((protocol) => `Status do protocolo ${protocol.protocol_number}`);
   }, [protocols]);
 
   const handleAvatarSelect = () => {
@@ -493,20 +470,6 @@ const Profile = () => {
       console.error(error);
       toast.error("Não foi possível fazer logout.");
     }
-  };
-
-  const handleAssistantToggle = () => {
-    setAssistantOpen((previous) => !previous);
-  };
-
-  const handleAssistantSubmit = () => {
-    if (!assistantMessage.trim()) {
-      toast.error("Digite uma mensagem para enviar.");
-      return;
-    }
-
-    toast.info("Assistente virtual ainda em desenvolvimento.");
-    setAssistantMessage("");
   };
 
   const cardLoading = profileLoading || protocolsLoading || loadingUser;
@@ -873,72 +836,6 @@ const Profile = () => {
         </section>
       </main>
 
-      <div className="fixed inset-y-0 right-4 z-30 flex flex-col items-end justify-center gap-3 pointer-events-none">
-        <div
-          className={`pointer-events-auto w-72 max-w-full rounded-2xl bg-card dark:bg-card shadow-2xl border border-border transition transform ${
-            assistantOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3 hidden"
-          }`}
-        >
-          <div className="flex items-start justify-between p-4 border-b border-border">
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                Assistente Virtual
-              </p>
-              <h2 className="text-sm font-semibold">Como posso ajudar?</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setAssistantOpen(false)}
-              className="text-muted-foreground hover:text-foreground transition"
-              aria-label="Fechar assistente"
-            >
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-          <div className="p-4 space-y-3 text-xs text-muted-foreground">
-            <div className="rounded-xl bg-primary/10 p-3">
-              <p className="font-semibold text-primary mb-1">
-                Sugestões rápidas
-              </p>
-              <ul className="space-y-1">
-                {protocolSuggestions.map((suggestion) => (
-                  <li key={suggestion}>• {suggestion}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-[11px] uppercase tracking-wide text-muted-foreground">
-                Pergunte algo
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={assistantMessage}
-                  onChange={(event) => setAssistantMessage(event.target.value)}
-                  placeholder="Digite sua pergunta..."
-                  className="flex-1 rounded-xl border border-border px-3 py-2 bg-muted/40 dark:bg-muted/20 focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
-                />
-                <button
-                  type="button"
-                  onClick={handleAssistantSubmit}
-                  className="px-3 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-sm font-semibold transition"
-                >
-                  Enviar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button
-          id="assistant-toggle"
-          type="button"
-          aria-expanded={assistantOpen}
-          onClick={handleAssistantToggle}
-          className="pointer-events-auto h-14 w-14 rounded-full bg-primary hover:bg-primary/90 text-white shadow-2xl flex items-center justify-center text-xl transition"
-        >
-          <i className="fas fa-comments"></i>
-        </button>
-      </div>
       <input
         ref={fileInputRef}
         type="file"

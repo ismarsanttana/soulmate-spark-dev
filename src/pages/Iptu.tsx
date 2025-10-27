@@ -12,7 +12,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { toast } from "sonner";
 
 const Iptu = () => {
-  const [assistantOpen, setAssistantOpen] = useState(false);
   const [inscricao, setInscricao] = useState("");
   const [documento, setDocumento] = useState("");
   const [ano, setAno] = useState("");
