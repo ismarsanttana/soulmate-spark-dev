@@ -58,7 +58,7 @@ export function Dashboard({ secretariaSlug }: DashboardProps) {
   }, 0);
 
   // Contar alunos únicos (relacionados com matrículas)
-  const uniqueStudents = new Set(enrollments.map(e => e.student_user_id)).size;
+  const uniqueStudents = new Set(enrollments.map(e => e.student_id)).size;
 
   return (
     <div className="space-y-6">

@@ -21,7 +21,7 @@ const StudentDetailContent = () => {
     queryKey: ["student-detail", studentId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("profiles")
+        .from("students")
         .select("*")
         .eq("id", studentId)
         .single();
@@ -42,7 +42,7 @@ const StudentDetailContent = () => {
           *,
           class:class_id(*)
         `)
-        .eq("student_user_id", studentId)
+        .eq("student_id", studentId)
         .eq("status", "active")
         .maybeSingle();
 
@@ -57,15 +57,17 @@ const StudentDetailContent = () => {
     queryKey: ["student-responsibles", studentId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("user_relationships")
-        .select("*")
-        .eq("related_user_id", studentId)
-        .in("relationship_type", ["pai", "mae", "responsavel", "tutor"]);
+        .from("parent_student_relationship")
+        .select(`
+          *,
+          parent:parent_user_id(id, email)
+        `)
+        .eq("student_id", studentId);
 
       if (error) throw error;
       
       if (data && data.length > 0) {
-        const userIds = data.map(r => r.user_id);
+        const userIds = data.map(r => r.parent_user_id);
         const { data: profiles } = await supabase
           .from("profiles")
           .select("*")
@@ -73,7 +75,7 @@ const StudentDetailContent = () => {
         
         return data.map(rel => ({
           ...rel,
-          responsible: profiles?.find(p => p.id === rel.user_id)
+          responsible: profiles?.find(p => p.id === rel.parent_user_id)
         }));
       }
       
@@ -82,14 +84,16 @@ const StudentDetailContent = () => {
     enabled: !!studentId,
   });
 
-  // Buscar presença
-  const { data: attendance = [] } = useQuery({
+  // TODO: Migrar student_attendance para usar student_id ao invés de student_user_id
+  // Buscar registro de presença
+  const attendanceRecords: any[] = [];
+  /* const { data: attendanceRecords = [] } = useQuery({
     queryKey: ["student-attendance", studentId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("student_attendance")
         .select("*")
-        .eq("student_user_id", studentId)
+        .eq("student_id", studentId)
         .order("attendance_date", { ascending: false })
         .limit(30);
 
@@ -97,7 +101,7 @@ const StudentDetailContent = () => {
       return data || [];
     },
     enabled: !!studentId,
-  });
+  }); */
 
   if (studentLoading) {
     return (
@@ -116,10 +120,10 @@ const StudentDetailContent = () => {
   }
 
   const attendanceStats = {
-    total: attendance.length,
-    present: attendance.filter(a => a.status === "presente").length,
-    absent: attendance.filter(a => a.status === "ausente").length,
-    justified: attendance.filter(a => a.status === "justificado").length,
+    total: attendanceRecords.length,
+    present: attendanceRecords.filter(a => a.status === "presente").length,
+    absent: attendanceRecords.filter(a => a.status === "ausente").length,
+    justified: attendanceRecords.filter(a => a.status === "justificado").length,
   };
 
   const attendanceRate = attendanceStats.total > 0 
@@ -238,8 +242,8 @@ const StudentDetailContent = () => {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Email</p>
-                    <p className="text-base">{student.email || "Não informado"}</p>
+                    <p className="text-sm font-medium text-muted-foreground">Telefone</p>
+                    <p className="text-base">{student.telefone || "Não informado"}</p>
                   </div>
                 </div>
               </CardContent>
@@ -324,7 +328,7 @@ const StudentDetailContent = () => {
                 <CardDescription>Últimos 30 dias de registro</CardDescription>
               </CardHeader>
               <CardContent>
-                {attendance.length === 0 ? (
+                {attendanceRecords.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     Nenhum registro de presença
                   </div>
@@ -338,7 +342,7 @@ const StudentDetailContent = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {attendance.map((record: any) => (
+                      {attendanceRecords.map((record: any) => (
                         <TableRow key={record.id}>
                           <TableCell>
                             {new Date(record.attendance_date).toLocaleDateString()}

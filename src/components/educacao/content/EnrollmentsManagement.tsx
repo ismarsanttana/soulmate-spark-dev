@@ -106,7 +106,7 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
         .from("student_enrollments")
         .select(`
           *,
-          student:student_user_id(id, full_name, email),
+          student:student_id(id, full_name),
           class:class_id(id, class_name, grade_level, school_name)
         `)
         .eq("status", "active")

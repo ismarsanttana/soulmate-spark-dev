@@ -43,7 +43,7 @@ export function StudentsManagementComplete({ secretariaSlug }: StudentsManagemen
         .from("student_enrollments")
         .select(`
           *,
-          student:student_user_id(id, full_name, email, cpf, birth_date),
+          student:student_id(id, full_name, cpf, birth_date),
           class:class_id(id, class_name, grade_level, school_name)
         `)
         .eq("status", "active");
@@ -64,15 +64,18 @@ export function StudentsManagementComplete({ secretariaSlug }: StudentsManagemen
     queryKey: ["student-relationships"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("user_relationships")
-        .select("*")
-        .in("relationship_type", ["pai", "mae", "responsavel", "tutor"]);
+        .from("parent_student_relationship")
+        .select(`
+          *,
+          parent:parent_user_id(id, email),
+          student:student_id(id, full_name)
+        `);
 
       if (error) throw error;
       
-      // Buscar dados dos responsáveis separadamente
+      // Buscar dados dos responsáveis (profiles) separadamente
       if (data && data.length > 0) {
-        const userIds = data.map(r => r.user_id);
+        const userIds = data.map(r => r.parent_user_id);
         const { data: profiles } = await supabase
           .from("profiles")
           .select("*")
@@ -80,7 +83,7 @@ export function StudentsManagementComplete({ secretariaSlug }: StudentsManagemen
         
         return data.map(rel => ({
           ...rel,
-          responsible: profiles?.find(p => p.id === rel.user_id)
+          responsible: profiles?.find(p => p.id === rel.parent_user_id)
         }));
       }
       
@@ -199,7 +202,7 @@ export function StudentsManagementComplete({ secretariaSlug }: StudentsManagemen
                     <TableCell>
                       {enrollment.class?.grade_level || enrollment.grade_level || "N/A"}
                     </TableCell>
-                    <TableCell>{getResponsible(enrollment.student_user_id)}</TableCell>
+                    <TableCell>{getResponsible(enrollment.student_id)}</TableCell>
                     <TableCell>
                       <Badge variant={enrollment.status === "active" ? "default" : "secondary"}>
                         {enrollment.status === "active" ? "Ativo" : "Inativo"}
@@ -209,7 +212,7 @@ export function StudentsManagementComplete({ secretariaSlug }: StudentsManagemen
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/edu/aluno/${enrollment.student_user_id}`)}
+                        onClick={() => navigate(`/edu/aluno/${enrollment.student_id}`)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         Ver Detalhes

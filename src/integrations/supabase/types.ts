@@ -839,6 +839,56 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_student_relationship: {
+        Row: {
+          can_view_attendance: boolean | null
+          can_view_grades: boolean | null
+          created_at: string
+          id: string
+          is_authorized_pickup: boolean | null
+          is_primary: boolean | null
+          notes: string | null
+          parent_user_id: string
+          relationship_type: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          can_view_attendance?: boolean | null
+          can_view_grades?: boolean | null
+          created_at?: string
+          id?: string
+          is_authorized_pickup?: boolean | null
+          is_primary?: boolean | null
+          notes?: string | null
+          parent_user_id: string
+          relationship_type: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          can_view_attendance?: boolean | null
+          can_view_grades?: boolean | null
+          created_at?: string
+          id?: string
+          is_authorized_pickup?: boolean | null
+          is_primary?: boolean | null
+          notes?: string | null
+          parent_user_id?: string
+          relationship_type?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_student_relationship_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       podcasts: {
         Row: {
           audio_url: string
@@ -1669,7 +1719,7 @@ export type Database = {
           school_name: string | null
           school_year: string | null
           status: string | null
-          student_user_id: string
+          student_id: string
           updated_at: string
         }
         Insert: {
@@ -1686,7 +1736,7 @@ export type Database = {
           school_name?: string | null
           school_year?: string | null
           status?: string | null
-          student_user_id: string
+          student_id: string
           updated_at?: string
         }
         Update: {
@@ -1703,7 +1753,7 @@ export type Database = {
           school_name?: string | null
           school_year?: string | null
           status?: string | null
-          student_user_id?: string
+          student_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -1712,6 +1762,13 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "school_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]
@@ -1749,6 +1806,135 @@ export type Database = {
           recognition_confidence?: number | null
           student_user_id?: string
           timestamp?: string
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          alergias: string | null
+          autorizacao_busca_medica: boolean | null
+          autorizacao_reconhecimento_facial: boolean | null
+          autorizacao_uso_imagem: boolean | null
+          birth_date: string
+          cartao_sus: string | null
+          certidao_nascimento: string | null
+          cpf: string | null
+          created_at: string
+          created_by: string | null
+          doc_certidao_url: string | null
+          doc_comprovante_residencia_url: string | null
+          doc_cpf_url: string | null
+          doc_foto_url: string | null
+          doc_guarda_tutela_url: string | null
+          doc_historico_escolar_url: string | null
+          doc_rg_url: string | null
+          doc_vacinacao_url: string | null
+          endereco_completo: string | null
+          endereco_transporte: string | null
+          facial_photos: Json | null
+          full_name: string
+          gender: string | null
+          id: string
+          laudo_aee_url: string | null
+          lgbtqiapn: boolean | null
+          medicacoes_continuas: string | null
+          nacionalidade: string | null
+          naturalidade: string | null
+          necessidades_especiais: string | null
+          nis: string | null
+          old_profile_id: string | null
+          ponto_embarque: string | null
+          restricoes_alimentares: string | null
+          rg: string | null
+          status: string | null
+          telefone: string | null
+          telefone_emergencia: string | null
+          updated_at: string
+          usa_transporte_escolar: boolean | null
+        }
+        Insert: {
+          alergias?: string | null
+          autorizacao_busca_medica?: boolean | null
+          autorizacao_reconhecimento_facial?: boolean | null
+          autorizacao_uso_imagem?: boolean | null
+          birth_date: string
+          cartao_sus?: string | null
+          certidao_nascimento?: string | null
+          cpf?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_certidao_url?: string | null
+          doc_comprovante_residencia_url?: string | null
+          doc_cpf_url?: string | null
+          doc_foto_url?: string | null
+          doc_guarda_tutela_url?: string | null
+          doc_historico_escolar_url?: string | null
+          doc_rg_url?: string | null
+          doc_vacinacao_url?: string | null
+          endereco_completo?: string | null
+          endereco_transporte?: string | null
+          facial_photos?: Json | null
+          full_name: string
+          gender?: string | null
+          id?: string
+          laudo_aee_url?: string | null
+          lgbtqiapn?: boolean | null
+          medicacoes_continuas?: string | null
+          nacionalidade?: string | null
+          naturalidade?: string | null
+          necessidades_especiais?: string | null
+          nis?: string | null
+          old_profile_id?: string | null
+          ponto_embarque?: string | null
+          restricoes_alimentares?: string | null
+          rg?: string | null
+          status?: string | null
+          telefone?: string | null
+          telefone_emergencia?: string | null
+          updated_at?: string
+          usa_transporte_escolar?: boolean | null
+        }
+        Update: {
+          alergias?: string | null
+          autorizacao_busca_medica?: boolean | null
+          autorizacao_reconhecimento_facial?: boolean | null
+          autorizacao_uso_imagem?: boolean | null
+          birth_date?: string
+          cartao_sus?: string | null
+          certidao_nascimento?: string | null
+          cpf?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_certidao_url?: string | null
+          doc_comprovante_residencia_url?: string | null
+          doc_cpf_url?: string | null
+          doc_foto_url?: string | null
+          doc_guarda_tutela_url?: string | null
+          doc_historico_escolar_url?: string | null
+          doc_rg_url?: string | null
+          doc_vacinacao_url?: string | null
+          endereco_completo?: string | null
+          endereco_transporte?: string | null
+          facial_photos?: Json | null
+          full_name?: string
+          gender?: string | null
+          id?: string
+          laudo_aee_url?: string | null
+          lgbtqiapn?: boolean | null
+          medicacoes_continuas?: string | null
+          nacionalidade?: string | null
+          naturalidade?: string | null
+          necessidades_especiais?: string | null
+          nis?: string | null
+          old_profile_id?: string | null
+          ponto_embarque?: string | null
+          restricoes_alimentares?: string | null
+          rg?: string | null
+          status?: string | null
+          telefone?: string | null
+          telefone_emergencia?: string | null
+          updated_at?: string
+          usa_transporte_escolar?: boolean | null
         }
         Relationships: []
       }

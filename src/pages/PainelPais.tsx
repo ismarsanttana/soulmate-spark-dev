@@ -55,13 +55,12 @@ const PaisContent = () => {
       if (!user) return [];
       
       const { data, error } = await supabase
-        .from("user_relationships")
+        .from("parent_student_relationship")
         .select(`
           *,
-          related_profile:profiles!user_relationships_related_user_id_fkey(*)
+          student:student_id(*)
         `)
-        .eq("user_id", user.id)
-        .in("relationship_type", ["filho"]);
+        .eq("parent_user_id", user.id);
       
       if (error) throw error;
       return data;
@@ -128,8 +127,15 @@ const PaisContent = () => {
                 <div className="space-y-4">
                   {children.map((child: any) => (
                     <div key={child.id} className="p-4 border rounded-lg">
-                      <h3 className="font-medium">{child.related_profile?.full_name || "Nome não disponível"}</h3>
-                      <p className="text-sm text-muted-foreground">{child.related_profile?.email}</p>
+                      <h3 className="font-medium">{child.student?.full_name || "Nome não disponível"}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Relação: {child.relationship_type === 'pai' ? 'Pai' : child.relationship_type === 'mae' ? 'Mãe' : 'Responsável'}
+                      </p>
+                      {child.student?.birth_date && (
+                        <p className="text-sm text-muted-foreground">
+                          Nascimento: {new Date(child.student.birth_date).toLocaleDateString('pt-BR')}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
