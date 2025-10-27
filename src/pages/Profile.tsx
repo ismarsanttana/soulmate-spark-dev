@@ -7,6 +7,7 @@ import type { User } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { RolePanelsSection } from "@/components/profile/RolePanelsSection";
+import { Loader2 } from "lucide-react";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type ProtocolRow = Database["public"]["Tables"]["ombudsman_protocols"]["Row"];
@@ -494,8 +495,9 @@ const Profile = () => {
                 </div>
               )}
               {avatarUploading && (
-                <div className="absolute inset-0 rounded-xl bg-black/40 flex items-center justify-center text-xs font-semibold">
-                  <i className="fas fa-spinner fa-spin"></i>
+                <div className="absolute inset-0 rounded-xl bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-1">
+                  <Loader2 className="h-5 w-5 animate-spin text-white" />
+                  <span className="text-xs font-medium text-white">Enviando...</span>
                 </div>
               )}
             </div>
@@ -569,8 +571,9 @@ const Profile = () => {
                   </div>
                 )}
                 {avatarUploading && (
-                  <div className="absolute inset-0 rounded-2xl bg-black/40 flex items-center justify-center text-white text-xs">
-                    <i className="fas fa-spinner fa-spin"></i>
+                  <div className="absolute inset-0 rounded-2xl bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-1">
+                    <Loader2 className="h-6 w-6 animate-spin text-white" />
+                    <span className="text-xs font-medium text-white">Enviando...</span>
                   </div>
                 )}
               </div>
