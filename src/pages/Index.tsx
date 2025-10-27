@@ -112,6 +112,40 @@ const Index = () => {
     },
   });
 
+  const { data: cityAgenda } = useQuery({
+    queryKey: ["city_agenda"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("city_agenda")
+        .select("*")
+        .eq("status", "published")
+        .gte("event_date", new Date().toISOString().split("T")[0])
+        .order("event_date", { ascending: true })
+        .limit(4);
+      return data || [];
+    },
+  });
+
+  // Combinar eventos de ambas as tabelas
+  const allEvents = [
+    ...(cityAgenda?.map(event => ({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      event_date: event.event_date,
+      location: event.location,
+      category: event.category || null,
+    })) || []),
+    ...(events?.map(event => ({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      event_date: event.event_date,
+      location: event.location,
+      category: null,
+    })) || [])
+  ].sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime()).slice(0, 3);
+
   const { data: secretariasDB } = useQuery({
     queryKey: ["secretarias"],
     queryFn: async () => {
@@ -402,33 +436,44 @@ const Index = () => {
           </Link>
         </div>
         <div className="space-y-3">
-          {events?.map((event) => {
-            const eventDate = new Date(event.event_date);
-            const month = eventDate
-              .toLocaleDateString("pt-BR", { month: "short" })
-              .toUpperCase();
-            const day = eventDate.getDate();
+          {allEvents && allEvents.length > 0 ? (
+            allEvents.map((event) => {
+              const eventDate = new Date(event.event_date);
+              const month = eventDate
+                .toLocaleDateString("pt-BR", { month: "short" })
+                .toUpperCase();
+              const day = eventDate.getDate();
 
-            return (
-              <div
-                key={event.id}
-                className="bg-card dark:bg-card rounded-2xl p-4 shadow-sm card-hover"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary h-12 w-12 flex flex-col items-center justify-center rounded-xl flex-shrink-0">
-                    <span className="text-xs font-semibold">{month}</span>
-                    <span className="font-bold -mt-1">{day}</span>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold">{event.title}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {event.location}
-                    </p>
+              return (
+                <div
+                  key={event.id}
+                  className="bg-card dark:bg-card rounded-2xl p-4 shadow-sm card-hover"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 text-primary h-12 w-12 flex flex-col items-center justify-center rounded-xl flex-shrink-0">
+                      <span className="text-xs font-semibold">{month}</span>
+                      <span className="font-bold -mt-1">{day}</span>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold">{event.title}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {event.location || "Local a definir"}
+                      </p>
+                      {event.category && (
+                        <span className="text-xs text-primary font-semibold uppercase mt-1 inline-block">
+                          {event.category}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            <div className="text-center py-4 text-muted-foreground text-sm">
+              Nenhum evento próximo agendado
+            </div>
+          )}
         </div>
       </div>
 
