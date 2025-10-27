@@ -40,8 +40,7 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
 
   const connectWebSocket = () => {
     try {
-      const projectRef = window.location.hostname.split('.')[0];
-      const wsUrl = `wss://${projectRef}.supabase.co/functions/v1/realtime-voice`;
+      const wsUrl = `wss://hqhjbelcouanvcrqudbj.supabase.co/functions/v1/realtime-voice`;
       
       console.log("Connecting to:", wsUrl);
       setStatus("Conectando...");
