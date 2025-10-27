@@ -119,7 +119,7 @@ serve(async (req) => {
         
         // Handle initial connection
         if (data.type === "start_session") {
-          await connectToOpenAI(data.voice || "nova");
+          await connectToOpenAI(data.voice || "shimmer");
           return;
         }
 
