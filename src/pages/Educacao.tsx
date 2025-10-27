@@ -298,23 +298,22 @@ const Educacao = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Calendar Event Modal */}
-        <AlertDialog open={calendarModalOpen} onOpenChange={setCalendarModalOpen}>
-          <AlertDialogContent className="max-w-sm">
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                Dia {calendarModalEvent?.day} — {calendarModalEvent?.event}
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                Este é um evento do calendário letivo. Para mais informações, entre em contato com a secretaria.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <Button onClick={() => setCalendarModalOpen(false)}>Fechar</Button>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
+
+      {/* Calendar Event Modal */}
+      <AlertDialog open={calendarModalOpen} onOpenChange={setCalendarModalOpen}>
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Dia {calendarModalEvent?.day} — {calendarModalEvent?.event}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Este é um evento do calendário letivo. Para mais informações, entre em contato com a secretaria.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Button onClick={() => setCalendarModalOpen(false)}>Fechar</Button>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 };
