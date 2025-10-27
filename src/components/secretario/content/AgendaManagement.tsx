@@ -76,6 +76,7 @@ export function AgendaManagement() {
       const { data: { user } } = await supabase.auth.getUser();
       const { data: eventData, error } = await supabase.from("city_agenda").insert([{
         ...data,
+        end_date: data.end_date || null,
         created_by: user?.id,
       }]).select().single();
       if (error) throw error;
@@ -95,7 +96,10 @@ export function AgendaManagement() {
 
   const updateEvent = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase.from("city_agenda").update(data).eq("id", id);
+      const { error } = await supabase.from("city_agenda").update({
+        ...data,
+        end_date: data.end_date || null,
+      }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

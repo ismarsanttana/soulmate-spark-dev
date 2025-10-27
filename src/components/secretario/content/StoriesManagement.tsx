@@ -55,7 +55,7 @@ export function StoriesManagement() {
         .from("secretary_assignments")
         .select("secretaria_slug")
         .eq("user_id", user.user.id)
-        .single();
+        .maybeSingle();
 
       const { data, error } = await supabase
         .from("stories")
