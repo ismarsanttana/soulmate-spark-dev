@@ -11,6 +11,7 @@ import { ContentManagement } from "@/components/admin/ContentManagement";
 import { Statistics } from "@/components/admin/Statistics";
 import ReportRequestsManagement from "@/components/admin/ReportRequestsManagement";
 import { VacanciesManagement } from "@/components/admin/VacanciesManagement";
+import { SocialMediaApiConfig } from "@/components/admin/SocialMediaApiConfig";
 
 const AdminContent = () => {
   const [activeTab, setActiveTab] = useState("visual");
@@ -31,6 +32,8 @@ const AdminContent = () => {
         return <ReportRequestsManagement />;
       case "vacancies":
         return <VacanciesManagement />;
+      case "social-apis":
+        return <SocialMediaApiConfig />;
       case "stats":
         return <Statistics />;
       default:

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Palette, Building2, Users, FileText, BarChart3, Link, ClipboardCheck, Briefcase } from "lucide-react";
+import { Palette, Building2, Users, FileText, BarChart3, Link, ClipboardCheck, Briefcase, Share2 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +20,7 @@ const menuItems = [
   { title: "Conteúdo", icon: FileText, value: "content" },
   { title: "Vagas de Emprego", icon: Briefcase, value: "vacancies" },
   { title: "Aprovação de Relatórios", icon: ClipboardCheck, value: "reports" },
+  { title: "APIs de Redes Sociais", icon: Share2, value: "social-apis" },
   { title: "Estatísticas", icon: BarChart3, value: "stats" },
 ];
 

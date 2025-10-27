@@ -161,8 +161,34 @@ export const bannerSchema = z.object({
     .or(z.literal("")),
 });
 
+// Schema para publicações em redes sociais
+export const socialMediaPostSchema = z.object({
+  platforms: z.array(z.enum(['facebook', 'instagram', 'twitter', 'linkedin']))
+    .min(1, "Selecione pelo menos uma plataforma"),
+  
+  customTexts: z.record(z.string().max(5000)),
+  
+  scheduleAt: z.date().optional(),
+  
+  autoPublish: z.boolean().default(false),
+});
+
+// Schema para contas de redes sociais
+export const socialAccountSchema = z.object({
+  platform: z.enum(['facebook', 'instagram', 'twitter', 'linkedin']),
+  
+  accountName: z.string()
+    .trim()
+    .min(1, "Nome da conta é obrigatório")
+    .max(100, "Nome muito longo"),
+  
+  autoPublish: z.boolean().default(false),
+});
+
 export type NewsFormData = z.infer<typeof newsSchema>;
 export type EventFormData = z.infer<typeof eventSchema>;
 export type SecretariaFormData = z.infer<typeof secretariaSchema>;
 export type OmbudsmanFormData = z.infer<typeof ombudsmanSchema>;
 export type BannerFormData = z.infer<typeof bannerSchema>;
+export type SocialMediaPostFormData = z.infer<typeof socialMediaPostSchema>;
+export type SocialAccountFormData = z.infer<typeof socialAccountSchema>;

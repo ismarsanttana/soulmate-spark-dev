@@ -1396,6 +1396,170 @@ export type Database = {
         }
         Relationships: []
       }
+      social_media_accounts: {
+        Row: {
+          access_token_encrypted: string
+          account_id: string | null
+          account_name: string
+          auto_publish: boolean | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          page_id: string | null
+          platform: string
+          refresh_token_encrypted: string | null
+          secretaria_slug: string
+          token_expires_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_token_encrypted: string
+          account_id?: string | null
+          account_name: string
+          auto_publish?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          page_id?: string | null
+          platform: string
+          refresh_token_encrypted?: string | null
+          secretaria_slug: string
+          token_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_token_encrypted?: string
+          account_id?: string | null
+          account_name?: string
+          auto_publish?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          page_id?: string | null
+          platform?: string
+          refresh_token_encrypted?: string | null
+          secretaria_slug?: string
+          token_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      social_media_api_keys: {
+        Row: {
+          api_key_encrypted: string | null
+          api_secret_encrypted: string | null
+          app_id: string | null
+          app_secret_encrypted: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          platform: string
+          updated_at: string | null
+          webhook_secret_encrypted: string | null
+        }
+        Insert: {
+          api_key_encrypted?: string | null
+          api_secret_encrypted?: string | null
+          app_id?: string | null
+          app_secret_encrypted?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          platform: string
+          updated_at?: string | null
+          webhook_secret_encrypted?: string | null
+        }
+        Update: {
+          api_key_encrypted?: string | null
+          api_secret_encrypted?: string | null
+          app_id?: string | null
+          app_secret_encrypted?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          platform?: string
+          updated_at?: string | null
+          webhook_secret_encrypted?: string | null
+        }
+        Relationships: []
+      }
+      social_media_posts: {
+        Row: {
+          account_id: string | null
+          content_id: string
+          content_type: string
+          created_at: string | null
+          created_by: string | null
+          custom_text: string | null
+          engagement_stats: Json | null
+          error_message: string | null
+          id: string
+          media_urls: Json | null
+          platform: string
+          post_id: string | null
+          post_url: string | null
+          published_at: string | null
+          scheduled_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          content_id: string
+          content_type: string
+          created_at?: string | null
+          created_by?: string | null
+          custom_text?: string | null
+          engagement_stats?: Json | null
+          error_message?: string | null
+          id?: string
+          media_urls?: Json | null
+          platform: string
+          post_id?: string | null
+          post_url?: string | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          content_id?: string
+          content_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          custom_text?: string | null
+          engagement_stats?: Json | null
+          error_message?: string | null
+          id?: string
+          media_urls?: Json | null
+          platform?: string
+          post_id?: string | null
+          post_url?: string | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_media_posts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "social_media_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stories: {
         Row: {
           created_at: string

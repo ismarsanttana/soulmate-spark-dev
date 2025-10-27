@@ -19,6 +19,7 @@ import { TeamManagement } from "@/components/secretario/content/TeamManagement";
 import { RequestsManagement } from "@/components/secretario/content/RequestsManagement";
 import { Dashboard } from "@/components/secretario/content/Dashboard";
 import ReportsManagement from "@/components/secretario/content/ReportsManagement";
+import { SocialMediaManagement } from "@/components/secretario/content/SocialMediaManagement";
 
 const PainelSecretarioContent = () => {
   const [activeTab, setActiveTab] = useState("painel");
@@ -103,6 +104,8 @@ const PainelSecretarioContent = () => {
         return <BannersManagement />;
       case "relatorios":
         return <ReportsManagement />;
+      case "redes-sociais":
+        return <SocialMediaManagement />;
       case "solicitacoes":
         return <RequestsManagement secretariaSlug={assignment.secretaria_slug} />;
       case "equipe":
