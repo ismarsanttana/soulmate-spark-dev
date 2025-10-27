@@ -36,6 +36,42 @@ export function FileUpload({
     return /\.pdf$/i.test(url);
   };
 
+  // Função para converter imagem para WebP
+  const convertToWebP = async (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Failed to get canvas context'));
+            return;
+          }
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Failed to convert image'));
+              }
+            },
+            'image/webp',
+            0.85 // Qualidade 85%
+          );
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -52,18 +88,31 @@ export function FileUpload({
     }
 
     setFileType(file.type);
-
     setUploading(true);
 
     try {
+      let fileToUpload: File | Blob = file;
+      let fileExtension = file.name.split(".").pop() || "file";
+
+      // Converter para WebP se for imagem
+      if (file.type.startsWith("image/")) {
+        try {
+          const webpBlob = await convertToWebP(file);
+          fileToUpload = webpBlob;
+          fileExtension = "webp";
+        } catch (error) {
+          console.error("Error converting to WebP, using original:", error);
+          // Se falhar, usa o arquivo original
+        }
+      }
+
       // Generate unique filename
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${path}/${Date.now()}.${fileExt}`;
+      const fileName = `${path}/${Date.now()}.${fileExtension}`;
 
       // Upload to Supabase Storage
       const { error: uploadError, data } = await supabase.storage
         .from(bucket)
-        .upload(fileName, file, {
+        .upload(fileName, fileToUpload, {
           cacheControl: "3600",
           upsert: false,
         });
@@ -80,7 +129,7 @@ export function FileUpload({
 
       toast({
         title: "Sucesso",
-        description: "Arquivo enviado com sucesso",
+        description: "Arquivo enviado com sucesso (convertido para WebP)",
       });
     } catch (error: any) {
       console.error("Error uploading file:", error);

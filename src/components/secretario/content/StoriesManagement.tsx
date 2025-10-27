@@ -160,7 +160,7 @@ export function StoriesManagement() {
                 onChange={(e) => setFormData({ ...formData, link: e.target.value })}
               />
               <FileUpload
-                bucket="app-assets"
+                bucket="news-images"
                 path="stories"
                 onUploadComplete={(url) => setFormData({ ...formData, media_url: url })}
                 currentUrl={formData.media_url}

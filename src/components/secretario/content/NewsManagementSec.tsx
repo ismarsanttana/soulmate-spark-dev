@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileUpload } from "@/components/admin/FileUpload";
+import { MultiFileUpload } from "@/components/admin/MultiFileUpload";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { newsSchema } from "@/lib/validationSchemas";
@@ -228,14 +229,14 @@ export function NewsManagementSec() {
               <div className="space-y-2">
                 <Label>Galeria de Fotos</Label>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Adicione múltiplas fotos que serão exibidas na galeria da notícia
+                  Selecione múltiplas fotos de uma vez (serão convertidas automaticamente para WebP)
                 </p>
-                <FileUpload
+                <MultiFileUpload
                   bucket="news-images"
                   path="noticias/gallery"
-                  onUploadComplete={(url) => setFormData({ 
+                  onUploadComplete={(urls) => setFormData({ 
                     ...formData, 
-                    gallery_images: [...formData.gallery_images, url] 
+                    gallery_images: [...formData.gallery_images, ...urls] 
                   })}
                 />
                 {formData.gallery_images.length > 0 && (
