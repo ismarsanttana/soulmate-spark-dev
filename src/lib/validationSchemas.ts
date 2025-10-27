@@ -127,7 +127,40 @@ export const ombudsmanSchema = z.object({
     .max(5000, "A descrição não pode exceder 5000 caracteres"),
 });
 
+// Schema para banners
+export const bannerSchema = z.object({
+  title: z.string()
+    .trim()
+    .min(5, "O título deve ter pelo menos 5 caracteres")
+    .max(200, "O título não pode exceder 200 caracteres"),
+  
+  description: z.string()
+    .trim()
+    .min(10, "A descrição deve ter pelo menos 10 caracteres")
+    .max(1000, "A descrição não pode exceder 1000 caracteres"),
+  
+  image_url: z.string()
+    .trim()
+    .min(1, "Imagem é obrigatória"),
+  
+  link: z.string()
+    .optional()
+    .or(z.literal("")),
+  
+  display_type: z.enum(["popup", "banner", "both"], {
+    errorMap: () => ({ message: "Tipo de exibição inválido" })
+  }),
+  
+  start_date: z.string()
+    .refine((date) => !isNaN(Date.parse(date)), "Data inválida"),
+  
+  end_date: z.string()
+    .optional()
+    .or(z.literal("")),
+});
+
 export type NewsFormData = z.infer<typeof newsSchema>;
 export type EventFormData = z.infer<typeof eventSchema>;
 export type SecretariaFormData = z.infer<typeof secretariaSchema>;
 export type OmbudsmanFormData = z.infer<typeof ombudsmanSchema>;
+export type BannerFormData = z.infer<typeof bannerSchema>;

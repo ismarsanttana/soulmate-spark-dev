@@ -14,6 +14,8 @@ import { Pencil, Trash2, Plus } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
+import { bannerSchema } from "@/lib/validationSchemas";
+import { z } from "zod";
 
 interface Banner {
   id: string;
@@ -62,10 +64,17 @@ export function BannersManagement() {
   const createBanner = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from("campaign_banners").insert([{
+      
+      // Converter strings vazias em null para campos opcionais
+      const cleanData = {
         ...data,
+        link: data.link?.trim() || null,
+        end_date: data.end_date?.trim() || null,
+        description: data.description?.trim() || null,
         created_by: user?.id,
-      }]);
+      };
+      
+      const { error } = await supabase.from("campaign_banners").insert([cleanData]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -73,14 +82,23 @@ export function BannersManagement() {
       toast({ title: "Banner criado com sucesso!" });
       resetForm();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Erro ao criar banner:", error);
       toast({ title: "Erro ao criar banner", variant: "destructive" });
     },
   });
 
   const updateBanner = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase.from("campaign_banners").update(data).eq("id", id);
+      // Converter strings vazias em null para campos opcionais
+      const cleanData = {
+        ...data,
+        link: data.link?.trim() || null,
+        end_date: data.end_date?.trim() || null,
+        description: data.description?.trim() || null,
+      };
+      
+      const { error } = await supabase.from("campaign_banners").update(cleanData).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -88,7 +106,8 @@ export function BannersManagement() {
       toast({ title: "Banner atualizado com sucesso!" });
       resetForm();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Erro ao atualizar banner:", error);
       toast({ title: "Erro ao atualizar banner", variant: "destructive" });
     },
   });
@@ -140,13 +159,18 @@ export function BannersManagement() {
   };
 
   const handleSubmit = () => {
-    if (!formData.title || !formData.image_url) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Título e imagem são obrigatórios",
-        variant: "destructive",
-      });
-      return;
+    // Validar com zod
+    try {
+      bannerSchema.parse(formData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Erro de validação",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     if (editingBanner) {
