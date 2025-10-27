@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, Building2, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "@/components/theme-provider";
+import { useQuery } from "@tanstack/react-query";
 
 interface SecretarioLayoutProps {
   children: ReactNode;
@@ -17,6 +18,20 @@ export function SecretarioLayout({ children, activeTab, onTabChange }: Secretari
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   
+  const { data: appSettings } = useQuery({
+    queryKey: ["app-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -34,8 +49,18 @@ export function SecretarioLayout({ children, activeTab, onTabChange }: Secretari
       <header className="ascom-topbar sticky top-0 z-50 text-white">
         <div className="max-w-[1440px] mx-auto h-16 flex items-center justify-between px-5">
           <div className="flex items-center gap-3">
-            <Building2 className="h-6 w-6" />
-            <span className="text-lg font-extrabold tracking-tight">Prefeitura Municipal</span>
+            {appSettings?.logo_url ? (
+              <img 
+                src={appSettings.logo_url} 
+                alt="Logo" 
+                className="h-10 w-10 object-contain"
+              />
+            ) : (
+              <Building2 className="h-6 w-6" />
+            )}
+            <span className="text-lg font-extrabold tracking-tight">
+              {appSettings?.app_name || "Prefeitura Municipal"}
+            </span>
           </div>
           
           <div className="flex items-center gap-3">

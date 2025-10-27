@@ -43,6 +43,12 @@ All colors MUST be HSL.
     --warning: 38 92% 50%;
     --info: 199 89% 48%;
 
+    --chart-1: 217 91% 60%;
+    --chart-2: 174 72% 56%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 142 71% 45%;
+    --chart-5: 0 84% 60%;
+
     --radius: 1rem;
     --shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
   }
@@ -80,6 +86,12 @@ All colors MUST be HSL.
     --success: 142 71% 45%;
     --warning: 38 92% 50%;
     --info: 199 89% 48%;
+
+    --chart-1: 217 91% 60%;
+    --chart-2: 174 72% 56%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 142 71% 45%;
+    --chart-5: 0 84% 60%;
     
     --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   }

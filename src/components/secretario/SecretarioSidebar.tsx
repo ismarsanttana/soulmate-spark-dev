@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { 
   Newspaper, 
   Video, 
@@ -39,6 +40,8 @@ const menuItems = [
 ];
 
 export function SecretarioSidebar({ activeTab, onTabChange }: SecretarioSidebarProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const { data: pendingCount } = useQuery({
     queryKey: ["pending-requests-count"],
     queryFn: async () => {
@@ -65,18 +68,31 @@ export function SecretarioSidebar({ activeTab, onTabChange }: SecretarioSidebarP
   });
 
   return (
-    <aside className="w-[68px] flex-shrink-0 bg-card border border-border rounded-2xl shadow-sm p-2.5 flex flex-col gap-2 sticky top-[86px] h-[calc(100vh-110px)]">
+    <aside 
+      className={cn(
+        "flex-shrink-0 bg-card border border-border rounded-2xl shadow-sm p-2.5 flex flex-col gap-2 sticky top-[86px] h-[calc(100vh-110px)] transition-all duration-300",
+        isExpanded ? "w-[200px]" : "w-[68px]"
+      )}
+      onMouseEnter={() => setIsExpanded(true)}
+      onMouseLeave={() => setIsExpanded(false)}
+    >
       {menuItems.map((item) => (
         <button
           key={item.value}
           onClick={() => onTabChange(item.value)}
           className={cn(
-            "ascom-sidebar-icon relative",
-            activeTab === item.value && "active"
+            "ascom-sidebar-icon relative justify-start",
+            activeTab === item.value && "active",
+            isExpanded && "px-3"
           )}
           title={item.title}
         >
-          <item.icon className="h-5 w-5" />
+          <item.icon className="h-5 w-5 flex-shrink-0" />
+          {isExpanded && (
+            <span className="ml-3 text-sm font-medium whitespace-nowrap">
+              {item.title}
+            </span>
+          )}
           {item.showBadge && pendingCount !== undefined && pendingCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
               {pendingCount}

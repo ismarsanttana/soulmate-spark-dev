@@ -1,14 +1,20 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, DollarSign, TrendingUp, BarChart3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 interface DashboardProps {
   secretariaSlug: string;
 }
 
 export function Dashboard({ secretariaSlug }: DashboardProps) {
+  const [chartPeriod, setChartPeriod] = useState<"day" | "week" | "month" | "year">("week");
+  
   const { data: stats, isLoading } = useQuery({
     queryKey: ["secretary-dashboard", secretariaSlug],
     queryFn: async () => {
@@ -76,6 +82,81 @@ export function Dashboard({ secretariaSlug }: DashboardProps) {
         eventsCount: eventsCount || 0,
         pendingRequests: pendingRequests || 0,
       };
+    },
+  });
+
+  const { data: chartData } = useQuery({
+    queryKey: ["content-chart", secretariaSlug, chartPeriod],
+    queryFn: async () => {
+      const now = new Date();
+      let startDate = new Date();
+      
+      switch (chartPeriod) {
+        case "day":
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case "week":
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case "month":
+          startDate.setMonth(now.getMonth() - 1);
+          break;
+        case "year":
+          startDate.setFullYear(now.getFullYear() - 1);
+          break;
+      }
+
+      // Buscar notícias
+      const { data: newsData } = await supabase
+        .from("news")
+        .select("created_at")
+        .gte("created_at", startDate.toISOString());
+
+      // Buscar eventos
+      const { data: eventsData } = await supabase
+        .from("events")
+        .select("created_at")
+        .gte("created_at", startDate.toISOString());
+
+      // Buscar stories
+      const { data: storiesData } = await supabase
+        .from("stories")
+        .select("created_at")
+        .eq("secretaria_slug", secretariaSlug)
+        .gte("created_at", startDate.toISOString());
+
+      // Agrupar por período
+      const groupedData = new Map<string, { noticias: number; eventos: number; stories: number }>();
+
+      const addToGroup = (date: string, type: "noticias" | "eventos" | "stories") => {
+        const d = new Date(date);
+        let key = "";
+        
+        if (chartPeriod === "day") {
+          key = `${d.getHours()}h`;
+        } else if (chartPeriod === "week") {
+          const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+          key = days[d.getDay()];
+        } else if (chartPeriod === "month") {
+          key = `${d.getDate()}/${d.getMonth() + 1}`;
+        } else {
+          const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+          key = `${months[d.getMonth()]}/${d.getFullYear()}`;
+        }
+
+        const current = groupedData.get(key) || { noticias: 0, eventos: 0, stories: 0 };
+        current[type]++;
+        groupedData.set(key, current);
+      };
+
+      newsData?.forEach(item => addToGroup(item.created_at, "noticias"));
+      eventsData?.forEach(item => addToGroup(item.created_at, "eventos"));
+      storiesData?.forEach(item => addToGroup(item.created_at, "stories"));
+
+      return Array.from(groupedData.entries()).map(([name, data]) => ({
+        name,
+        ...data,
+      }));
     },
   });
 
@@ -199,7 +280,7 @@ export function Dashboard({ secretariaSlug }: DashboardProps) {
       </div>
 
       {/* Content Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg">Gastos por Categoria</CardTitle>
@@ -221,26 +302,75 @@ export function Dashboard({ secretariaSlug }: DashboardProps) {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        <Card className="shadow-sm md:col-span-2">
           <CardHeader>
-            <CardTitle className="text-lg">Conteúdo Publicado</CardTitle>
-            <CardDescription className="text-sm">Resumo por tipo de publicação</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between p-2.5 bg-muted rounded-xl border border-border">
-                <span className="text-sm font-medium">Notícias</span>
-                <strong className="text-sm">{stats?.newsCount}</strong>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Conteúdo Publicado</CardTitle>
+                <CardDescription className="text-sm">Distribuição temporal das publicações</CardDescription>
               </div>
-              <div className="flex items-center justify-between p-2.5 bg-muted rounded-xl border border-border">
-                <span className="text-sm font-medium">Stories</span>
-                <strong className="text-sm">{stats?.storiesCount}</strong>
-              </div>
-              <div className="flex items-center justify-between p-2.5 bg-muted rounded-xl border border-border">
-                <span className="text-sm font-medium">Eventos</span>
-                <strong className="text-sm">{stats?.eventsCount}</strong>
+              <div className="flex gap-2">
+                <Button
+                  variant={chartPeriod === "day" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setChartPeriod("day")}
+                >
+                  Dia
+                </Button>
+                <Button
+                  variant={chartPeriod === "week" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setChartPeriod("week")}
+                >
+                  Semana
+                </Button>
+                <Button
+                  variant={chartPeriod === "month" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setChartPeriod("month")}
+                >
+                  Mês
+                </Button>
+                <Button
+                  variant={chartPeriod === "year" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setChartPeriod("year")}
+                >
+                  Ano
+                </Button>
               </div>
             </div>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{
+                noticias: {
+                  label: "Notícias",
+                  color: "hsl(var(--chart-1))",
+                },
+                eventos: {
+                  label: "Eventos",
+                  color: "hsl(var(--chart-2))",
+                },
+                stories: {
+                  label: "Stories",
+                  color: "hsl(var(--chart-3))",
+                },
+              }}
+              className="h-[300px]"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData || []}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="noticias" fill="var(--color-noticias)" />
+                  <Bar dataKey="eventos" fill="var(--color-eventos)" />
+                  <Bar dataKey="stories" fill="var(--color-stories)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
 
