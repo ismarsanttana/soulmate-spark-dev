@@ -360,14 +360,14 @@ export function Dashboard({ secretariaSlug }: DashboardProps) {
               className="h-[300px]"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData || []}>
+                <BarChart data={chartData || []} barSize={40}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="noticias" fill="var(--color-noticias)" />
-                  <Bar dataKey="eventos" fill="var(--color-eventos)" />
-                  <Bar dataKey="stories" fill="var(--color-stories)" />
+                  <ChartTooltip content={<ChartTooltipContent hideLabel />} cursor={{ fill: 'hsl(var(--muted))' }} />
+                  <Bar dataKey="noticias" fill="var(--color-noticias)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="eventos" fill="var(--color-eventos)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="stories" fill="var(--color-stories)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
