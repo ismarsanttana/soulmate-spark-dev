@@ -108,22 +108,20 @@ const SecretariasList = () => {
                 className="block"
               >
               <Card 
-                className="card-hover h-full"
-                style={{ borderLeft: `4px solid ${secretaria.color}` }}
+                className="card-hover h-full overflow-hidden"
+                style={{ backgroundColor: secretaria.color }}
               >
                 <CardContent className="p-6">
                   <div
-                    className="h-12 w-12 rounded-xl flex items-center justify-center mb-4"
-                    style={{ backgroundColor: `${secretaria.color}20` }}
+                    className="h-12 w-12 rounded-xl flex items-center justify-center mb-4 bg-white/20"
                   >
                     <IconComponent 
-                      className="h-6 w-6" 
-                      style={{ color: secretaria.color }}
+                      className="h-6 w-6 text-white"
                     />
                   </div>
-                  <h3 className="font-bold text-lg mb-2">{secretaria.name}</h3>
+                  <h3 className="font-bold text-lg mb-2 text-white">{secretaria.name}</h3>
                   {secretaria.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                    <p className="text-sm text-white/90 line-clamp-2">
                       {secretaria.description}
                     </p>
                   )}
