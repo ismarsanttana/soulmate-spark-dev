@@ -182,6 +182,16 @@ const Profile = () => {
       (user.user_metadata?.avatar_url as string | undefined) ||
       null;
 
+    console.log("📋 Carregando dados do perfil (página principal):", {
+      full_name: profile?.full_name,
+      email: profile?.email,
+      telefone: profile?.telefone,
+      cpf: profile?.cpf,
+      endereco_completo: profile?.endereco_completo,
+      avatar_url: profile?.avatar_url,
+      fonte: profile ? "profiles table" : "user_metadata fallback"
+    });
+
     const nextFormState: FormState = {
       fullName: derivedFullName,
       email:
@@ -189,8 +199,8 @@ const Profile = () => {
         (user.user_metadata?.contact_email as string | undefined) ||
         user.email ||
         "",
-      phone: (user.user_metadata?.phone as string | undefined) || "",
-      address: (user.user_metadata?.address as string | undefined) || "",
+      phone: profile?.telefone || (user.user_metadata?.phone as string | undefined) || "",
+      address: profile?.endereco_completo || (user.user_metadata?.address as string | undefined) || "",
       cpf: profile?.cpf || (user.user_metadata?.cpf as string | undefined) || "",
     };
 
@@ -366,30 +376,37 @@ const Profile = () => {
 
     setSavingProfile(true);
     try {
+      // Salvar TUDO na tabela profiles (fonte única da verdade)
+      const profileData = {
+        id: user.id,
+        full_name: formState.fullName,
+        email: formState.email || null,
+        telefone: formState.phone || null,
+        endereco_completo: formState.address || null,
+        cpf: formState.cpf || null,
+        avatar_url: avatarUrl,
+      };
+
+      console.log("💾 Salvando dados no perfil:", profileData);
+
       const { error: profileError } = await supabase.from("profiles").upsert(
-        {
-          id: user.id,
-          full_name: formState.fullName,
-          email: formState.email || null,
-          cpf: formState.cpf || null,
-          avatar_url: avatarUrl,
-        },
+        profileData,
         { onConflict: "id" }
       );
 
       if (profileError) throw profileError;
 
+      // Também atualizar metadata para compatibilidade
       const { error: metadataError } = await supabase.auth.updateUser({
         data: {
           full_name: formState.fullName,
-          phone: formState.phone || null,
-          address: formState.address || null,
-          cpf: formState.cpf || null,
           avatar_url: avatarUrl,
         },
       });
 
       if (metadataError) throw metadataError;
+
+      console.log("✅ Dados salvos com sucesso na tabela profiles");
 
       setInitialFormState(formState);
       setInitialAvatarUrl(avatarUrl);

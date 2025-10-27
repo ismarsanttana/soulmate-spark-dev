@@ -77,8 +77,19 @@ export function SecretarioProfile() {
     enabled: !!user,
   });
 
+  // Carregar dados do perfil do usuário
+  // IMPORTANTE: A tabela 'profiles' é a fonte única da verdade para dados pessoais
+  // Todos os dados salvos em qualquer parte do sistema devem ser salvos aqui
   useEffect(() => {
     if (!user || !profile) return;
+
+    console.log("📋 Carregando dados do perfil no painel do secretário:", {
+      full_name: profile.full_name,
+      email: profile.email,
+      telefone: profile.telefone,
+      cpf: profile.cpf,
+      avatar_url: profile.avatar_url
+    });
 
     const nextFormState: FormState = {
       fullName: profile.full_name || "",
