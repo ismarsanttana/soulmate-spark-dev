@@ -17,12 +17,12 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { photo_base64, device_id, student_user_id, entry_type = "entrada" } = await req.json();
+    const { photo_base64, device_id, student_id, entry_type = "entrada" } = await req.json();
 
     // Validação básica
-    if (!student_user_id) {
+    if (!student_id) {
       return new Response(
-        JSON.stringify({ error: "student_user_id é obrigatório" }),
+        JSON.stringify({ error: "student_id é obrigatório" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -30,19 +30,19 @@ serve(async (req) => {
     const timestamp = new Date().toISOString();
     const today = timestamp.split("T")[0];
 
-    console.log(`[FACIAL-RECOGNITION] Processando ${entry_type} para aluno ${student_user_id}`);
+    console.log(`[FACIAL-RECOGNITION] Processando ${entry_type} para aluno ${student_id}`);
 
     // 1. Buscar informações do aluno e sua turma
     const { data: enrollmentData, error: enrollmentError } = await supabaseClient
       .from("student_enrollments")
       .select(`
         class_id,
-        student:student_user_id(
+        student:student_id(
           id,
           full_name
         )
       `)
-      .eq("student_user_id", student_user_id)
+      .eq("student_id", student_id)
       .eq("status", "active")
       .single();
 
@@ -63,7 +63,7 @@ serve(async (req) => {
     const { error: entryLogError } = await supabaseClient
       .from("student_entry_log")
       .insert({
-        student_user_id,
+        student_id,
         entry_type,
         timestamp,
         device_id,
@@ -82,7 +82,7 @@ serve(async (req) => {
       const { data: existingAttendance } = await supabaseClient
         .from("student_attendance")
         .select("id")
-        .eq("student_user_id", student_user_id)
+        .eq("student_id", student_id)
         .eq("class_id", classId)
         .eq("attendance_date", today)
         .single();
@@ -91,7 +91,7 @@ serve(async (req) => {
         const { error: attendanceError } = await supabaseClient
           .from("student_attendance")
           .insert({
-            student_user_id,
+            student_id,
             class_id: classId,
             attendance_date: today,
             status: "presente",
@@ -110,10 +110,9 @@ serve(async (req) => {
 
     // 4. Buscar responsáveis vinculados
     const { data: responsibles, error: responsiblesError } = await supabaseClient
-      .from("user_relationships")
-      .select("user_id, relationship_type")
-      .eq("related_user_id", student_user_id)
-      .in("relationship_type", ["pai", "mae", "responsavel", "tutor"]);
+      .from("parent_student_relationship")
+      .select("parent_user_id, relationship_type")
+      .eq("student_id", student_id);
 
     if (responsiblesError) {
       console.error("[FACIAL-RECOGNITION] Erro ao buscar responsáveis:", responsiblesError);
@@ -127,7 +126,7 @@ serve(async (req) => {
       });
 
       const notifications = responsibles.map((resp: any) => ({
-        user_id: resp.user_id,
+        user_id: resp.parent_user_id,
         title: entry_type === "entrada" ? "🎒 Chegada na Escola" : "🏃 Saída da Escola",
         message: `${student.full_name} ${entry_type === "entrada" ? "chegou à" : "saiu da"} escola às ${entryTime}`,
         type: "attendance",

@@ -24,11 +24,10 @@ export function RealTimeAttendance({ classId }: RealTimeAttendanceProps) {
       const { data: enrollments } = await supabase
         .from("student_enrollments")
         .select(`
-          student_user_id,
-          student:student_user_id(
+          student_id,
+          student:student_id(
             id,
-            full_name,
-            avatar_url
+            full_name
           )
         `)
         .eq("class_id", classId)
@@ -38,13 +37,13 @@ export function RealTimeAttendance({ classId }: RealTimeAttendanceProps) {
 
       const { data: attendanceRecords } = await supabase
         .from("student_attendance")
-        .select("student_user_id, status, created_at")
+        .select("student_id, status, created_at")
         .eq("class_id", classId)
         .eq("attendance_date", today);
 
       const { data: entryLogs } = await supabase
         .from("student_entry_log")
-        .select("student_user_id, timestamp, entry_type")
+        .select("student_id, timestamp, entry_type")
         .eq("entry_type", "entrada")
         .gte("timestamp", `${today}T00:00:00`)
         .lte("timestamp", `${today}T23:59:59`)
@@ -52,10 +51,10 @@ export function RealTimeAttendance({ classId }: RealTimeAttendanceProps) {
 
       return enrollments.map((enrollment: any) => {
         const attendance = attendanceRecords?.find(
-          (a: any) => a.student_user_id === enrollment.student_user_id
+          (a: any) => a.student_id === enrollment.student_id
         );
         const entryLog = entryLogs?.find(
-          (e: any) => e.student_user_id === enrollment.student_user_id
+          (e: any) => e.student_id === enrollment.student_id
         );
 
         return {

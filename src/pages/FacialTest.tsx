@@ -21,8 +21,8 @@ export default function FacialTest() {
       const { data } = await supabase
         .from("student_enrollments")
         .select(`
-          student_user_id,
-          student:student_user_id(
+          student_id,
+          student:student_id(
             id,
             full_name
           )
@@ -42,7 +42,7 @@ export default function FacialTest() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            student_user_id: selectedStudent,
+            student_id: selectedStudent,
             device_id: deviceId,
             entry_type: type,
             photo_base64: null,
@@ -103,7 +103,7 @@ export default function FacialTest() {
                   </SelectTrigger>
                   <SelectContent>
                     {students.map((s: any) => (
-                      <SelectItem key={s.student_user_id} value={s.student_user_id}>
+                      <SelectItem key={s.student_id} value={s.student_id}>
                         {s.student?.full_name}
                       </SelectItem>
                     ))}

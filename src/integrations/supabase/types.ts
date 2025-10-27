@@ -1672,7 +1672,7 @@ export type Database = {
           id: string
           notes: string | null
           status: string
-          student_user_id: string
+          student_id: string
         }
         Insert: {
           attendance_date: string
@@ -1682,7 +1682,7 @@ export type Database = {
           id?: string
           notes?: string | null
           status: string
-          student_user_id: string
+          student_id: string
         }
         Update: {
           attendance_date?: string
@@ -1692,7 +1692,7 @@ export type Database = {
           id?: string
           notes?: string | null
           status?: string
-          student_user_id?: string
+          student_id?: string
         }
         Relationships: [
           {
@@ -1700,6 +1700,13 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "school_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_attendance_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]
@@ -1782,7 +1789,7 @@ export type Database = {
           notes: string | null
           photo_url: string | null
           recognition_confidence: number | null
-          student_user_id: string
+          student_id: string
           timestamp: string
         }
         Insert: {
@@ -1793,7 +1800,7 @@ export type Database = {
           notes?: string | null
           photo_url?: string | null
           recognition_confidence?: number | null
-          student_user_id: string
+          student_id: string
           timestamp?: string
         }
         Update: {
@@ -1804,10 +1811,18 @@ export type Database = {
           notes?: string | null
           photo_url?: string | null
           recognition_confidence?: number | null
-          student_user_id?: string
+          student_id?: string
           timestamp?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "student_entry_log_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       students: {
         Row: {

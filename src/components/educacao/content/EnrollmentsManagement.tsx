@@ -151,86 +151,114 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
 
   const createStudentAndEnrollment = useMutation({
     mutationFn: async () => {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: studentData.email,
-        password: Math.random().toString(36).slice(-12),
-        options: { data: { full_name: studentData.full_name } },
-      });
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Erro ao criar usuário");
+      // 1. Criar aluno diretamente na tabela students (SEM autenticação)
+      const { data: studentRecord, error: studentError } = await supabase
+        .from("students")
+        .insert({
+          full_name: studentData.full_name,
+          cpf: studentData.cpf,
+          birth_date: studentData.birth_date,
+          gender: studentData.gender,
+          naturalidade: studentData.naturalidade,
+          nacionalidade: studentData.nacionalidade,
+          rg: studentData.rg,
+          certidao_nascimento: studentData.certidao_nascimento,
+          cartao_sus: studentData.cartao_sus,
+          nis: studentData.nis,
+          telefone: studentData.telefone,
+          alergias: studentInfo.alergias,
+          restricoes_alimentares: studentInfo.restricoes_alimentares,
+          medicacoes_continuas: studentInfo.medicacoes_continuas,
+          necessidades_especiais: studentInfo.necessidades_especiais,
+          autorizacao_uso_imagem: studentInfo.autorizacao_uso_imagem,
+          autorizacao_busca_medica: studentInfo.autorizacao_busca_medica,
+          usa_transporte_escolar: studentInfo.usa_transporte_escolar,
+          endereco_transporte: studentInfo.endereco_transporte,
+          ponto_embarque: studentInfo.ponto_embarque,
+          autorizacao_reconhecimento_facial: facialConsent,
+        })
+        .select()
+        .single();
 
-      const studentUserId = authData.user.id;
+      if (studentError) throw studentError;
+      if (!studentRecord) throw new Error("Erro ao criar aluno");
 
-      // Upload de documentos do aluno
+      const studentId = studentRecord.id;
+
+      // 2. Upload de documentos do aluno
       const docUrls: any = {};
-      if (studentDocs.doc_certidao) docUrls.doc_certidao_url = await uploadDocument(studentDocs.doc_certidao, studentUserId, 'certidao');
-      if (studentDocs.doc_rg) docUrls.doc_rg_url = await uploadDocument(studentDocs.doc_rg, studentUserId, 'rg');
-      if (studentDocs.doc_vacinacao) docUrls.doc_vacinacao_url = await uploadDocument(studentDocs.doc_vacinacao, studentUserId, 'vacinacao');
-      if (studentDocs.doc_comprovante_residencia) docUrls.doc_comprovante_residencia_url = await uploadDocument(studentDocs.doc_comprovante_residencia, studentUserId, 'comprovante');
-      if (studentDocs.doc_foto) docUrls.doc_foto_url = await uploadDocument(studentDocs.doc_foto, studentUserId, 'foto');
-      if (studentDocs.doc_historico_escolar) docUrls.doc_historico_escolar_url = await uploadDocument(studentDocs.doc_historico_escolar, studentUserId, 'historico');
+      if (studentDocs.doc_certidao) docUrls.doc_certidao_url = await uploadDocument(studentDocs.doc_certidao, studentId, 'certidao');
+      if (studentDocs.doc_rg) docUrls.doc_rg_url = await uploadDocument(studentDocs.doc_rg, studentId, 'rg');
+      if (studentDocs.doc_vacinacao) docUrls.doc_vacinacao_url = await uploadDocument(studentDocs.doc_vacinacao, studentId, 'vacinacao');
+      if (studentDocs.doc_comprovante_residencia) docUrls.doc_comprovante_residencia_url = await uploadDocument(studentDocs.doc_comprovante_residencia, studentId, 'comprovante');
+      if (studentDocs.doc_foto) docUrls.doc_foto_url = await uploadDocument(studentDocs.doc_foto, studentId, 'foto');
+      if (studentDocs.doc_historico_escolar) docUrls.doc_historico_escolar_url = await uploadDocument(studentDocs.doc_historico_escolar, studentId, 'historico');
 
-      // Upload de fotos faciais
+      // 3. Upload de fotos faciais
       const facialPhotoUrls: any[] = [];
       for (const photo of facialPhotos) {
         if (photo.blob) {
-          const url = await uploadFacialPhoto(photo.blob, studentUserId, photo.angle);
+          const url = await uploadFacialPhoto(photo.blob, studentId, photo.angle);
           facialPhotoUrls.push({ angle: photo.angle, url });
         }
       }
 
-      // Atualizar perfil do aluno com todos os dados
-      await supabase.from("profiles").update({
-        full_name: studentData.full_name,
-        cpf: studentData.cpf,
-        birth_date: studentData.birth_date,
-        gender: studentData.gender,
-        naturalidade: studentData.naturalidade,
-        nacionalidade: studentData.nacionalidade,
-        rg: studentData.rg,
-        certidao_nascimento: studentData.certidao_nascimento,
-        cartao_sus: studentData.cartao_sus,
-        nis: studentData.nis,
-        telefone: studentData.telefone,
-        alergias: studentInfo.alergias,
-        restricoes_alimentares: studentInfo.restricoes_alimentares,
-        medicacoes_continuas: studentInfo.medicacoes_continuas,
-        necessidades_especiais: studentInfo.necessidades_especiais,
-        autorizacao_uso_imagem: studentInfo.autorizacao_uso_imagem,
-        autorizacao_busca_medica: studentInfo.autorizacao_busca_medica,
-        usa_transporte_escolar: studentInfo.usa_transporte_escolar,
-        endereco_transporte: studentInfo.endereco_transporte,
-        ponto_embarque: studentInfo.ponto_embarque,
-        facial_photos: facialPhotoUrls,
-        autorizacao_reconhecimento_facial: facialConsent,
-        ...docUrls,
-      }).eq("id", studentUserId);
+      // 4. Atualizar registro do aluno com URLs dos documentos e fotos faciais
+      if (Object.keys(docUrls).length > 0 || facialPhotoUrls.length > 0) {
+        await supabase
+          .from("students")
+          .update({
+            ...docUrls,
+            facial_photos: facialPhotoUrls,
+          })
+          .eq("id", studentId);
+      }
 
-      await supabase.from("user_roles").insert([{ user_id: studentUserId, role: "aluno" }]);
-
-      // Criar matrícula (matricula será gerada automaticamente pelo trigger)
+      // 5. Criar matrícula (matricula será gerada automaticamente pelo trigger)
       await supabase.from("student_enrollments").insert({
-        student_user_id: studentUserId,
+        student_id: studentId,
         class_id: enrollmentData.class_id,
         school_year: enrollmentData.school_year,
         status: "active",
       } as any);
 
-      // Criar responsável se fornecido
+      // 6. Criar/Vincular responsável (responsáveis PRECISAM de autenticação para acessar o app)
       if (responsibleData.full_name && responsibleData.email) {
-        const { data: respAuthData } = await supabase.auth.signUp({
-          email: responsibleData.email,
-          password: Math.random().toString(36).slice(-12),
-          options: { data: { full_name: responsibleData.full_name } },
-        });
-        
-        if (respAuthData?.user) {
+        // Verificar se já existe um usuário com este email
+        const { data: existingUser } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("email", responsibleData.email)
+          .maybeSingle();
+
+        let responsibleUserId: string;
+
+        if (existingUser) {
+          // Usuário já existe, apenas vincular
+          responsibleUserId = existingUser.id;
+        } else {
+          // Criar novo usuário autenticado para o responsável
+          const { data: respAuthData, error: respAuthError } = await supabase.auth.signUp({
+            email: responsibleData.email,
+            password: Math.random().toString(36).slice(-12) + "Aa1!",
+            options: { 
+              data: { full_name: responsibleData.full_name },
+              emailRedirectTo: `${window.location.origin}/`
+            },
+          });
+          
+          if (respAuthError) throw respAuthError;
+          if (!respAuthData?.user) throw new Error("Erro ao criar responsável");
+          
+          responsibleUserId = respAuthData.user.id;
+
           // Upload de documentos do responsável
           const respDocUrls: any = {};
-          if (responsibleDocs.doc_rg) respDocUrls.doc_rg_url = await uploadDocument(responsibleDocs.doc_rg, respAuthData.user.id, 'resp_rg');
-          if (responsibleDocs.doc_cpf) respDocUrls.doc_cpf_url = await uploadDocument(responsibleDocs.doc_cpf, respAuthData.user.id, 'resp_cpf');
-          if (responsibleDocs.doc_guarda_tutela) respDocUrls.doc_guarda_tutela_url = await uploadDocument(responsibleDocs.doc_guarda_tutela, respAuthData.user.id, 'guarda');
+          if (responsibleDocs.doc_rg) respDocUrls.doc_rg_url = await uploadDocument(responsibleDocs.doc_rg, responsibleUserId, 'resp_rg');
+          if (responsibleDocs.doc_cpf) respDocUrls.doc_cpf_url = await uploadDocument(responsibleDocs.doc_cpf, responsibleUserId, 'resp_cpf');
+          if (responsibleDocs.doc_guarda_tutela) respDocUrls.doc_guarda_tutela_url = await uploadDocument(responsibleDocs.doc_guarda_tutela, responsibleUserId, 'guarda');
 
+          // Atualizar perfil do responsável
           await supabase.from("profiles").update({
             full_name: responsibleData.full_name,
             cpf: responsibleData.cpf,
@@ -239,16 +267,25 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
             telefone_emergencia: responsibleData.telefone_emergencia,
             endereco_completo: responsibleData.endereco_completo,
             ...respDocUrls,
-          }).eq("id", respAuthData.user.id);
+          }).eq("id", responsibleUserId);
 
-          await supabase.from("user_roles").insert([{ user_id: respAuthData.user.id, role: "responsavel" }]);
-          
-          await supabase.from("user_relationships").insert([{
-            user_id: respAuthData.user.id,
-            related_user_id: studentUserId,
-            relationship_type: responsibleData.relationship_type,
+          // Adicionar role de pai
+          await supabase.from("user_roles").insert([{ 
+            user_id: responsibleUserId, 
+            role: "pai" 
           }]);
         }
+
+        // 7. Criar relacionamento pai-filho
+        await supabase.from("parent_student_relationship").insert({
+          parent_user_id: responsibleUserId,
+          student_id: studentId,
+          relationship_type: responsibleData.relationship_type,
+          is_primary: true,
+          is_authorized_pickup: true,
+          can_view_grades: true,
+          can_view_attendance: true,
+        });
       }
     },
     onSuccess: () => {
@@ -264,9 +301,18 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
 
   const resetForm = () => {
     setStudentData({ 
-      full_name: "", email: "", cpf: "", birth_date: "", gender: "",
-      naturalidade: "", nacionalidade: "Brasileira", rg: "", certidao_nascimento: "",
-      cartao_sus: "", nis: "", telefone: ""
+      full_name: "", 
+      email: "", // Email não é mais obrigatório para alunos
+      cpf: "", 
+      birth_date: "", 
+      gender: "",
+      naturalidade: "", 
+      nacionalidade: "Brasileira", 
+      rg: "", 
+      certidao_nascimento: "",
+      cartao_sus: "", 
+      nis: "", 
+      telefone: ""
     });
     setStudentDocs({
       doc_certidao: null, doc_rg: null, doc_vacinacao: null,

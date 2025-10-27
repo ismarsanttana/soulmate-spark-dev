@@ -84,10 +84,8 @@ const StudentDetailContent = () => {
     enabled: !!studentId,
   });
 
-  // TODO: Migrar student_attendance para usar student_id ao invés de student_user_id
   // Buscar registro de presença
-  const attendanceRecords: any[] = [];
-  /* const { data: attendanceRecords = [] } = useQuery({
+  const { data: attendanceRecords = [] } = useQuery({
     queryKey: ["student-attendance", studentId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -101,7 +99,7 @@ const StudentDetailContent = () => {
       return data || [];
     },
     enabled: !!studentId,
-  }); */
+  });
 
   if (studentLoading) {
     return (
