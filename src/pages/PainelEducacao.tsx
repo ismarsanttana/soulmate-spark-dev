@@ -15,6 +15,7 @@ import { TimeclockManagement } from "@/components/educacao/content/TimeclockMana
 import ReportsManagement from "@/components/secretario/content/ReportsManagement";
 import { ComprasManagement } from "@/components/educacao/content/ComprasManagement";
 import { FrotaManagement } from "@/components/educacao/content/FrotaManagement";
+import { SecretarioProfile } from "@/components/secretario/SecretarioProfile";
 
 const PainelEducacaoContent = () => {
   const [activeTab, setActiveTab] = useState("painel");
@@ -65,7 +66,19 @@ const PainelEducacaoContent = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "painel":
-        return <Dashboard secretariaSlug={assignment.secretaria_slug} />;
+        return (
+          <div className="space-y-4">
+            <div className="ascom-page-header">
+              <div>
+                <h1 className="ascom-page-title">Painel da Secretaria de Educação</h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Visão geral das atividades da secretaria
+                </p>
+              </div>
+            </div>
+            <Dashboard secretariaSlug={assignment.secretaria_slug} />
+          </div>
+        );
       case "equipe":
         return <TeamManagement secretariaSlug={assignment.secretaria_slug} />;
       case "turmas":
@@ -84,6 +97,8 @@ const PainelEducacaoContent = () => {
         return <ReportsManagement />;
       case "solicitacoes":
         return <RequestsManagement secretariaSlug={assignment.secretaria_slug} />;
+      case "perfil":
+        return <SecretarioProfile />;
       default:
         return null;
     }

@@ -1,29 +1,9 @@
-import { 
-  LayoutDashboard,
-  Users,
-  GraduationCap,
-  UserCheck,
-  MessageSquare,
-  Clock,
-  BookOpen,
-  FileText,
-  ShoppingCart,
-  Car
-} from "lucide-react";
+import { Home, Users, BookOpen, ClipboardList, User, Clock, ShoppingCart, Bus, BarChart2, Headset } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface EducacaoSidebarProps {
   activeTab: string;
@@ -31,41 +11,26 @@ interface EducacaoSidebarProps {
 }
 
 const menuItems = [
-  { value: "painel", title: "Painel", icon: LayoutDashboard },
+  { value: "painel", title: "Painel", icon: Home },
   { value: "equipe", title: "Equipe", icon: Users },
   { value: "turmas", title: "Gerenciar Turmas", icon: BookOpen },
-  { value: "matriculas", title: "Matrículas", icon: GraduationCap },
-  { value: "alunos", title: "Alunos", icon: UserCheck },
+  { value: "matriculas", title: "Matrículas", icon: ClipboardList },
+  { value: "alunos", title: "Alunos", icon: User },
   { value: "ponto", title: "Ponto Eletrônico", icon: Clock },
   { value: "compras", title: "Compras", icon: ShoppingCart },
-  { value: "frota", title: "Frota", icon: Car },
-  { value: "relatorios", title: "Relatórios", icon: FileText },
-  { value: "solicitacoes", title: "Solicitações", icon: MessageSquare, showBadge: true },
+  { value: "frota", title: "Frota", icon: Bus },
+  { value: "relatorios", title: "Relatórios", icon: BarChart2 },
+  { value: "solicitacoes", title: "Solicitações", icon: Headset, showBadge: true },
 ];
 
 export function EducacaoSidebar({ activeTab, onTabChange }: EducacaoSidebarProps) {
-  const { open } = useSidebar();
-
-  // Buscar contagem de solicitações pendentes
   const { data: pendingCount = 0 } = useQuery({
-    queryKey: ["pending-requests-count-educacao"],
+    queryKey: ["secretary-requests-pending-count-educacao"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return 0;
-
-      const { data: assignment } = await supabase
-        .from("secretary_assignments")
-        .select("secretaria_slug")
-        .eq("user_id", user.id)
-        .eq("secretaria_slug", "educacao")
-        .single();
-
-      if (!assignment) return 0;
-
       const { count } = await supabase
         .from("secretary_requests")
         .select("*", { count: "exact", head: true })
-        .eq("to_secretary_slug", assignment.secretaria_slug)
+        .eq("to_secretary_slug", "educacao")
         .eq("status", "pendente");
 
       return count || 0;
@@ -74,44 +39,37 @@ export function EducacaoSidebar({ activeTab, onTabChange }: EducacaoSidebarProps
   });
 
   return (
-    <Sidebar 
-      className={`transition-all duration-300 ease-in-out border-r ${!open ? "w-16" : "w-64"}`}
-      collapsible="icon"
+    <aside 
+      className="ascom-sidebar sticky top-[88px] flex-shrink-0"
+      style={{ height: "calc(100vh - 108px)" }}
     >
-      <SidebarContent className="gap-2 py-4">
-        <SidebarGroup>
-          <SidebarGroupLabel className={`px-4 transition-opacity duration-200 ${!open ? "opacity-0" : "opacity-100"}`}>
-            Secretaria de Educação
-          </SidebarGroupLabel>
-          <SidebarGroupContent className="px-2">
-            <SidebarMenu className="gap-1">
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.value}>
-                  <SidebarMenuButton
-                    onClick={() => onTabChange(item.value)}
-                    tooltip={!open ? item.title : undefined}
-                    className={`transition-all duration-200 ${
-                      activeTab === item.value
-                        ? "bg-accent text-accent-foreground font-semibold shadow-sm"
-                        : "hover:bg-accent/50 hover:shadow-sm"
-                    } ${!open ? "justify-center" : ""}`}
-                  >
-                    <item.icon className={`h-5 w-5 ${!open ? "" : "mr-3"}`} />
-                    {open && (
-                      <span className="truncate flex-1">{item.title}</span>
-                    )}
-                    {item.showBadge && pendingCount > 0 && (
-                      <Badge variant="destructive" className="ml-auto">
-                        {pendingCount}
-                      </Badge>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+      <nav className="flex flex-col gap-2">
+        {menuItems.map((item) => (
+          <Button
+            key={item.value}
+            variant="ghost"
+            size="icon"
+            onClick={() => onTabChange(item.value)}
+            className={cn(
+              "relative h-11 w-11 rounded-xl transition-all",
+              activeTab === item.value
+                ? "bg-primary/12 text-primary border border-primary/20"
+                : "text-muted-foreground hover:bg-primary/8 hover:text-primary border border-transparent"
+            )}
+            title={item.title}
+          >
+            <item.icon className="h-5 w-5" />
+            {item.showBadge && pendingCount > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 min-w-5 px-1 flex items-center justify-center text-xs"
+              >
+                {pendingCount}
+              </Badge>
+            )}
+          </Button>
+        ))}
+      </nav>
+    </aside>
   );
 }
