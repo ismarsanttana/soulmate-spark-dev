@@ -13,7 +13,7 @@ import { StoryViewer } from "@/components/StoryViewer";
 const defaultSecretarias = [
   { slug: "saude", title: "Saúde", icon: "HeartPulse", color: "#10b981" },
   { slug: "educacao", title: "Educação", icon: "GraduationCap", color: "#3b82f6" },
-  { slug: "assistencia", title: "Assistência", icon: "HandHeart", color: "#f43f5e" },
+  { slug: "assistencia", title: "Assistência Social", icon: "HandHeart", color: "#f43f5e" },
   { slug: "obras", title: "Obras", icon: "Construction", color: "#f59e0b" },
   { slug: "financas", title: "Finanças", icon: "Coins", color: "#a855f7" },
   { slug: "cultura", title: "Cultura e Turismo", icon: "Landmark", color: "#ec4899" },
