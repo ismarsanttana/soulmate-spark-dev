@@ -4,7 +4,15 @@ import { SecretarioSidebar } from "./SecretarioSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut, Building2, Moon, Sun } from "lucide-react";
+import { LogOut, Building2, Moon, Sun, User as UserIcon, Settings } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useTheme } from "@/components/theme-provider";
 import { useQuery } from "@tanstack/react-query";
@@ -104,23 +112,43 @@ export function SecretarioLayout({ children, activeTab, onTabChange }: Secretari
           </div>
           
           <div className="flex items-center gap-4">
-            {/* User Profile Info */}
-            <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10 border-2 border-white/20">
-                <AvatarImage src={userProfile?.avatar_url || ""} alt={userProfile?.full_name || ""} />
-                <AvatarFallback className="bg-white/10 text-white text-sm font-semibold">
-                  {userProfile?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || "US"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-white leading-tight">
-                  {userProfile?.full_name || "Usuário"}
-                </span>
-                <span className="text-xs text-white/70 leading-tight">
-                  {userSecretariat || "Secretário"}
-                </span>
-              </div>
-            </div>
+            {/* User Profile Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-3 h-auto py-2 px-3 hover:bg-white/10 rounded-xl"
+                >
+                  <Avatar className="h-10 w-10 border-2 border-white/20">
+                    <AvatarImage src={userProfile?.avatar_url || ""} alt={userProfile?.full_name || ""} />
+                    <AvatarFallback className="bg-white/10 text-white text-sm font-semibold">
+                      {userProfile?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || "US"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm font-semibold text-white leading-tight">
+                      {userProfile?.full_name || "Usuário"}
+                    </span>
+                    <span className="text-xs text-white/70 leading-tight">
+                      {userSecretariat || "Secretário"}
+                    </span>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onTabChange("perfil")}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Configurações de Perfil</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Button
               variant="ghost"
@@ -130,16 +158,6 @@ export function SecretarioLayout({ children, activeTab, onTabChange }: Secretari
               title={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-            
-            <Button 
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="gap-2 h-9 rounded-xl bg-white/8 hover:bg-white/15 border border-white/25 text-white font-semibold"
-            >
-              <LogOut className="h-4 w-4" />
-              Sair
             </Button>
           </div>
         </div>
