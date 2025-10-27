@@ -18,6 +18,7 @@ export function VisualCustomization() {
   const [appName, setAppName] = useState("Portal do Cidadão");
   const [logoUrl, setLogoUrl] = useState<string | undefined>();
   const [iconUrl, setIconUrl] = useState<string | undefined>();
+  const [logoBackgroundColor, setLogoBackgroundColor] = useState<string | null>(null);
 
   const { data: settings } = useQuery({
     queryKey: ["app-settings"],
@@ -36,6 +37,7 @@ export function VisualCustomization() {
         setAppName(data.app_name);
         setLogoUrl(data.logo_url || undefined);
         setIconUrl(data.icon_url || undefined);
+        setLogoBackgroundColor(data.logo_background_color || null);
       }
       
       return data;
@@ -52,6 +54,7 @@ export function VisualCustomization() {
         app_name: appName,
         logo_url: logoUrl || null,
         icon_url: iconUrl || null,
+        logo_background_color: logoBackgroundColor,
         updated_by: user?.id,
       };
 
@@ -164,6 +167,36 @@ export function VisualCustomization() {
                 enableCrop={true}
                 cropAspectRatio={16 / 9}
               />
+              
+              <div className="mt-4 space-y-2">
+                <Label htmlFor="logoBackgroundColor">Cor de Fundo da Logo</Label>
+                <p className="text-sm text-muted-foreground">
+                  Escolha uma cor de fundo ou deixe transparente
+                </p>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="logoBackgroundColor"
+                    type="color"
+                    value={logoBackgroundColor || "#ffffff"}
+                    onChange={(e) => setLogoBackgroundColor(e.target.value)}
+                    className="h-12 w-20"
+                  />
+                  <Input
+                    type="text"
+                    value={logoBackgroundColor || ""}
+                    onChange={(e) => setLogoBackgroundColor(e.target.value || null)}
+                    placeholder="Transparente"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLogoBackgroundColor(null)}
+                  >
+                    Transparente
+                  </Button>
+                </div>
+              </div>
             </div>
 
             <div>

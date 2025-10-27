@@ -219,7 +219,10 @@ export const Header = ({ pageTitle }: HeaderProps) => {
               <img
                 src={appSettings.logo_url}
                 alt={appSettings.app_name}
-                className="h-12 w-auto rounded-lg object-contain"
+                className="h-12 w-auto rounded-lg object-contain p-1"
+                style={{
+                  backgroundColor: appSettings.logo_background_color || "transparent",
+                }}
               />
             ) : (
               <img

@@ -55,6 +55,7 @@ export type Database = {
           app_name: string
           icon_url: string | null
           id: string
+          logo_background_color: string | null
           logo_url: string | null
           primary_color: string
           secondary_color: string
@@ -65,6 +66,7 @@ export type Database = {
           app_name?: string
           icon_url?: string | null
           id?: string
+          logo_background_color?: string | null
           logo_url?: string | null
           primary_color?: string
           secondary_color?: string
@@ -75,6 +77,7 @@ export type Database = {
           app_name?: string
           icon_url?: string | null
           id?: string
+          logo_background_color?: string | null
           logo_url?: string | null
           primary_color?: string
           secondary_color?: string
