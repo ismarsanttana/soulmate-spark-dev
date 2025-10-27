@@ -16,10 +16,10 @@ interface VoiceInterfaceProps {
 }
 
 const AVAILABLE_VOICES = [
-  { id: "echo", name: "Echo (Masculino)", description: "Voz masculina clara" },
+  { id: "shimmer", name: "Shimmer ⭐", description: "Voz feminina natural e suave (Recomendado)" },
+  { id: "nova", name: "Nova ⭐", description: "Voz feminina expressiva e natural (Recomendado)" },
   { id: "alloy", name: "Alloy", description: "Voz neutra e equilibrada" },
-  { id: "shimmer", name: "Shimmer", description: "Voz feminina suave" },
-  { id: "nova", name: "Nova", description: "Voz feminina energética" },
+  { id: "echo", name: "Echo", description: "Voz masculina clara" },
   { id: "ash", name: "Ash", description: "Voz masculina profunda" },
   { id: "ballad", name: "Ballad", description: "Voz masculina calorosa" },
   { id: "coral", name: "Coral", description: "Voz feminina clara" },
@@ -32,7 +32,7 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [selectedVoice, setSelectedVoice] = useState("echo");
+  const [selectedVoice, setSelectedVoice] = useState("shimmer"); // Voz mais natural por padrão
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -217,17 +217,25 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
     setSelectedVoice(voiceId);
     
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      // Send session.update to change voice
-      wsRef.current.send(JSON.stringify({
-        type: "session.update",
-        session: {
-          voice: voiceId
-        }
-      }));
+      console.log("Changing voice to:", voiceId);
       
+      // Disconnect current session and reconnect with new voice
+      disconnect();
+      
+      // Small delay to ensure clean disconnect
+      setTimeout(() => {
+        connectWebSocket();
+        startRecording();
+        
+        toast({
+          title: "Voz alterada",
+          description: AVAILABLE_VOICES.find(v => v.id === voiceId)?.name,
+        });
+      }, 500);
+    } else {
       toast({
-        title: "Voz alterada",
-        description: AVAILABLE_VOICES.find(v => v.id === voiceId)?.name,
+        title: "Voz selecionada",
+        description: `${AVAILABLE_VOICES.find(v => v.id === voiceId)?.name} será usada na próxima conexão`,
       });
     }
     

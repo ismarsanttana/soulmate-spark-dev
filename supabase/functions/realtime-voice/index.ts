@@ -40,6 +40,11 @@ serve(async (req) => {
             const data = JSON.parse(event.data);
             console.log("OpenAI event:", data.type);
 
+            // Log errors with full details
+            if (data.type === "error") {
+              console.error("OpenAI Error Details:", JSON.stringify(data, null, 2));
+            }
+
             // Send session.update after receiving session.created
             if (data.type === "session.created" && !isSessionReady) {
               console.log("Session created, sending session.update");
@@ -49,7 +54,7 @@ serve(async (req) => {
                 type: "session.update",
                 session: {
                   modalities: ["text", "audio"],
-                  instructions: "Você é um assistente útil da Prefeitura de Afogados da Ingazeira. Seja cordial, prestativo e objetivo. Responda em português brasileiro.",
+                  instructions: "Você é um assistente útil da Prefeitura de Afogados da Ingazeira. Seja cordial, prestativo, natural e objetivo. Responda em português brasileiro de forma conversacional e amigável.",
                   voice: voice,
                   input_audio_format: "pcm16",
                   output_audio_format: "pcm16",
@@ -62,7 +67,7 @@ serve(async (req) => {
                     prefix_padding_ms: 300,
                     silence_duration_ms: 1000
                   },
-                  temperature: 0.8,
+                  temperature: 0.9,
                   max_response_output_tokens: "inf"
                 }
               };
@@ -112,19 +117,9 @@ serve(async (req) => {
       try {
         const data = JSON.parse(event.data);
         
-        // Handle voice change request
-        if (data.type === "change_voice") {
-          console.log("Changing voice to:", data.voice);
-          if (openAISocket) {
-            openAISocket.close();
-          }
-          await connectToOpenAI(data.voice);
-          return;
-        }
-
         // Handle initial connection
         if (data.type === "start_session") {
-          await connectToOpenAI(data.voice || "echo");
+          await connectToOpenAI(data.voice || "shimmer");
           return;
         }
 
