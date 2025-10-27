@@ -18,18 +18,15 @@ serve(async (req) => {
       console.log(`Connecting to OpenAI with voice: ${voice}`);
       
       try {
-        // Create WebSocket connection with proper authentication
-        const url = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01";
+        // Create WebSocket connection with proper authentication via subprotocols
+        const url = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17";
         
-        // For Deno, we need to use a different approach for headers
-        // We'll use the WebSocket constructor without headers and send them via protocol
-        openAISocket = new WebSocket(url);
-        
-        // Store auth info to send after connection
-        const authInfo = {
-          apiKey: OPENAI_API_KEY,
-          voice: voice
-        };
+        // OpenAI requires authentication via WebSocket subprotocols
+        openAISocket = new WebSocket(url, [
+          "realtime",
+          `openai-insecure-api-key.${OPENAI_API_KEY}`,
+          "openai-beta.realtime-v1"
+        ]);
 
         openAISocket.onopen = () => {
           console.log("Connected to OpenAI Realtime API");

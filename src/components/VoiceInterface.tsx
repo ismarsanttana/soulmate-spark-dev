@@ -206,6 +206,14 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-black z-50 flex items-center justify-center">
+      {/* Close button */}
+      <button
+        onClick={handleClose}
+        className="absolute top-8 right-8 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all z-10"
+      >
+        <X className="w-6 h-6 text-white" />
+      </button>
+
       {/* Central Orb */}
       <div className="relative flex items-center justify-center">
         {/* Animated rings */}
@@ -213,13 +221,19 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
           <>
             <div className="absolute w-64 h-64 rounded-full border-2 border-blue-500/30 animate-ping" />
             <div className="absolute w-80 h-80 rounded-full border border-blue-400/20 animate-pulse" />
+            {isRecording && (
+              <>
+                <div className="absolute w-56 h-56 rounded-full border-2 border-blue-400/40 animate-ping animation-delay-150" />
+                <div className="absolute w-72 h-72 rounded-full border border-blue-300/30 animate-pulse animation-delay-300" />
+              </>
+            )}
           </>
         )}
         
         {/* Main orb */}
         <div className={`relative w-48 h-48 rounded-full transition-all duration-300 ${
           isRecording 
-            ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-[0_0_60px_rgba(59,130,246,0.6)]' 
+            ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-[0_0_80px_rgba(59,130,246,0.8)] animate-pulse' 
             : isSpeaking
             ? 'bg-gradient-to-br from-cyan-400 to-blue-500 shadow-[0_0_60px_rgba(6,182,212,0.6)] animate-pulse'
             : 'bg-gradient-to-br from-blue-500/50 to-cyan-500/50 shadow-[0_0_40px_rgba(59,130,246,0.3)]'
@@ -234,34 +248,20 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
         </div>
       </div>
 
-      {/* Bottom controls */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-8">
-        {/* Microphone button - always visible but shows state */}
-        <button
-          onClick={() => {
-            if (!isConnected) {
+      {/* Bottom controls - only microphone button if not connected */}
+      {!isConnected && (
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
+          <button
+            onClick={() => {
               connectWebSocket();
               startRecording();
-            }
-          }}
-          disabled={isConnected}
-          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
-            isConnected 
-              ? 'bg-white/10 cursor-not-allowed' 
-              : 'bg-white hover:bg-white/90 shadow-lg'
-          }`}
-        >
-          <Mic className={`w-6 h-6 ${isConnected ? 'text-white/50' : 'text-gray-900'}`} />
-        </button>
-
-        {/* Close button */}
-        <button
-          onClick={handleClose}
-          className="w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
-        >
-          <X className="w-6 h-6 text-white" />
-        </button>
-      </div>
+            }}
+            className="w-16 h-16 rounded-full bg-white hover:bg-white/90 flex items-center justify-center transition-all shadow-lg"
+          >
+            <Mic className="w-7 h-7 text-gray-900" />
+          </button>
+        </div>
+      )}
 
       {/* Status indicator */}
       <div className="absolute top-8 left-1/2 -translate-x-1/2">
