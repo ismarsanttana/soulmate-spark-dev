@@ -14,11 +14,10 @@ export const useRoleNavigation = () => {
       const { data, error } = await supabase
         .from("secretary_assignments")
         .select("secretaria_slug")
-        .eq("user_id", user.id)
-        .maybeSingle();
+        .eq("user_id", user.id);
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: roleData?.isSecretario || false,
   });
@@ -32,13 +31,18 @@ export const useRoleNavigation = () => {
     if (roleData?.isPrefeito) {
       panels.push({ label: "Prefeito", path: "/painel-prefeito", icon: "landmark" });
     }
-    if (roleData?.isSecretario) {
-      // Redireciona para o painel específico da secretaria
-      if (secretaryAssignment?.secretaria_slug === "educacao") {
-        panels.push({ label: "Educação", path: "/edu", icon: "graduation-cap" });
-      } else if (secretaryAssignment?.secretaria_slug === "comunicacao") {
-        panels.push({ label: "Comunicação", path: "/ascom", icon: "bullhorn" });
-      } else {
+    if (roleData?.isSecretario && secretaryAssignment && Array.isArray(secretaryAssignment)) {
+      // Adiciona painéis para cada secretaria atribuída
+      secretaryAssignment.forEach((assignment) => {
+        if (assignment.secretaria_slug === "educacao") {
+          panels.push({ label: "Educação", path: "/edu", icon: "graduation-cap" });
+        } else if (assignment.secretaria_slug === "comunicacao") {
+          panels.push({ label: "Comunicação", path: "/ascom", icon: "bullhorn" });
+        }
+      });
+      
+      // Se não encontrou nenhum painel específico, adiciona o genérico
+      if (!secretaryAssignment.some(a => ["educacao", "comunicacao"].includes(a.secretaria_slug))) {
         panels.push({ label: "Secretário", path: "/painel-secretario", icon: "briefcase" });
       }
     }

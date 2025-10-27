@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,17 +22,30 @@ import ReportsManagement from "@/components/secretario/content/ReportsManagement
 
 const PainelSecretarioContent = () => {
   const [activeTab, setActiveTab] = useState("painel");
+  const location = useLocation();
+  
+  // Determina qual secretaria buscar baseado na rota
+  const getSecretariaSlug = () => {
+    const path = location.pathname;
+    if (path === "/ascom") return "comunicacao";
+    if (path === "/edu") return "educacao";
+    // Para outras rotas genéricas, retorna null para buscar qualquer
+    return null;
+  };
   
   const { data: assignment } = useQuery({
-    queryKey: ["secretary-assignment"],
+    queryKey: ["secretary-assignment", getSecretariaSlug()],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Não autenticado");
 
+      const targetSlug = getSecretariaSlug();
+      
       const { data, error } = await supabase
         .from("secretary_assignments")
         .select("*")
         .eq("user_id", user.id)
+        .eq("secretaria_slug", targetSlug || "comunicacao")
         .maybeSingle();
 
       if (error) throw error;

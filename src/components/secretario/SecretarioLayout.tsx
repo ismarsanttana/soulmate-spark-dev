@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { SecretarioSidebar } from "./SecretarioSidebar";
 import { useQuery } from "@tanstack/react-query";
@@ -11,16 +12,29 @@ interface SecretarioLayoutProps {
 }
 
 export function SecretarioLayout({ children, activeTab, onTabChange }: SecretarioLayoutProps) {
+  const location = useLocation();
+  
+  // Determina qual secretaria buscar baseado na rota
+  const getSecretariaSlug = () => {
+    const path = location.pathname;
+    if (path === "/ascom") return "comunicacao";
+    if (path === "/edu") return "educacao";
+    return "comunicacao"; // default
+  };
+  
   const { data: secretariaName } = useQuery({
-    queryKey: ["secretary-assignment-layout"],
+    queryKey: ["secretary-assignment-layout", getSecretariaSlug()],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return "Secretaria de Comunicação";
+
+      const targetSlug = getSecretariaSlug();
 
       const { data: assignment } = await supabase
         .from("secretary_assignments")
         .select("secretaria_slug")
         .eq("user_id", user.id)
+        .eq("secretaria_slug", targetSlug)
         .maybeSingle();
 
       if (!assignment) return "Secretaria de Comunicação";

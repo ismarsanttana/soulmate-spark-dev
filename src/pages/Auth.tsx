@@ -59,22 +59,28 @@ const Auth = () => {
 
             // Verifica se é secretário e redireciona baseado na secretaria
             if (roles.some(r => r.role === "secretario")) {
-              const { data: assignment } = await supabase
+              const { data: assignments } = await supabase
                 .from("secretary_assignments")
                 .select("secretaria_slug")
-                .eq("user_id", data.user.id)
-                .maybeSingle();
+                .eq("user_id", data.user.id);
 
-              if (assignment?.secretaria_slug === "educacao") {
-                navigate("/edu", { replace: true });
-                return;
-              } else if (assignment?.secretaria_slug === "comunicacao") {
-                navigate("/ascom", { replace: true });
-                return;
-              } else {
-                navigate("/painel-secretario", { replace: true });
-                return;
+              // Se tem múltiplas atribuições, prioriza educação, depois comunicação
+              if (assignments && assignments.length > 0) {
+                const hasEducacao = assignments.some(a => a.secretaria_slug === "educacao");
+                const hasComunicacao = assignments.some(a => a.secretaria_slug === "comunicacao");
+                
+                if (hasEducacao) {
+                  navigate("/edu", { replace: true });
+                  return;
+                } else if (hasComunicacao) {
+                  navigate("/ascom", { replace: true });
+                  return;
+                }
               }
+              
+              // Fallback para painel genérico
+              navigate("/painel-secretario", { replace: true });
+              return;
             }
 
             // Verifica outros roles
