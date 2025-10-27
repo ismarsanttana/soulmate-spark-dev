@@ -1,4 +1,8 @@
 import expoAgroBanner from "@/assets/expo-agro-banner.png";
+import expoQuarta from "@/assets/expo-quarta.jpg";
+import expoQuinta from "@/assets/expo-quinta.jpg";
+import expoSexta from "@/assets/expo-sexta.jpg";
+import expoSabado from "@/assets/expo-sabado.jpg";
 
 export default function ExpoAgro() {
   return (
@@ -285,24 +289,31 @@ export default function ExpoAgro() {
               <div className="expo-poster-row">
                 <div className="expo-poster">
                   <img
-                    src="https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600"
-                    alt="Poster 1"
+                    src={expoQuarta}
+                    alt="Programação Quarta 02.07"
                   />
-                  <small>Tecnologia no Campo</small>
+                  <small>Quarta 02.07 - Shows às 21h</small>
                 </div>
                 <div className="expo-poster">
                   <img
-                    src="https://images.unsplash.com/photo-1560493676-04071c5f467b?w=600"
-                    alt="Poster 2"
+                    src={expoQuinta}
+                    alt="Programação Quinta 03.07"
                   />
-                  <small>Pecuária Sustentável</small>
+                  <small>Quinta 03.07 - Shows às 21h</small>
                 </div>
                 <div className="expo-poster">
                   <img
-                    src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600"
-                    alt="Poster 3"
+                    src={expoSexta}
+                    alt="Programação Sexta 04.07"
                   />
-                  <small>Agronegócio</small>
+                  <small>Sexta 04.07 - Shows às 21h</small>
+                </div>
+                <div className="expo-poster">
+                  <img
+                    src={expoSabado}
+                    alt="Programação Sábado 05.07"
+                  />
+                  <small>Sábado 05.07 - Shows às 21h</small>
                 </div>
               </div>
             </section>
