@@ -13,16 +13,16 @@ import { StoryViewer } from "@/components/StoryViewer";
 const defaultSecretarias = [
   { slug: "saude", title: "Saúde", icon: "HeartPulse", color: "#10b981" },
   { slug: "educacao", title: "Educação", icon: "GraduationCap", color: "#3b82f6" },
-  { slug: "assistencia", title: "Assistência", icon: "Heart", color: "#f43f5e" },
-  { slug: "obras", title: "Obras", icon: "HardHat", color: "#f59e0b" },
-  { slug: "financas", title: "Finanças", icon: "Wallet", color: "#a855f7" },
-  { slug: "cultura", title: "Cultura e Turismo", icon: "Music", color: "#ec4899" },
+  { slug: "assistencia", title: "Assistência", icon: "HandHeart", color: "#f43f5e" },
+  { slug: "obras", title: "Obras", icon: "Construction", color: "#f59e0b" },
+  { slug: "financas", title: "Finanças", icon: "Coins", color: "#a855f7" },
+  { slug: "cultura", title: "Cultura e Turismo", icon: "Landmark", color: "#ec4899" },
   { slug: "iptu", title: "2ª via IPTU", icon: "FileText", color: "#8b5cf6" },
   { slug: "agendar-consulta", title: "Agendar Consulta", icon: "Calendar", color: "#14b8a6" },
   { slug: "iluminacao", title: "Iluminação Pública", icon: "Lightbulb", color: "#60a5fa" },
   { slug: "esporte", title: "Esporte", icon: "Trophy", color: "#22c55e" },
   { slug: "agricultura", title: "Agricultura", icon: "Tractor", color: "#84cc16" },
-  { slug: "mulher", title: "Secretaria da Mulher", icon: "Heart", color: "#f472b6" }
+  { slug: "mulher", title: "Secretaria da Mulher", icon: "Users", color: "#f472b6" }
 ];
 
 const Index = () => {
