@@ -1,17 +1,39 @@
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { Mic, X } from "lucide-react";
+import { Mic, X, Settings } from "lucide-react";
 import { AudioRecorder, encodeAudioForAPI, AudioQueue } from "@/utils/RealtimeAudio";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface VoiceInterfaceProps {
   onClose: () => void;
 }
+
+const AVAILABLE_VOICES = [
+  { id: "echo", name: "Echo (Masculino)", description: "Voz masculina clara" },
+  { id: "alloy", name: "Alloy", description: "Voz neutra e equilibrada" },
+  { id: "shimmer", name: "Shimmer", description: "Voz feminina suave" },
+  { id: "nova", name: "Nova", description: "Voz feminina energética" },
+  { id: "ash", name: "Ash", description: "Voz masculina profunda" },
+  { id: "ballad", name: "Ballad", description: "Voz masculina calorosa" },
+  { id: "coral", name: "Coral", description: "Voz feminina clara" },
+  { id: "sage", name: "Sage", description: "Voz neutra calma" },
+  { id: "verse", name: "Verse", description: "Voz masculina confiante" },
+];
 
 export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
   const { toast } = useToast();
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState("echo");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const recorderRef = useRef<AudioRecorder | null>(null);
@@ -31,10 +53,10 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
         console.log("WebSocket connected");
         setIsConnected(true);
         
-        // Start session with Echo voice (masculine)
+        // Start session with selected voice
         wsRef.current?.send(JSON.stringify({
           type: "start_session",
-          voice: "echo"
+          voice: selectedVoice
         }));
 
         toast({
@@ -191,6 +213,27 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
     onClose();
   };
 
+  const handleVoiceChange = (voiceId: string) => {
+    setSelectedVoice(voiceId);
+    
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      // Send session.update to change voice
+      wsRef.current.send(JSON.stringify({
+        type: "session.update",
+        session: {
+          voice: voiceId
+        }
+      }));
+      
+      toast({
+        title: "Voz alterada",
+        description: AVAILABLE_VOICES.find(v => v.id === voiceId)?.name,
+      });
+    }
+    
+    setIsSettingsOpen(false);
+  };
+
   // Auto-connect on mount
   useEffect(() => {
     if (!autoConnectRef.current) {
@@ -206,13 +249,47 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-black z-50 flex items-center justify-center">
-      {/* Close button */}
-      <button
-        onClick={handleClose}
-        className="absolute top-8 right-8 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all z-10"
-      >
-        <X className="w-6 h-6 text-white" />
-      </button>
+      {/* Top buttons */}
+      <div className="absolute top-8 right-8 flex items-center gap-3 z-10">
+        {/* Settings button */}
+        <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+          <DialogTrigger asChild>
+            <button
+              className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
+            >
+              <Settings className="w-6 h-6 text-white" />
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Configurações de Voz</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 mt-4">
+              {AVAILABLE_VOICES.map((voice) => (
+                <Button
+                  key={voice.id}
+                  onClick={() => handleVoiceChange(voice.id)}
+                  variant={selectedVoice === voice.id ? "default" : "outline"}
+                  className="w-full justify-start text-left h-auto py-3"
+                >
+                  <div>
+                    <div className="font-medium">{voice.name}</div>
+                    <div className="text-sm opacity-70">{voice.description}</div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Close button */}
+        <button
+          onClick={handleClose}
+          className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
+        >
+          <X className="w-6 h-6 text-white" />
+        </button>
+      </div>
 
       {/* Central Orb */}
       <div className="relative flex items-center justify-center">
