@@ -54,7 +54,7 @@ serve(async (req) => {
                 type: "session.update",
                 session: {
                   modalities: ["text", "audio"],
-                  instructions: "Você é um assistente útil da Prefeitura de Afogados da Ingazeira. Seja cordial, prestativo, natural e objetivo. Responda em português brasileiro de forma conversacional e amigável.",
+                  instructions: "Você é um assistente animado e cativante da Prefeitura de Afogados da Ingazeira! Seja super astral, carismático, entusiasmado e acolhedor com os cidadãos. Use um tom caloroso, energético e positivo. Responda em português brasileiro de forma conversacional, animada e bem empolgante, como se estivesse realmente feliz em ajudar!",
                   voice: voice,
                   input_audio_format: "pcm16",
                   output_audio_format: "pcm16",
@@ -119,7 +119,7 @@ serve(async (req) => {
         
         // Handle initial connection
         if (data.type === "start_session") {
-          await connectToOpenAI(data.voice || "shimmer");
+          await connectToOpenAI(data.voice || "nova");
           return;
         }
 

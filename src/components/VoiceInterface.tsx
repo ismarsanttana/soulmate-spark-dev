@@ -32,7 +32,7 @@ export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [selectedVoice, setSelectedVoice] = useState("shimmer"); // Voz mais natural por padrão
+  const [selectedVoice, setSelectedVoice] = useState("nova"); // Voz expressiva e animada por padrão
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
