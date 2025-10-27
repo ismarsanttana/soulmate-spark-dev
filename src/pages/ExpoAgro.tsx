@@ -8,7 +8,7 @@ import expoSabado from "@/assets/expo-sabado.jpg";
 export default function ExpoAgro() {
   return (
     <Layout>
-      <div style={{ background: '#111216', margin: '-1.5rem', marginBottom: '0', minHeight: '100vh', paddingBottom: '4rem' }}>
+      <div style={{ background: '#f6c10e', margin: '-1.5rem', marginBottom: '0', minHeight: '100vh', paddingBottom: '4rem' }}>
       <style>{`
         .expo-wrap {
           max-width: 980px;
@@ -64,26 +64,25 @@ export default function ExpoAgro() {
           display: block;
         }
         .expo-chips {
-          display: flex;
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
           gap: 8px;
-          overflow: auto;
-          padding: 2px 2px 0 2px;
-          scroll-snap-type: x mandatory;
+          padding: 2px;
         }
         .expo-chip {
-          flex: 0 0 auto;
-          scroll-snap-align: start;
           border-radius: 999px;
           border: 2px solid #0e75c7;
           background: linear-gradient(180deg, #23b0ff, #0079e6);
           color: #fff;
-          padding: 0.55rem 0.85rem;
+          padding: 0.65rem 0.95rem;
           font-weight: 800;
           letter-spacing: 0.2px;
           box-shadow: 0 6px 0 #045a9e;
           transform: translateY(0);
           transition: transform 0.08s ease;
           cursor: pointer;
+          text-align: center;
+          font-size: 14px;
         }
         .expo-chip:active {
           transform: translateY(2px);
