@@ -1,8 +1,7 @@
+import { useState } from "react";
 import { Home, Users, BookOpen, ClipboardList, User, Clock, ShoppingCart, Bus, BarChart2, Headset } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface EducacaoSidebarProps {
@@ -24,6 +23,8 @@ const menuItems = [
 ];
 
 export function EducacaoSidebar({ activeTab, onTabChange }: EducacaoSidebarProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const { data: pendingCount = 0 } = useQuery({
     queryKey: ["secretary-requests-pending-count-educacao"],
     queryFn: async () => {
@@ -40,36 +41,37 @@ export function EducacaoSidebar({ activeTab, onTabChange }: EducacaoSidebarProps
 
   return (
     <aside 
-      className="ascom-sidebar sticky top-[88px] flex-shrink-0"
-      style={{ height: "calc(100vh - 108px)" }}
+      className={cn(
+        "flex-shrink-0 bg-card border border-border rounded-2xl shadow-sm p-2.5 flex flex-col gap-2 sticky top-[86px] h-[calc(100vh-110px)] transition-all duration-300",
+        isExpanded ? "w-[200px]" : "w-[68px]"
+      )}
+      onMouseEnter={() => setIsExpanded(true)}
+      onMouseLeave={() => setIsExpanded(false)}
     >
-      <nav className="flex flex-col gap-2">
-        {menuItems.map((item) => (
-          <Button
-            key={item.value}
-            variant="ghost"
-            size="icon"
-            onClick={() => onTabChange(item.value)}
-            className={cn(
-              "relative h-11 w-11 rounded-xl transition-all",
-              activeTab === item.value
-                ? "bg-primary/12 text-primary border border-primary/20"
-                : "text-muted-foreground hover:bg-primary/8 hover:text-primary border border-transparent"
-            )}
-            title={item.title}
-          >
-            <item.icon className="h-5 w-5" />
-            {item.showBadge && pendingCount > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 min-w-5 px-1 flex items-center justify-center text-xs"
-              >
-                {pendingCount}
-              </Badge>
-            )}
-          </Button>
-        ))}
-      </nav>
+      {menuItems.map((item) => (
+        <button
+          key={item.value}
+          onClick={() => onTabChange(item.value)}
+          className={cn(
+            "ascom-sidebar-icon relative",
+            activeTab === item.value && "active",
+            isExpanded ? "justify-start" : "justify-center"
+          )}
+          title={item.title}
+        >
+          <item.icon className="h-5 w-5 flex-shrink-0" />
+          {isExpanded && (
+            <span className="ml-3 text-sm font-medium whitespace-nowrap">
+              {item.title}
+            </span>
+          )}
+          {item.showBadge && pendingCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+              {pendingCount}
+            </span>
+          )}
+        </button>
+      ))}
     </aside>
   );
 }
