@@ -1,6 +1,9 @@
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ControlCenter } from "./ControlCenter";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import type { User } from "@supabase/supabase-js";
 
 interface LayoutProps {
   children: ReactNode;
@@ -9,8 +12,41 @@ interface LayoutProps {
 export const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const [user, setUser] = useState<User | null>(null);
 
   const isActive = (path: string) => currentPath === path;
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const userInitials = profile?.full_name
+    ?.split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .substring(0, 2) || "U";
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -101,13 +137,27 @@ export const Layout = ({ children }: LayoutProps) => {
               }`}
             >
               <div
-                className={`h-8 w-8 rounded-lg flex items-center justify-center transition ${
+                className={`h-8 w-8 rounded-lg flex items-center justify-center transition overflow-hidden ${
                   isActive("/perfil")
                     ? "bg-primary/10"
                     : "bg-muted dark:bg-muted"
                 }`}
               >
-                <i className="fas fa-user text-sm"></i>
+                {profile?.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.full_name || "Usuário"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  user ? (
+                    <div className="h-full w-full bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center text-white text-xs font-semibold">
+                      {userInitials}
+                    </div>
+                  ) : (
+                    <i className="fas fa-user text-sm"></i>
+                  )
+                )}
               </div>
               <span className="text-xs font-medium mt-1">Meu Perfil</span>
             </Link>
