@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Upload, X, Loader2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { ImageCropDialog } from "./ImageCropDialog";
 
 interface FileUploadProps {
   bucket: string;
@@ -12,6 +13,8 @@ interface FileUploadProps {
   onRemove?: () => void;
   accept?: string;
   maxSizeMB?: number;
+  enableCrop?: boolean;
+  cropAspectRatio?: number;
 }
 
 export function FileUpload({
@@ -22,10 +25,15 @@ export function FileUpload({
   onRemove,
   accept = "image/*,.pdf,.doc,.docx",
   maxSizeMB = 20,
+  enableCrop = false,
+  cropAspectRatio = 1,
 }: FileUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
   const [fileType, setFileType] = useState<string>("");
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [tempPreview, setTempPreview] = useState<string>("");
   const { toast } = useToast();
 
   const isImage = (url: string) => {
@@ -88,6 +96,37 @@ export function FileUpload({
     }
 
     setFileType(file.type);
+
+    // If crop is enabled and file is an image, show crop dialog
+    if (enableCrop && file.type.startsWith("image/")) {
+      setSelectedFile(file);
+      const tempUrl = URL.createObjectURL(file);
+      setTempPreview(tempUrl);
+      setCropDialogOpen(true);
+      return;
+    }
+
+    // Otherwise upload directly
+    await uploadFile(file);
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    setCropDialogOpen(false);
+    
+    // Create a file from the cropped blob
+    const croppedFile = new File([croppedBlob], selectedFile?.name || "cropped.png", {
+      type: "image/png"
+    });
+    
+    await uploadFile(croppedFile);
+    
+    // Clean up temp preview
+    if (tempPreview) {
+      URL.revokeObjectURL(tempPreview);
+    }
+  };
+
+  const uploadFile = async (file: File) => {
     setUploading(true);
 
     try {
@@ -129,7 +168,7 @@ export function FileUpload({
 
       toast({
         title: "Sucesso",
-        description: "Arquivo enviado com sucesso (convertido para WebP)",
+        description: "Arquivo enviado com sucesso",
       });
     } catch (error: any) {
       console.error("Error uploading file:", error);
@@ -172,8 +211,20 @@ export function FileUpload({
   };
 
   return (
-    <div className="space-y-4">
-      {preview ? (
+    <>
+      <ImageCropDialog
+        open={cropDialogOpen}
+        imageUrl={tempPreview}
+        onClose={() => {
+          setCropDialogOpen(false);
+          if (tempPreview) URL.revokeObjectURL(tempPreview);
+        }}
+        onCropComplete={handleCropComplete}
+        aspectRatio={cropAspectRatio}
+      />
+      
+      <div className="space-y-4">
+        {preview ? (
         <div className="relative">
           {isImage(preview) ? (
             <img
@@ -232,7 +283,8 @@ export function FileUpload({
             disabled={uploading}
           />
         </label>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 }

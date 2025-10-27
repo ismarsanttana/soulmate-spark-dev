@@ -153,7 +153,7 @@ export function VisualCustomization() {
             <div>
               <Label htmlFor="logo">Logo do Aplicativo</Label>
               <p className="text-sm text-muted-foreground mb-2">
-                Imagem principal exibida no cabeçalho
+                Imagem principal exibida no cabeçalho. Proporção recomendada: 16:9
               </p>
               <FileUpload
                 bucket="app-assets"
@@ -161,13 +161,15 @@ export function VisualCustomization() {
                 currentUrl={logoUrl}
                 onUploadComplete={(url) => setLogoUrl(url)}
                 onRemove={() => setLogoUrl(undefined)}
+                enableCrop={true}
+                cropAspectRatio={16 / 9}
               />
             </div>
 
             <div>
-              <Label htmlFor="icon">Ícone do Aplicativo</Label>
+              <Label htmlFor="icon">Ícone do Aplicativo PWA</Label>
               <p className="text-sm text-muted-foreground mb-2">
-                Ícone pequeno para favicon e menus
+                Ícone usado no favicon e atalho do app. Proporção: 1:1 (quadrado). Tamanho recomendado: 512x512px
               </p>
               <FileUpload
                 bucket="app-assets"
@@ -175,6 +177,8 @@ export function VisualCustomization() {
                 currentUrl={iconUrl}
                 onUploadComplete={(url) => setIconUrl(url)}
                 onRemove={() => setIconUrl(undefined)}
+                enableCrop={true}
+                cropAspectRatio={1}
               />
             </div>
           </div>
