@@ -87,6 +87,23 @@ const NoticiaDetalhes = () => {
               >
                 {news.content}
               </div>
+
+              {news.gallery_images && Array.isArray(news.gallery_images) && news.gallery_images.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="text-xl font-semibold mb-4">Galeria de Fotos</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {news.gallery_images.map((imageUrl: string, index: number) => (
+                      <img
+                        key={index}
+                        src={imageUrl}
+                        alt={`${news.title} - Foto ${index + 1}`}
+                        className="w-full h-64 object-cover rounded-lg hover:scale-105 transition-transform cursor-pointer"
+                        onClick={() => window.open(imageUrl, '_blank')}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

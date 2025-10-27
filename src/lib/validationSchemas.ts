@@ -28,6 +28,8 @@ export const newsSchema = z.object({
     .max(50, "A categoria não pode exceder 50 caracteres"),
   
   image_url: z.string().optional(),
+  
+  gallery_images: z.array(z.string()).optional().default([]),
 });
 
 // Schema para eventos

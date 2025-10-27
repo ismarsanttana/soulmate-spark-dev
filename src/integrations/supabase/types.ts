@@ -715,6 +715,7 @@ export type Database = {
           category: string
           content: string
           created_at: string
+          gallery_images: Json | null
           id: string
           image_url: string | null
           published_at: string
@@ -726,6 +727,7 @@ export type Database = {
           category: string
           content: string
           created_at?: string
+          gallery_images?: Json | null
           id?: string
           image_url?: string | null
           published_at?: string
@@ -737,6 +739,7 @@ export type Database = {
           category?: string
           content?: string
           created_at?: string
+          gallery_images?: Json | null
           id?: string
           image_url?: string | null
           published_at?: string

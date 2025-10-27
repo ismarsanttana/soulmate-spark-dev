@@ -40,6 +40,7 @@ export function NewsManagementSec() {
     content: "",
     category: "geral",
     image_url: "",
+    gallery_images: [] as string[],
   });
   const [storyData, setStoryData] = useState({
     story_title: "",
@@ -134,14 +135,14 @@ export function NewsManagementSec() {
   });
 
   const resetForm = () => {
-    setFormData({ title: "", summary: "", content: "", category: "geral", image_url: "" });
+    setFormData({ title: "", summary: "", content: "", category: "geral", image_url: "", gallery_images: [] });
     setStoryData({ story_title: "", story_image: "" });
     setCreateStory(false);
     setEditingNews(null);
     setDialogOpen(false);
   };
 
-  const handleEdit = (news: News) => {
+  const handleEdit = (news: News & { gallery_images?: string[] }) => {
     setEditingNews(news);
     setFormData({
       title: news.title,
@@ -149,6 +150,7 @@ export function NewsManagementSec() {
       content: news.content,
       category: news.category,
       image_url: news.image_url || "",
+      gallery_images: news.gallery_images || [],
     });
     setDialogOpen(true);
   };
@@ -222,6 +224,46 @@ export function NewsManagementSec() {
                 onUploadComplete={(url) => setFormData({ ...formData, image_url: url })}
                 currentUrl={formData.image_url}
               />
+              
+              <div className="space-y-2">
+                <Label>Galeria de Fotos</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Adicione múltiplas fotos que serão exibidas na galeria da notícia
+                </p>
+                <FileUpload
+                  bucket="news-images"
+                  path="noticias/gallery"
+                  onUploadComplete={(url) => setFormData({ 
+                    ...formData, 
+                    gallery_images: [...formData.gallery_images, url] 
+                  })}
+                />
+                {formData.gallery_images.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mt-3">
+                    {formData.gallery_images.map((url, index) => (
+                      <div key={index} className="relative group">
+                        <img 
+                          src={url} 
+                          alt={`Galeria ${index + 1}`} 
+                          className="w-full h-24 object-cover rounded"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => setFormData({
+                            ...formData,
+                            gallery_images: formData.gallery_images.filter((_, i) => i !== index)
+                          })}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               
               {!editingNews && (
                 <div className="border rounded-lg p-4 space-y-4">
