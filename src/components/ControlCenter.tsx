@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "./theme-provider";
 import { Sun, Moon, MessageSquare, Mic, HeadphonesIcon } from "lucide-react";
+import { VoiceInterface } from "./VoiceInterface";
 
 export const ControlCenter = () => {
   const { theme, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
+  const [showVoiceInterface, setShowVoiceInterface] = useState(false);
   const [position, setPosition] = useState({ x: window.innerWidth - 80, y: window.innerHeight - 350 });
   const [savedPosition, setSavedPosition] = useState({ x: window.innerWidth - 80, y: window.innerHeight - 350 });
   const [isDragging, setIsDragging] = useState(false);
@@ -174,8 +176,7 @@ export const ControlCenter = () => {
       icon: <Mic className="w-5 h-5" />,
       label: "Assistente Voz",
       onClick: () => {
-        // TODO: Implementar assistente de voz
-        console.log("Abrir assistente de voz");
+        setShowVoiceInterface(true);
         setIsOpen(false);
       },
       color: "from-purple-500 to-pink-500",
@@ -194,6 +195,11 @@ export const ControlCenter = () => {
 
   return (
     <>
+      {/* Voice Interface Modal */}
+      {showVoiceInterface && (
+        <VoiceInterface onClose={() => setShowVoiceInterface(false)} />
+      )}
+
       {/* Overlay quando o menu está aberto */}
       {isOpen && (
         <div
