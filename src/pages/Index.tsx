@@ -8,6 +8,7 @@ import type { User } from "@supabase/supabase-js";
 import afogadosImage from "@/assets/afogados_da_ingazeira_pe.png";
 import { getIconComponent } from "@/lib/iconMapper";
 import { StoryViewer } from "@/components/StoryViewer";
+import { JobVacanciesSection } from "@/components/JobVacanciesSection";
 
 // Importar secretarias e serviços
 const defaultSecretarias = [
@@ -416,6 +417,9 @@ const Index = () => {
           })}
         </div>
       </div>
+
+      {/* Vagas de Emprego SINE */}
+      <JobVacanciesSection user={user} />
 
       {/* Story Viewer */}
       {stories && stories.length > 0 && (

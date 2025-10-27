@@ -541,6 +541,122 @@ export type Database = {
           },
         ]
       }
+      job_applications: {
+        Row: {
+          cover_letter: string | null
+          created_at: string
+          email: string
+          id: string
+          notes: string | null
+          phone: string
+          resume_url: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          vacancy_id: string
+        }
+        Insert: {
+          cover_letter?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          notes?: string | null
+          phone: string
+          resume_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          vacancy_id: string
+        }
+        Update: {
+          cover_letter?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          notes?: string | null
+          phone?: string
+          resume_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vacancy_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_vacancy_id_fkey"
+            columns: ["vacancy_id"]
+            isOneToOne: false
+            referencedRelation: "job_vacancies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_vacancies: {
+        Row: {
+          applications_count: number
+          benefits: string | null
+          company: string
+          created_at: string
+          created_by: string | null
+          description: string
+          expires_at: string | null
+          id: string
+          job_type: string
+          location: string
+          requirements: string | null
+          salary_range: string | null
+          status: string
+          title: string
+          updated_at: string
+          vacancies_count: number
+          workload: string | null
+        }
+        Insert: {
+          applications_count?: number
+          benefits?: string | null
+          company: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          expires_at?: string | null
+          id?: string
+          job_type?: string
+          location: string
+          requirements?: string | null
+          salary_range?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          vacancies_count?: number
+          workload?: string | null
+        }
+        Update: {
+          applications_count?: number
+          benefits?: string | null
+          company?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          expires_at?: string | null
+          id?: string
+          job_type?: string
+          location?: string
+          requirements?: string | null
+          salary_range?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          vacancies_count?: number
+          workload?: string | null
+        }
+        Relationships: []
+      }
       live_streams: {
         Row: {
           created_at: string
