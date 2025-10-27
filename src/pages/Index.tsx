@@ -184,16 +184,17 @@ const Index = () => {
               to={getRouteForSlug(secretaria.slug)}
               className="service-btn rounded-2xl p-3 text-center cursor-pointer card-hover"
               style={{ 
-                backgroundColor: secretaria.color,
-                color: 'white'
+                backgroundColor: `${secretaria.color}15`,
+                color: secretaria.color 
               }}
             >
               <div 
-                className="h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center bg-white/20"
+                className="bg-card h-10 w-10 mx-auto mb-2 rounded-xl flex items-center justify-center"
+                style={{ color: secretaria.color }}
               >
-                <IconComponent className="service-icon h-5 w-5 text-white" />
+                <IconComponent className="service-icon h-5 w-5" />
               </div>
-              <span className="text-xs font-medium text-white">{secretaria.name}</span>
+              <span className="text-xs font-medium">{secretaria.name}</span>
             </Link>
           );
         })}
