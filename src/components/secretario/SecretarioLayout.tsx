@@ -97,11 +97,11 @@ export function SecretarioLayout({ children, activeTab, onTabChange }: Secretari
       <header className="ascom-topbar sticky top-0 z-50 text-white">
         <div className="max-w-[1440px] mx-auto h-16 flex items-center justify-between px-5">
           <div className="flex items-center gap-3">
-            {appSettings?.logo_url ? (
+            {appSettings?.icon_url ? (
               <img 
-                src={appSettings.logo_url} 
-                alt="Logo" 
-                className="h-14 w-14 object-contain rounded-lg p-1"
+                src={appSettings.icon_url} 
+                alt="Ícone do App" 
+                className="h-12 w-12 object-contain rounded-lg p-1"
                 style={{
                   backgroundColor: appSettings.logo_background_color || "transparent",
                 }}
