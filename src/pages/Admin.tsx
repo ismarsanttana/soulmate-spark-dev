@@ -10,6 +10,7 @@ import { UserRelationshipsManagement } from "@/components/admin/UserRelationship
 import { ContentManagement } from "@/components/admin/ContentManagement";
 import { Statistics } from "@/components/admin/Statistics";
 import ReportRequestsManagement from "@/components/admin/ReportRequestsManagement";
+import { VacanciesManagement } from "@/components/admin/VacanciesManagement";
 
 const AdminContent = () => {
   const [activeTab, setActiveTab] = useState("visual");
@@ -28,6 +29,8 @@ const AdminContent = () => {
         return <ContentManagement />;
       case "reports":
         return <ReportRequestsManagement />;
+      case "vacancies":
+        return <VacanciesManagement />;
       case "stats":
         return <Statistics />;
       default:
