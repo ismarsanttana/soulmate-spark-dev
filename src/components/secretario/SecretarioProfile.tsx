@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { User, Mail, Phone, FileText, Camera, AlertCircle } from "lucide-react";
+import { User, Mail, Phone, FileText, Camera, AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ImageCropDialog } from "@/components/admin/ImageCropDialog";
 
 interface FormState {
   fullName: string;
@@ -30,6 +31,8 @@ export function SecretarioProfile() {
   const [savingProfile, setSavingProfile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const queryClient = useQueryClient();
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedImageForCrop, setSelectedImageForCrop] = useState<string | null>(null);
 
   const { data: user } = useQuery({
     queryKey: ["current-user"],
@@ -130,23 +133,38 @@ export function SecretarioProfile() {
       return;
     }
 
+    // Create preview URL for crop dialog
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImageForCrop(imageUrl);
+    setCropDialogOpen(true);
+    
+    // Clear file input
+    event.target.value = "";
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!user) return;
+    
+    setCropDialogOpen(false);
     setAvatarUploading(true);
+
     try {
-      const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const fileExt = "png";
       const filePath = `${user.id}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("app-assets")
-        .upload(`avatars/${filePath}`, file, {
+        .from("avatars")
+        .upload(filePath, croppedBlob, {
           upsert: true,
           cacheControl: "3600",
+          contentType: "image/png",
         });
 
       if (uploadError) throw uploadError;
 
       const { data: publicData } = supabase.storage
-        .from("app-assets")
-        .getPublicUrl(`avatars/${filePath}`);
+        .from("avatars")
+        .getPublicUrl(filePath);
 
       const publicUrl = publicData.publicUrl;
 
@@ -166,9 +184,18 @@ export function SecretarioProfile() {
       toast.error("Não foi possível atualizar a foto do perfil.");
     } finally {
       setAvatarUploading(false);
-      if (event.target) {
-        event.target.value = "";
+      if (selectedImageForCrop) {
+        URL.revokeObjectURL(selectedImageForCrop);
+        setSelectedImageForCrop(null);
       }
+    }
+  };
+
+  const handleCropDialogClose = () => {
+    setCropDialogOpen(false);
+    if (selectedImageForCrop) {
+      URL.revokeObjectURL(selectedImageForCrop);
+      setSelectedImageForCrop(null);
     }
   };
 
@@ -267,8 +294,17 @@ export function SecretarioProfile() {
                   disabled={avatarUploading}
                   className="gap-2"
                 >
-                  <Camera className="h-4 w-4" />
-                  {avatarUploading ? "Enviando..." : "Alterar Foto"}
+                  {avatarUploading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="h-4 w-4" />
+                      Alterar Foto
+                    </>
+                  )}
                 </Button>
                 <p className="text-xs text-muted-foreground">
                   JPG, PNG ou WEBP. Máximo 3MB.
@@ -378,6 +414,16 @@ export function SecretarioProfile() {
           para garantir a segurança da sua conta. Entre em contato com o suporte caso precise redefinir sua senha.
         </AlertDescription>
       </Alert>
+
+      {selectedImageForCrop && (
+        <ImageCropDialog
+          open={cropDialogOpen}
+          imageUrl={selectedImageForCrop}
+          onClose={handleCropDialogClose}
+          onCropComplete={handleCropComplete}
+          aspectRatio={1}
+        />
+      )}
     </div>
   );
 }

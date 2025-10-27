@@ -1,4 +1,4 @@
-﻿import { Layout } from "@/components/Layout";
+import { Layout } from "@/components/Layout";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
@@ -8,6 +8,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { RolePanelsSection } from "@/components/profile/RolePanelsSection";
 import { Loader2 } from "lucide-react";
+import { ImageCropDialog } from "@/components/admin/ImageCropDialog";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type ProtocolRow = Database["public"]["Tables"]["ombudsman_protocols"]["Row"];
@@ -91,6 +92,8 @@ const Profile = () => {
   const [savingProfile, setSavingProfile] = useState(false);
   const [updatingPassword, setUpdatingPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedImageForCrop, setSelectedImageForCrop] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -271,16 +274,31 @@ const Profile = () => {
       return;
     }
 
+    // Create preview URL for crop dialog
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImageForCrop(imageUrl);
+    setCropDialogOpen(true);
+    
+    // Clear file input
+    event.target.value = "";
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!user) return;
+    
+    setCropDialogOpen(false);
     setAvatarUploading(true);
+
     try {
-      const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const fileExt = "png";
       const filePath = `${user.id}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, file, {
+        .upload(filePath, croppedBlob, {
           upsert: true,
           cacheControl: "3600",
+          contentType: "image/png",
         });
 
       if (uploadError) throw uploadError;
@@ -312,9 +330,18 @@ const Profile = () => {
       toast.error("Não foi possível atualizar a foto do perfil.");
     } finally {
       setAvatarUploading(false);
-      if (event.target) {
-        event.target.value = "";
+      if (selectedImageForCrop) {
+        URL.revokeObjectURL(selectedImageForCrop);
+        setSelectedImageForCrop(null);
       }
+    }
+  };
+
+  const handleCropDialogClose = () => {
+    setCropDialogOpen(false);
+    if (selectedImageForCrop) {
+      URL.revokeObjectURL(selectedImageForCrop);
+      setSelectedImageForCrop(null);
     }
   };
 
@@ -846,6 +873,16 @@ const Profile = () => {
         className="hidden"
         onChange={handleAvatarChange}
       />
+
+      {selectedImageForCrop && (
+        <ImageCropDialog
+          open={cropDialogOpen}
+          imageUrl={selectedImageForCrop}
+          onClose={handleCropDialogClose}
+          onCropComplete={handleCropComplete}
+          aspectRatio={1}
+        />
+      )}
     </Layout>
   );
 };
