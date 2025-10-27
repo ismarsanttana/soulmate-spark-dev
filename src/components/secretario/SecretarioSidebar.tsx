@@ -81,9 +81,9 @@ export function SecretarioSidebar({ activeTab, onTabChange }: SecretarioSidebarP
           key={item.value}
           onClick={() => onTabChange(item.value)}
           className={cn(
-            "ascom-sidebar-icon relative justify-start",
+            "ascom-sidebar-icon relative",
             activeTab === item.value && "active",
-            isExpanded && "px-3"
+            isExpanded ? "justify-start" : "justify-center"
           )}
           title={item.title}
         >

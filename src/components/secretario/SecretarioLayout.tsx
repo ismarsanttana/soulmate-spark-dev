@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { SecretarioSidebar } from "./SecretarioSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut, Building2, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "@/components/theme-provider";
 import { useQuery } from "@tanstack/react-query";
+import { getSecretariaBySlug } from "@/lib/secretarias";
 
 interface SecretarioLayoutProps {
   children: ReactNode;
@@ -29,6 +31,44 @@ export function SecretarioLayout({ children, activeTab, onTabChange }: Secretari
 
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: userProfile } = useQuery({
+    queryKey: ["user-profile-secretario"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+      return profile;
+    },
+  });
+
+  const { data: userSecretariat } = useQuery({
+    queryKey: ["user-secretariat"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: assignment } = await supabase
+        .from("secretary_assignments")
+        .select("secretaria_slug")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (assignment?.secretaria_slug) {
+        const secretaria = getSecretariaBySlug(assignment.secretaria_slug);
+        return secretaria?.title || "Secretário";
+      }
+      
+      return "Secretário";
     },
   });
 
@@ -63,7 +103,25 @@ export function SecretarioLayout({ children, activeTab, onTabChange }: Secretari
             </span>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            {/* User Profile Info */}
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10 border-2 border-white/20">
+                <AvatarImage src={userProfile?.avatar_url || ""} alt={userProfile?.full_name || ""} />
+                <AvatarFallback className="bg-white/10 text-white text-sm font-semibold">
+                  {userProfile?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || "US"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-white leading-tight">
+                  {userProfile?.full_name || "Usuário"}
+                </span>
+                <span className="text-xs text-white/70 leading-tight">
+                  {userSecretariat || "Secretário"}
+                </span>
+              </div>
+            </div>
+
             <Button
               variant="ghost"
               size="icon"

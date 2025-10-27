@@ -178,7 +178,6 @@ All colors MUST be HSL.
   .ascom-sidebar-icon {
     display: flex;
     align-items: center;
-    justify-content: center;
     height: 44px;
     border-radius: 12px;
     color: hsl(var(--muted-foreground));
