@@ -36,6 +36,7 @@ import SecretariaDetalhes from "./pages/SecretariaDetalhes";
 import SecretariasList from "./pages/SecretariasList";
 import FacialTest from "./pages/FacialTest";
 import ExpoAgro from "./pages/ExpoAgro";
+import Download from "./pages/Download";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ const AnimatedRoutes = () => {
           <Route path="/notificacoes" element={<Notificacoes />} />
           <Route path="/noticias" element={<Noticias />} />
           <Route path="/noticia/:id" element={<NoticiaDetalhes />} />
+          <Route path="/download" element={<Download />} />
           <Route path="/agenda" element={<Navigate to="/" replace />} />
           
           {/* Admin & Panels */}
