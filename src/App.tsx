@@ -35,6 +35,7 @@ import PainelPais from "./pages/PainelPais";
 import SecretariaDetalhes from "./pages/SecretariaDetalhes";
 import SecretariasList from "./pages/SecretariasList";
 import FacialTest from "./pages/FacialTest";
+import ExpoAgro from "./pages/ExpoAgro";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const AnimatedRoutes = () => {
           {/* Dynamic Secretarias Routes */}
           <Route path="/servicos" element={<SecretariasList />} />
           <Route path="/secretarias/:slug" element={<SecretariaDetalhes />} />
+          <Route path="/expo-agro" element={<ExpoAgro />} />
           
           {/* Secretarias Routes */}
           <Route path="/saude" element={<Saude />} />

@@ -41,21 +41,21 @@ export const Layout = ({ children }: LayoutProps) => {
             </Link>
 
             <Link
-              to="/servicos"
+              to="/expo-agro"
               className={`flex flex-col items-center p-2 transition ${
-                isActive("/servicos") ? "text-primary" : "text-muted-foreground"
+                isActive("/expo-agro") ? "text-primary" : "text-muted-foreground"
               }`}
             >
               <div
                 className={`h-8 w-8 rounded-lg flex items-center justify-center transition ${
-                  isActive("/servicos")
+                  isActive("/expo-agro")
                     ? "bg-primary/10"
                     : "bg-muted dark:bg-muted"
                 }`}
               >
-                <i className="fas fa-concierge-bell text-sm"></i>
+                <i className="fas fa-tractor text-sm"></i>
               </div>
-              <span className="text-xs font-medium mt-1">Serviços</span>
+              <span className="text-xs font-medium mt-1">Expo Agro</span>
             </Link>
 
             <Link
