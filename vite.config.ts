@@ -42,7 +42,9 @@ export default defineConfig(({ mode }) => ({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}'],
+        globPatterns: ['**/*.{js,css,html,ico,svg,webp}'],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MB
+        globIgnores: ['**/afogados_da_ingazeira_pe*.png'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/hqhjbelcouanvcrqudbj\.supabase\.co\/.*/i,
@@ -52,6 +54,17 @@ export default defineConfig(({ mode }) => ({
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
+              }
+            }
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
               }
             }
           }
