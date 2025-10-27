@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "./theme-provider";
 import { Sun, Moon, MessageSquare, Mic, HeadphonesIcon } from "lucide-react";
-import { VoiceInterface } from "./VoiceInterface";
+import VoiceInterface from "./VoiceInterface";
 
 export const ControlCenter = () => {
   const { theme, toggleTheme } = useTheme();

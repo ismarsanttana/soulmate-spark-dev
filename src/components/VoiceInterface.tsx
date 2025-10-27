@@ -1,364 +1,318 @@
-import { useState, useEffect, useRef } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { Mic, X, Settings } from "lucide-react";
-import { AudioRecorder, encodeAudioForAPI, AudioQueue } from "@/utils/RealtimeAudio";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import React, { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Mic, MicOff, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface VoiceInterfaceProps {
   onClose: () => void;
 }
 
-const AVAILABLE_VOICES = [
-  { id: "shimmer", name: "Shimmer ⭐", description: "Voz feminina natural e suave (Recomendado)" },
-  { id: "nova", name: "Nova ⭐", description: "Voz feminina expressiva e natural (Recomendado)" },
-  { id: "alloy", name: "Alloy", description: "Voz neutra e equilibrada" },
-  { id: "echo", name: "Echo", description: "Voz masculina clara" },
-  { id: "ash", name: "Ash", description: "Voz masculina profunda" },
-  { id: "ballad", name: "Ballad", description: "Voz masculina calorosa" },
-  { id: "coral", name: "Coral", description: "Voz feminina clara" },
-  { id: "sage", name: "Sage", description: "Voz neutra calma" },
-  { id: "verse", name: "Verse", description: "Voz masculina confiante" },
-];
+const SAVED_PROMPT_ID = "pmpt_68feb9e72ed88197b31c41ed47c4d224001ca760f75b6d43";
 
-export const VoiceInterface = ({ onClose }: VoiceInterfaceProps) => {
+const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onClose }) => {
   const { toast } = useToast();
+  const [status, setStatus] = useState("pronto");
   const [isConnected, setIsConnected] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [selectedVoice, setSelectedVoice] = useState("shimmer"); // Voz natural e suave por padrão
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
-  const wsRef = useRef<WebSocket | null>(null);
-  const recorderRef = useRef<AudioRecorder | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const audioQueueRef = useRef<AudioQueue | null>(null);
-  const autoConnectRef = useRef(false);
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const dcRef = useRef<RTCDataChannel | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const connectWebSocket = () => {
+  const getMedia = async () => {
     try {
-      const wsUrl = `wss://hqhjbelcouanvcrqudbj.supabase.co/functions/v1/realtime-voice`;
-      
-      console.log("Connecting to:", wsUrl);
-
-      wsRef.current = new WebSocket(wsUrl);
-
-      wsRef.current.onopen = () => {
-        console.log("WebSocket connected");
-        setIsConnected(true);
-        
-        // Start session with selected voice
-        wsRef.current?.send(JSON.stringify({
-          type: "start_session",
-          voice: selectedVoice
-        }));
-
-        toast({
-          title: "Conectado",
-          description: "Assistente de voz pronto",
-        });
-      };
-
-      wsRef.current.onmessage = async (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log("Received event:", data.type);
-
-          switch (data.type) {
-            case "session.created":
-              console.log("Session created");
-              break;
-
-            case "session.updated":
-              console.log("Session updated - ready to talk");
-              break;
-
-            case "input_audio_buffer.speech_started":
-              console.log("Speech started");
-              setIsRecording(true);
-              setIsSpeaking(false);
-              break;
-
-            case "input_audio_buffer.speech_stopped":
-              console.log("Speech stopped");
-              setIsRecording(false);
-              break;
-
-            case "response.audio.delta":
-              if (data.delta) {
-                const binaryString = atob(data.delta);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                  bytes[i] = binaryString.charCodeAt(i);
-                }
-
-                if (!audioContextRef.current) {
-                  audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-                  audioQueueRef.current = new AudioQueue(audioContextRef.current);
-                }
-
-                await audioQueueRef.current?.addToQueue(bytes);
-                setIsSpeaking(true);
-                setIsRecording(false);
-              }
-              break;
-
-            case "response.audio.done":
-              console.log("Audio response done");
-              setIsSpeaking(false);
-              break;
-
-            case "response.done":
-              console.log("Response complete");
-              break;
-
-            case "error":
-              console.error("Error from server:", data.error);
-              toast({
-                title: "Erro",
-                description: typeof data.error === 'string' ? data.error : (data.error?.message || 'Erro desconhecido'),
-                variant: "destructive",
-              });
-              break;
-
-            case "connection_closed":
-              handleReconnect();
-              break;
-          }
-        } catch (error) {
-          console.error("Error processing message:", error);
-        }
-      };
-
-      wsRef.current.onerror = (error) => {
-        console.error("WebSocket error:", error);
-        toast({
-          title: "Erro de Conexão",
-          description: "Não foi possível conectar ao servidor",
-          variant: "destructive",
-        });
-      };
-
-      wsRef.current.onclose = () => {
-        console.log("WebSocket closed");
-        setIsConnected(false);
-        setIsRecording(false);
-        setIsSpeaking(false);
-      };
-
-    } catch (error) {
-      console.error("Error connecting:", error);
-      toast({
-        title: "Erro",
-        description: "Falha ao conectar",
-        variant: "destructive",
+      return await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
       });
-    }
-  };
-
-  const handleReconnect = () => {
-    console.log("Attempting to reconnect...");
-    setTimeout(() => {
-      connectWebSocket();
-      startRecording();
-    }, 2000);
-  };
-
-  const startRecording = async () => {
-    try {
-      if (!audioContextRef.current) {
-        audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-        audioQueueRef.current = new AudioQueue(audioContextRef.current);
-      }
-
-      recorderRef.current = new AudioRecorder((audioData) => {
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-          const encoded = encodeAudioForAPI(audioData);
-          wsRef.current.send(JSON.stringify({
-            type: 'input_audio_buffer.append',
-            audio: encoded
-          }));
-        }
-      });
-
-      await recorderRef.current.start();
-      console.log("Recording started");
     } catch (error) {
-      console.error("Error starting recording:", error);
+      console.error('Erro ao acessar microfone:', error);
       toast({
-        title: "Erro no Microfone",
+        title: "Erro no microfone",
         description: "Não foi possível acessar o microfone",
         variant: "destructive",
       });
+      throw error;
     }
   };
 
-  const disconnect = () => {
-    recorderRef.current?.stop();
-    wsRef.current?.close();
-    audioQueueRef.current?.clear();
-    setIsConnected(false);
-    setIsRecording(false);
-    setIsSpeaking(false);
-  };
-
-  const handleClose = () => {
-    disconnect();
-    onClose();
-  };
-
-  const handleVoiceChange = (voiceId: string) => {
-    setSelectedVoice(voiceId);
-    
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      console.log("Changing voice to:", voiceId);
-      
-      // Disconnect current session and reconnect with new voice
-      disconnect();
-      
-      // Small delay to ensure clean disconnect
-      setTimeout(() => {
-        connectWebSocket();
-        startRecording();
-        
-        toast({
-          title: "Voz alterada",
-          description: AVAILABLE_VOICES.find(v => v.id === voiceId)?.name,
-        });
-      }, 500);
-    } else {
-      toast({
-        title: "Voz selecionada",
-        description: `${AVAILABLE_VOICES.find(v => v.id === voiceId)?.name} será usada na próxima conexão`,
+  const fetchEphemeralKey = async () => {
+    try {
+      setStatus("obtendo token...");
+      const { data, error } = await supabase.functions.invoke('realtime-token', {
+        body: {}
       });
+
+      if (error) throw error;
+      
+      const key = data?.client_secret?.value;
+      if (!key) throw new Error("Token inválido");
+      
+      return key;
+    } catch (error) {
+      console.error('Erro ao obter token:', error);
+      throw error;
     }
-    
-    setIsSettingsOpen(false);
   };
 
-  // Auto-connect on mount
-  useEffect(() => {
-    if (!autoConnectRef.current) {
-      autoConnectRef.current = true;
-      connectWebSocket();
-      startRecording();
-    }
+  const negotiateSDP = async (ephemeralKey: string, offerSDP: string, model = "gpt-4o-realtime-preview-2024-12-17") => {
+    try {
+      setStatus("negociando conexão...");
+      
+      // Tenta primeiro o endpoint GA
+      let resp = await fetch(`https://api.openai.com/v1/realtime/calls?model=${encodeURIComponent(model)}`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${ephemeralKey}`,
+          "Content-Type": "application/sdp"
+        },
+        body: offerSDP
+      });
 
+      if (!resp.ok) {
+        // Fallback para endpoint anterior
+        resp = await fetch(`https://api.openai.com/v1/realtime?model=${encodeURIComponent(model)}`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${ephemeralKey}`,
+            "Content-Type": "application/sdp"
+          },
+          body: offerSDP
+        });
+      }
+
+      if (!resp.ok) {
+        const errorText = await resp.text();
+        throw new Error(`Falha no SDP: ${errorText}`);
+      }
+
+      return await resp.text();
+    } catch (error) {
+      console.error('Erro na negociação SDP:', error);
+      throw error;
+    }
+  };
+
+  const applySavedPrompt = () => {
+    if (!dcRef.current || dcRef.current.readyState !== "open") return;
+    
+    const msg = {
+      type: "session.update",
+      session: {
+        prompt: { id: SAVED_PROMPT_ID },
+        voice: "shimmer",
+        turn_detection: {
+          type: "server_vad",
+          threshold: 0.5,
+          prefix_padding_ms: 300,
+          silence_duration_ms: 500
+        },
+        input_audio_format: "pcm16",
+        output_audio_format: "pcm16"
+      }
+    };
+    
+    dcRef.current.send(JSON.stringify(msg));
+    console.log("[realtime] Prompt salvo aplicado (session.update)");
+    setStatus("prompt configurado");
+  };
+
+  const startConnection = async () => {
+    try {
+      setStatus("conectando...");
+      
+      // Obter token efêmero
+      const ephemeralKey = await fetchEphemeralKey();
+      
+      // Obter mídia local
+      const stream = await getMedia();
+      localStreamRef.current = stream;
+      
+      // Criar peer connection
+      const pc = new RTCPeerConnection();
+      pcRef.current = pc;
+      
+      // Configurar áudio remoto
+      pc.ontrack = (e) => {
+        console.log("[realtime] Track recebido");
+        if (remoteAudioRef.current) {
+          remoteAudioRef.current.srcObject = e.streams[0];
+          setStatus("ouvindo...");
+        }
+      };
+      
+      // Adicionar track local
+      stream.getTracks().forEach(track => pc.addTrack(track, stream));
+      
+      // Configurar data channel
+      const dc = pc.createDataChannel("oai-events");
+      dcRef.current = dc;
+      
+      dc.onopen = () => {
+        console.log("[realtime] DataChannel aberto");
+        applySavedPrompt();
+      };
+      
+      dc.onmessage = (e) => {
+        try {
+          const event = JSON.parse(e.data);
+          console.log("[realtime] Evento:", event.type);
+          
+          if (event.type === 'session.updated') {
+            setStatus("pronto para falar");
+            setIsConnected(true);
+          }
+        } catch (error) {
+          console.error('Erro ao processar mensagem:', error);
+        }
+      };
+      
+      // Criar e enviar offer
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      
+      // Obter answer da OpenAI
+      const answerSDP = await negotiateSDP(ephemeralKey, offer.sdp!);
+      
+      const answer: RTCSessionDescriptionInit = {
+        type: "answer",
+        sdp: answerSDP,
+      };
+      
+      await pc.setRemoteDescription(answer);
+      console.log("[realtime] Conexão WebRTC estabelecida");
+      
+      toast({
+        title: "Conectado!",
+        description: "Você já pode começar a falar com o assistente.",
+      });
+      
+    } catch (error) {
+      console.error('Erro ao conectar:', error);
+      setStatus("erro na conexão");
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Falha ao conectar",
+        variant: "destructive",
+      });
+      stopConnection();
+    }
+  };
+
+  const stopConnection = () => {
+    console.log("[realtime] Finalizando conexão");
+    
+    if (dcRef.current) {
+      dcRef.current.close();
+      dcRef.current = null;
+    }
+    
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
+    }
+    
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(track => track.stop());
+      localStreamRef.current = null;
+    }
+    
+    setIsConnected(false);
+    setIsMuted(false);
+    setStatus("desconectado");
+  };
+
+  const toggleMute = () => {
+    if (!localStreamRef.current) return;
+    
+    const audioTrack = localStreamRef.current.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = !audioTrack.enabled;
+      setIsMuted(!audioTrack.enabled);
+      setStatus(audioTrack.enabled ? "ouvindo..." : "mutado");
+    }
+  };
+
+  const unmute = () => {
+    if (!localStreamRef.current) return;
+    
+    const audioTrack = localStreamRef.current.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = true;
+      setIsMuted(false);
+      setStatus("ouvindo...");
+    }
+  };
+
+  useEffect(() => {
     return () => {
-      disconnect();
+      stopConnection();
     };
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-black z-50 flex items-center justify-center">
-      {/* Top buttons */}
-      <div className="absolute top-8 right-8 flex items-center gap-3 z-10">
-        {/* Settings button */}
-        <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-          <DialogTrigger asChild>
-            <button
-              className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
-            >
-              <Settings className="w-6 h-6 text-white" />
-            </button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Configurações de Voz</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3 mt-4">
-              {AVAILABLE_VOICES.map((voice) => (
-                <Button
-                  key={voice.id}
-                  onClick={() => handleVoiceChange(voice.id)}
-                  variant={selectedVoice === voice.id ? "default" : "outline"}
-                  className="w-full justify-start text-left h-auto py-3"
-                >
-                  <div>
-                    <div className="font-medium">{voice.name}</div>
-                    <div className="text-sm opacity-70">{voice.description}</div>
-                  </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-accent/20 backdrop-blur-sm">
+      {/* Close button */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 p-3 rounded-full bg-background/80 backdrop-blur-sm border border-border hover:bg-destructive/20 transition-colors"
+      >
+        <X className="w-5 h-5" />
+      </button>
+
+      {/* Main content */}
+      <div className="flex flex-col items-center gap-8 p-8 max-w-2xl w-full">
+        <header className="text-center">
+          <h1 className="text-3xl font-bold mb-2">Assistente de Conversação</h1>
+          <p className="text-muted-foreground">
+            {isConnected ? "Fale naturalmente com o assistente" : "Clique em Iniciar para começar"}
+          </p>
+        </header>
+
+        {/* Card com controles */}
+        <div className="w-full bg-card border border-border rounded-2xl p-6 shadow-lg">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <div className="flex gap-2 flex-wrap">
+              {!isConnected ? (
+                <Button onClick={startConnection} size="lg">
+                  Iniciar
                 </Button>
-              ))}
+              ) : (
+                <>
+                  <Button onClick={stopConnection} variant="secondary" size="lg">
+                    Finalizar
+                  </Button>
+                  {isMuted ? (
+                    <Button onClick={unmute} variant="outline" size="lg">
+                      <MicOff className="w-4 h-4 mr-2" />
+                      Ativar mic
+                    </Button>
+                  ) : (
+                    <Button onClick={toggleMute} variant="outline" size="lg">
+                      <Mic className="w-4 h-4 mr-2" />
+                      Mutar
+                    </Button>
+                  )}
+                </>
+              )}
             </div>
-          </DialogContent>
-        </Dialog>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Status:</span>
+              <span className="text-sm font-medium">{status}</span>
+            </div>
+          </div>
 
-        {/* Close button */}
-        <button
-          onClick={handleClose}
-          className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
-        >
-          <X className="w-6 h-6 text-white" />
-        </button>
-      </div>
-
-      {/* Central Orb */}
-      <div className="relative flex items-center justify-center">
-        {/* Animated rings */}
-        {(isRecording || isSpeaking) && (
-          <>
-            <div className="absolute w-64 h-64 rounded-full border-2 border-blue-500/30 animate-ping" />
-            <div className="absolute w-80 h-80 rounded-full border border-blue-400/20 animate-pulse" />
-            {isRecording && (
-              <>
-                <div className="absolute w-56 h-56 rounded-full border-2 border-blue-400/40 animate-ping animation-delay-150" />
-                <div className="absolute w-72 h-72 rounded-full border border-blue-300/30 animate-pulse animation-delay-300" />
-              </>
-            )}
-          </>
-        )}
-        
-        {/* Main orb */}
-        <div className={`relative w-48 h-48 rounded-full transition-all duration-300 ${
-          isRecording 
-            ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-[0_0_80px_rgba(59,130,246,0.8)] animate-pulse' 
-            : isSpeaking
-            ? 'bg-gradient-to-br from-cyan-400 to-blue-500 shadow-[0_0_60px_rgba(6,182,212,0.6)] animate-pulse'
-            : 'bg-gradient-to-br from-blue-500/50 to-cyan-500/50 shadow-[0_0_40px_rgba(59,130,246,0.3)]'
-        }`}>
-          {/* Inner glow */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent to-white/20" />
-          
-          {/* Pulsing effect when speaking */}
-          {isSpeaking && (
-            <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" />
-          )}
+          {/* Áudio remoto (hidden) */}
+          <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
         </div>
-      </div>
 
-      {/* Bottom controls - only microphone button if not connected */}
-      {!isConnected && (
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
-          <button
-            onClick={() => {
-              connectWebSocket();
-              startRecording();
-            }}
-            className="w-16 h-16 rounded-full bg-white hover:bg-white/90 flex items-center justify-center transition-all shadow-lg"
-          >
-            <Mic className="w-7 h-7 text-gray-900" />
-          </button>
-        </div>
-      )}
-
-      {/* Status indicator */}
-      <div className="absolute top-8 left-1/2 -translate-x-1/2">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm">
-          <div className={`w-2 h-2 rounded-full ${
-            isConnected ? 'bg-green-400' : 'bg-gray-400'
-          } ${isConnected && 'animate-pulse'}`} />
-          <span className="text-sm text-white font-medium">
-            {!isConnected ? 'Conectando...' : isRecording ? 'Escutando...' : isSpeaking ? 'Falando...' : 'Pronto'}
-          </span>
-        </div>
+        <footer className="text-center text-sm text-muted-foreground">
+          OpenAI Realtime + Supabase Edge Functions
+        </footer>
       </div>
     </div>
   );
 };
+
+export default VoiceInterface;
