@@ -38,12 +38,12 @@ export const ImageCropDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-[95vw] md:max-w-3xl w-full p-4 md:p-6">
         <DialogHeader>
           <DialogTitle>Recortar Imagem</DialogTitle>
         </DialogHeader>
         
-        <div className="relative h-[400px] bg-muted">
+        <div className="relative h-[50vh] md:h-[400px] bg-muted rounded-lg overflow-hidden touch-none">
           <Cropper
             image={imageUrl}
             crop={crop}
@@ -52,10 +52,16 @@ export const ImageCropDialog = ({
             onCropChange={setCrop}
             onZoomChange={setZoom}
             onCropComplete={onCropCompleteHandler}
+            style={{
+              containerStyle: {
+                width: '100%',
+                height: '100%',
+              },
+            }}
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 py-2">
           <label className="text-sm font-medium">Zoom</label>
           <Slider
             value={[zoom]}
@@ -63,14 +69,15 @@ export const ImageCropDialog = ({
             min={1}
             max={3}
             step={0.1}
+            className="touch-none"
           />
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
             Cancelar
           </Button>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} className="w-full sm:w-auto">
             Aplicar Recorte
           </Button>
         </DialogFooter>

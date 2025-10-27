@@ -126,9 +126,9 @@ export function SecretarioProfile() {
       return;
     }
 
-    const MAX_AVATAR_SIZE = 3 * 1024 * 1024; // 3MB
+    const MAX_AVATAR_SIZE = 10 * 1024 * 1024; // 10MB
     if (file.size > MAX_AVATAR_SIZE) {
-      toast.error("A imagem deve ter no máximo 3MB.");
+      toast.error("A imagem deve ter no máximo 10MB.");
       event.target.value = "";
       return;
     }
@@ -310,7 +310,7 @@ export function SecretarioProfile() {
                   )}
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  JPG, PNG ou WEBP. Máximo 3MB.
+                  JPG, PNG ou WEBP. Máximo 10MB.
                 </p>
               </div>
               <input

@@ -268,9 +268,9 @@ const Profile = () => {
       return;
     }
 
-    const MAX_AVATAR_SIZE = 3 * 1024 * 1024;
+    const MAX_AVATAR_SIZE = 10 * 1024 * 1024; // 10MB
     if (file.size > MAX_AVATAR_SIZE) {
-      toast.error("A imagem deve ter no máximo 3MB.");
+      toast.error("A imagem deve ter no máximo 10MB.");
       event.target.value = "";
       return;
     }
@@ -622,7 +622,7 @@ const Profile = () => {
                   {avatarUploading ? "Enviando..." : "Atualizar foto"}
                 </button>
                 <p className="text-muted-foreground">
-                  JPG ou PNG com at&eacute; 3MB. A foto aparece no seu painel.
+                  JPG ou PNG com at&eacute; 10MB. A foto aparece no seu painel.
                 </p>
               </div>
             </div>
