@@ -2,7 +2,7 @@ import { Layout } from "@/components/Layout";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
@@ -96,6 +96,7 @@ const Profile = () => {
   const [selectedImageForCrop, setSelectedImageForCrop] = useState<string | null>(null);
 
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -322,8 +323,14 @@ const Profile = () => {
 
       if (metadataError) throw metadataError;
 
-      setAvatarUrl(publicUrl);
+      // Add timestamp to force browser to reload the image
+      const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
+      setAvatarUrl(urlWithTimestamp);
       setInitialAvatarUrl(publicUrl);
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+      
       toast.success("Foto atualizada com sucesso.");
     } catch (error: unknown) {
       console.error(error);

@@ -175,7 +175,10 @@ export function SecretarioProfile() {
 
       if (profileError) throw profileError;
 
-      setAvatarUrl(publicUrl);
+      // Add timestamp to force browser to reload the image
+      const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
+      setAvatarUrl(urlWithTimestamp);
+      
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       queryClient.invalidateQueries({ queryKey: ["user-profile-secretario"] });
       toast.success("Foto atualizada com sucesso!");
