@@ -29,8 +29,8 @@ export const ControlCenter = () => {
     const deltaX = touch.clientX - dragRef.current.startX;
     const deltaY = touch.clientY - dragRef.current.startY;
     
-    const newX = Math.max(10, Math.min(window.innerWidth - 70, dragRef.current.initialX + deltaX));
-    const newY = Math.max(10, Math.min(window.innerHeight - 70, dragRef.current.initialY + deltaY));
+    const newX = Math.max(20, Math.min(window.innerWidth - 76, dragRef.current.initialX + deltaX));
+    const newY = Math.max(80, Math.min(window.innerHeight - 150, dragRef.current.initialY + deltaY));
     
     setPosition({ x: newX, y: newY });
   };
@@ -106,8 +106,8 @@ export const ControlCenter = () => {
       const deltaX = e.clientX - dragRef.current.startX;
       const deltaY = e.clientY - dragRef.current.startY;
       
-      const newX = Math.max(10, Math.min(window.innerWidth - 70, dragRef.current.initialX + deltaX));
-      const newY = Math.max(10, Math.min(window.innerHeight - 70, dragRef.current.initialY + deltaY));
+      const newX = Math.max(20, Math.min(window.innerWidth - 76, dragRef.current.initialX + deltaX));
+      const newY = Math.max(80, Math.min(window.innerHeight - 150, dragRef.current.initialY + deltaY));
       
       setPosition({ x: newX, y: newY });
     };
