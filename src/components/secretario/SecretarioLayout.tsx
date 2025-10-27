@@ -1,12 +1,11 @@
 import { ReactNode } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { useNavigate } from "react-router-dom";
 import { SecretarioSidebar } from "./SecretarioSidebar";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Building2, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
+import { useTheme } from "@/components/theme-provider";
 
 interface SecretarioLayoutProps {
   children: ReactNode;
@@ -15,16 +14,8 @@ interface SecretarioLayoutProps {
 }
 
 export function SecretarioLayout({ children, activeTab, onTabChange }: SecretarioLayoutProps) {
-  const location = useLocation();
   const navigate = useNavigate();
-  
-  // Determina qual secretaria buscar baseado na rota
-  const getSecretariaSlug = () => {
-    const path = location.pathname;
-    if (path === "/ascom") return "comunicacao";
-    if (path === "/edu") return "educacao";
-    return "comunicacao"; // default
-  };
+  const { theme, toggleTheme } = useTheme();
   
   const handleLogout = async () => {
     try {
@@ -36,59 +27,49 @@ export function SecretarioLayout({ children, activeTab, onTabChange }: Secretari
       toast.error(error.message || "Erro ao fazer logout");
     }
   };
-  
-  const { data: secretariaName } = useQuery({
-    queryKey: ["secretary-assignment-layout", getSecretariaSlug()],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return "Secretaria de Comunicação";
-
-      const targetSlug = getSecretariaSlug();
-
-      const { data: assignment } = await supabase
-        .from("secretary_assignments")
-        .select("secretaria_slug")
-        .eq("user_id", user.id)
-        .eq("secretaria_slug", targetSlug)
-        .maybeSingle();
-
-      if (!assignment) return "Secretaria de Comunicação";
-
-      const { data: secretaria } = await supabase
-        .from("secretarias")
-        .select("name")
-        .eq("slug", assignment.secretaria_slug)
-        .single();
-
-      return secretaria?.name || "Secretaria de Comunicação";
-    },
-  });
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <SecretarioSidebar activeTab={activeTab} onTabChange={onTabChange} />
-        
-        <div className="flex-1 flex flex-col">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4">
-            <SidebarTrigger />
-            <h1 className="text-lg font-semibold flex-1">Painel da {secretariaName || "Secretaria de Comunicação"}</h1>
+    <div className="min-h-screen flex flex-col w-full">
+      {/* Topbar */}
+      <header className="ascom-topbar sticky top-0 z-50 text-white">
+        <div className="max-w-[1440px] mx-auto h-16 flex items-center justify-between px-5">
+          <div className="flex items-center gap-3">
+            <Building2 className="h-6 w-6" />
+            <span className="text-lg font-extrabold tracking-tight">Prefeitura Municipal</span>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="h-9 w-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/25 text-white"
+              title={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+            
             <Button 
-              variant="outline" 
+              variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="gap-2"
+              className="gap-2 h-9 rounded-xl bg-white/8 hover:bg-white/15 border border-white/25 text-white font-semibold"
             >
               <LogOut className="h-4 w-4" />
               Sair
             </Button>
-          </header>
-          
-          <main className="flex-1 overflow-auto p-4 md:p-6">
-            {children}
-          </main>
+          </div>
         </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex-1 flex max-w-[1440px] mx-auto w-full gap-4 p-5">
+        <SecretarioSidebar activeTab={activeTab} onTabChange={onTabChange} />
+        
+        <main className="flex-1 min-w-0">
+          {children}
+        </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

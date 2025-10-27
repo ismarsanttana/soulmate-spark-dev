@@ -108,75 +108,112 @@ export function Dashboard({ secretariaSlug }: DashboardProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">
-          Visão geral das atividades da Secretaria de Comunicação
+    <div className="space-y-4">
+      {/* Page Header */}
+      <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+        <h1 className="text-2xl font-extrabold tracking-tight mb-1">
+          Painel Administrativo — Secretaria de Comunicação
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Visão geral das atividades e indicadores da secretaria
         </p>
       </div>
 
+      {/* KPIs Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Funcionários</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.employeeCount}</div>
-            <p className="text-xs text-muted-foreground">Ativos na secretaria</p>
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3.5">
+              <div className="ascom-kpi-icon blue">
+                <Users className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-bold text-muted-foreground mb-1">
+                  Funcionários Ativos
+                </div>
+                <div className="text-3xl font-extrabold">{stats?.employeeCount}</div>
+                <div className="text-xs font-bold text-success mt-0.5">
+                  estável este mês
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Folha de Pagamento</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats?.payrollTotal || 0)}</div>
-            <p className="text-xs text-muted-foreground">Total mensal</p>
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3.5">
+              <div className="ascom-kpi-icon green">
+                <DollarSign className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-bold text-muted-foreground mb-1">
+                  Folha de Pagamento (mês)
+                </div>
+                <div className="text-3xl font-extrabold">{formatCurrency(stats?.payrollTotal || 0)}</div>
+                <div className="text-xs font-bold text-success mt-0.5">
+                  estável
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Gastos com Publicidade</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats?.totalExpenses || 0)}</div>
-            <p className="text-xs text-muted-foreground">Total acumulado</p>
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3.5">
+              <div className="ascom-kpi-icon purple">
+                <TrendingUp className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-bold text-muted-foreground mb-1">
+                  Gastos com Publicidade
+                </div>
+                <div className="text-3xl font-extrabold">{formatCurrency(stats?.totalExpenses || 0)}</div>
+                <div className="text-xs font-bold text-muted-foreground mt-0.5">
+                  acumulado
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Solicitações Pendentes</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.pendingRequests}</div>
-            <p className="text-xs text-muted-foreground">Aguardando resposta</p>
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3.5">
+              <div className="ascom-kpi-icon orange">
+                <BarChart3 className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-bold text-muted-foreground mb-1">
+                  Solicitações Pendentes
+                </div>
+                <div className="text-3xl font-extrabold">{stats?.pendingRequests}</div>
+                <div className="text-xs font-bold text-success mt-0.5">
+                  aguardando resposta
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Content Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>Gastos por Categoria</CardTitle>
-            <CardDescription>Distribuição dos gastos com publicidade</CardDescription>
+            <CardTitle className="text-lg">Gastos por Categoria</CardTitle>
+            <CardDescription className="text-sm">Distribuição dos gastos com publicidade</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {Object.entries(stats?.expensesByCategory || {}).length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nenhum gasto registrado</p>
               ) : (
                 Object.entries(stats?.expensesByCategory || {}).map(([category, amount]) => (
-                  <div key={category} className="flex items-center justify-between">
+                  <div key={category} className="flex items-center justify-between p-2.5 bg-muted rounded-xl border border-border">
                     <span className="text-sm font-medium capitalize">{category}</span>
-                    <span className="text-sm text-muted-foreground">{formatCurrency(amount)}</span>
+                    <strong className="text-sm">{formatCurrency(amount)}</strong>
                   </div>
                 ))
               )}
@@ -184,43 +221,43 @@ export function Dashboard({ secretariaSlug }: DashboardProps) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>Conteúdo Publicado</CardTitle>
-            <CardDescription>Resumo de publicações</CardDescription>
+            <CardTitle className="text-lg">Conteúdo Publicado</CardTitle>
+            <CardDescription className="text-sm">Resumo por tipo de publicação</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between p-2.5 bg-muted rounded-xl border border-border">
                 <span className="text-sm font-medium">Notícias</span>
-                <span className="text-sm text-muted-foreground">{stats?.newsCount}</span>
+                <strong className="text-sm">{stats?.newsCount}</strong>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-2.5 bg-muted rounded-xl border border-border">
                 <span className="text-sm font-medium">Stories</span>
-                <span className="text-sm text-muted-foreground">{stats?.storiesCount}</span>
+                <strong className="text-sm">{stats?.storiesCount}</strong>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-2.5 bg-muted rounded-xl border border-border">
                 <span className="text-sm font-medium">Eventos</span>
-                <span className="text-sm text-muted-foreground">{stats?.eventsCount}</span>
+                <strong className="text-sm">{stats?.eventsCount}</strong>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>Atividade Recente</CardTitle>
-            <CardDescription>Últimas ações na secretaria</CardDescription>
+            <CardTitle className="text-lg">Atividade Recente</CardTitle>
+            <CardDescription className="text-sm">Resumo das atividades</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between p-2.5 bg-muted rounded-xl border border-border">
                 <span className="text-sm font-medium">Funcionários Ativos</span>
-                <span className="text-sm text-muted-foreground">{stats?.employeeCount}</span>
+                <strong className="text-sm">{stats?.employeeCount}</strong>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-2.5 bg-muted rounded-xl border border-border">
                 <span className="text-sm font-medium">Solicitações Pendentes</span>
-                <span className="text-sm text-muted-foreground">{stats?.pendingRequests}</span>
+                <strong className="text-sm">{stats?.pendingRequests}</strong>
               </div>
             </div>
           </CardContent>
