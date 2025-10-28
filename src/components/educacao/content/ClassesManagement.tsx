@@ -387,10 +387,9 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
                   onValueChange={(value) => setFormData({ ...formData, teacher_user_id: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione um professor..." />
+                    <SelectValue placeholder="Selecione um professor (opcional)..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum professor atribuído</SelectItem>
                     {professors.map((prof: any) => (
                       <SelectItem key={prof.id} value={prof.id}>
                         {prof.full_name} ({prof.email})
@@ -398,6 +397,9 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  Deixe em branco se ainda não houver professor atribuído
+                </p>
               </div>
             </div>
 
