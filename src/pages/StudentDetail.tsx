@@ -702,7 +702,7 @@ const StudentDetailContent = () => {
 
   return (
     <WrapperLayout {...layoutProps}>
-      <div className="space-y-4 md:space-y-6 container max-w-7xl mx-auto py-4 md:py-8 px-4">
+      <div className="space-y-4 md:space-y-6 container max-w-7xl mx-auto py-4 md:py-8 px-2 sm:px-4">
         <div className="flex items-center gap-2 md:gap-4">
           <Button variant="ghost" onClick={() => navigate(isParent ? "/perfil" : "/edu")} size="sm">
             <ArrowLeft className="h-4 w-4 mr-1 md:mr-2" />
@@ -717,14 +717,14 @@ const StudentDetailContent = () => {
         </div>
 
         <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 md:pb-3 px-4 md:px-6 pt-4 md:pt-6">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 Taxa de Presença
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
               <div className="text-3xl font-bold text-green-600">{attendanceRate}%</div>
               <p className="text-xs text-muted-foreground mt-1">
                 {attendanceStats.present} de {attendanceStats.total} dias
@@ -732,14 +732,14 @@ const StudentDetailContent = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 md:pb-3 px-4 md:px-6 pt-4 md:pt-6">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Award className="h-4 w-4 text-primary" />
                 Média Geral
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
               <div className="text-3xl font-bold text-primary">{overallAverage}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 {subjectPerformance.length} disciplinas
@@ -747,11 +747,11 @@ const StudentDetailContent = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 md:pb-3 px-4 md:px-6 pt-4 md:pt-6">
               <CardTitle className="text-sm font-medium">Turma Atual</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
               <div className="text-2xl font-bold">
                 {enrollment?.class?.class_name || "Sem turma"}
               </div>
@@ -761,11 +761,11 @@ const StudentDetailContent = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 md:pb-3 px-4 md:px-6 pt-4 md:pt-6">
               <CardTitle className="text-sm font-medium">Status</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
               <Badge variant={enrollment?.status === "active" ? "default" : "secondary"}>
                 {enrollment?.status === "active" ? "Matriculado" : "Inativo"}
               </Badge>
@@ -777,13 +777,13 @@ const StudentDetailContent = () => {
         </div>
 
         {/* Seção de Gráficos e Análises */}
-        <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
-          <Card>
-            <CardHeader className="pb-3">
+        <div className="grid gap-3 md:gap-4 lg:gap-6 grid-cols-1 lg:grid-cols-2">
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 md:pb-3 px-4 md:px-6 pt-4 md:pt-6">
               <CardTitle className="text-base md:text-lg">Análise de Frequência</CardTitle>
               <CardDescription className="text-xs md:text-sm">Distribuição de presença nos últimos 30 dias</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
               {attendanceChartData.length > 0 ? (
                 <div className="h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
@@ -818,12 +818,12 @@ const StudentDetailContent = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 md:pb-3 px-4 md:px-6 pt-4 md:pt-6">
               <CardTitle className="text-base md:text-lg">Desempenho por Disciplina</CardTitle>
               <CardDescription className="text-xs md:text-sm">Média de notas por matéria</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
               {subjectPerformance.length > 0 ? (
                 <div className="h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
@@ -851,14 +851,14 @@ const StudentDetailContent = () => {
 
         {/* Card de Resumo de Aprovação */}
         {subjectPerformance.length > 0 && (
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 md:pb-3 px-4 md:px-6 pt-4 md:pt-6">
               <CardTitle className="flex items-center gap-2 text-base md:text-lg">
                 <TrendingUp className="h-4 w-4 md:h-5 md:w-5" />
                 Situação Acadêmica
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
               <div className="grid gap-3 md:gap-4 grid-cols-3">
                 {["Aprovado", "Recuperação", "Reprovado"].map((status) => {
                   const count = subjectPerformance.filter(s => s.status === status).length;
@@ -883,9 +883,9 @@ const StudentDetailContent = () => {
             <TabsTrigger value="grades" className="text-xs md:text-sm">Notas</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="info" className="space-y-3 md:space-y-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <TabsContent value="info" className="space-y-3 md:space-y-4 mt-3 md:mt-4">
+            <Card className="overflow-hidden">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 md:pb-3 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-base md:text-lg">Dados Pessoais</CardTitle>
                 {!isParent && (
                   <Button variant="outline" size="sm" onClick={handleEditStudent}>
@@ -894,7 +894,7 @@ const StudentDetailContent = () => {
                   </Button>
                 )}
               </CardHeader>
-              <CardContent className="space-y-3 md:space-y-4">
+              <CardContent className="space-y-3 md:space-y-4 px-4 md:px-6 pb-4 md:pb-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Nome Completo</p>
@@ -952,11 +952,11 @@ const StudentDetailContent = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2 md:pb-3 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-base md:text-lg">Informações Acadêmicas</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 md:space-y-4">
+              <CardContent className="space-y-3 md:space-y-4 px-4 md:px-6 pb-4 md:pb-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Matrícula</p>
@@ -979,9 +979,9 @@ const StudentDetailContent = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="responsibles">
-            <Card>
-              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3">
+          <TabsContent value="responsibles" className="mt-3 md:mt-4">
+            <Card className="overflow-hidden">
+              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-2 md:pb-3 px-4 md:px-6 pt-4 md:pt-6">
                 <div>
                   <CardTitle className="text-base md:text-lg">Pais e Responsáveis</CardTitle>
                   <CardDescription className="text-xs md:text-sm">Lista de pessoas responsáveis pelo aluno</CardDescription>
@@ -991,7 +991,7 @@ const StudentDetailContent = () => {
                   <span className="text-xs md:text-sm">Adicionar</span>
                 </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 {responsibles.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     Nenhum responsável cadastrado
@@ -1038,19 +1038,19 @@ const StudentDetailContent = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="attendance">
-            <Card>
-              <CardHeader className="pb-3">
+          <TabsContent value="attendance" className="mt-3 md:mt-4">
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2 md:pb-3 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-base md:text-lg">Registro de Presença</CardTitle>
                 <CardDescription className="text-xs md:text-sm">Últimos 30 dias de registro</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 {attendanceRecords.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground text-sm">
                     Nenhum registro de presença
                   </div>
                 ) : (
-                  <div className="overflow-x-auto -mx-6 sm:mx-0">
+                  <div className="overflow-x-auto">
                     <div className="inline-block min-w-full align-middle">
                       <Table>
                         <TableHeader>
@@ -1081,13 +1081,13 @@ const StudentDetailContent = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="grades">
-            <Card>
-              <CardHeader className="pb-3">
+          <TabsContent value="grades" className="mt-3 md:mt-4">
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2 md:pb-3 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-base md:text-lg">Boletim Escolar</CardTitle>
                 <CardDescription className="text-xs md:text-sm">Notas e desempenho acadêmico</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 {grades.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <FileText className="h-10 w-10 md:h-12 md:w-12 mx-auto mb-4 opacity-50" />
@@ -1104,7 +1104,7 @@ const StudentDetailContent = () => {
                         <div key={period}>
                           <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">{period}</h3>
                           <div className="rounded-lg border overflow-hidden">
-                            <div className="overflow-x-auto -mx-6 sm:mx-0">
+                            <div className="overflow-x-auto">
                               <div className="inline-block min-w-full align-middle">
                                 <Table>
                                   <TableHeader>
