@@ -35,10 +35,7 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("school_classes")
-        .select(`
-          *,
-          teacher:teacher_user_id(id, full_name)
-        `)
+        .select("*")
         .eq("status", "active")
         .order("grade_level", { ascending: true });
 
