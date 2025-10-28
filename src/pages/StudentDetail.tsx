@@ -69,12 +69,6 @@ const StudentDetailContent = () => {
     enabled: !!currentUser && !!studentId,
   });
 
-  const isParent = useMemo(() => {
-    return currentUser?.roles?.includes('pai') && !currentUser?.roles?.some((r: string) => 
-      r === 'admin' || r === 'secretario' || r === 'professor' || r === 'prefeito'
-    );
-  }, [currentUser]);
-  
   const [studentFormData, setStudentFormData] = useState({
     full_name: "",
     cpf: "",
@@ -343,38 +337,14 @@ const StudentDetailContent = () => {
     },
   });
 
-  const WrapperLayout = isParent ? Layout : EducacaoLayout;
-  const layoutProps = isParent ? {} : { activeTab, onTabChange: setActiveTab };
-
-  if (studentLoading || permissionLoading) {
-    return (
-      <WrapperLayout {...layoutProps}>
-        <div className="text-center py-12">Carregando...</div>
-      </WrapperLayout>
+  // Determinar se o usuário é pai (antes de qualquer early return)
+  const isParent = useMemo(() => {
+    return currentUser?.roles?.includes('pai') && !currentUser?.roles?.some((r: string) => 
+      r === 'admin' || r === 'secretario' || r === 'professor' || r === 'prefeito'
     );
-  }
+  }, [currentUser]);
 
-  if (!student) {
-    return (
-      <WrapperLayout {...layoutProps}>
-        <div className="text-center py-12">Aluno não encontrado</div>
-      </WrapperLayout>
-    );
-  }
-
-  if (!hasPermission) {
-    return (
-      <WrapperLayout {...layoutProps}>
-        <div className="text-center py-12">
-          <p className="text-lg text-muted-foreground">Você não tem permissão para visualizar este aluno.</p>
-          <Button onClick={() => navigate(-1)} className="mt-4">
-            Voltar
-          </Button>
-        </div>
-      </WrapperLayout>
-    );
-  }
-
+  // Calcular estatísticas de presença (antes de qualquer early return)
   const attendanceStats = useMemo(() => {
     const stats = {
       total: attendanceRecords.length,
@@ -385,9 +355,11 @@ const StudentDetailContent = () => {
     return stats;
   }, [attendanceRecords]);
 
-  const attendanceRate = attendanceStats.total > 0 
-    ? ((attendanceStats.present / attendanceStats.total) * 100).toFixed(1)
-    : "0.0";
+  const attendanceRate = useMemo(() => {
+    return attendanceStats.total > 0 
+      ? ((attendanceStats.present / attendanceStats.total) * 100).toFixed(1)
+      : "0.0";
+  }, [attendanceStats]);
 
   // Dados para gráfico de presença
   const attendanceChartData = useMemo(() => [
@@ -424,6 +396,39 @@ const StudentDetailContent = () => {
     const sum = subjectPerformance.reduce((acc, curr) => acc + parseFloat(curr.average), 0);
     return (sum / subjectPerformance.length).toFixed(1);
   }, [subjectPerformance]);
+
+  const WrapperLayout = isParent ? Layout : EducacaoLayout;
+  const layoutProps = isParent ? {} : { activeTab, onTabChange: setActiveTab };
+
+  if (studentLoading || permissionLoading) {
+    return (
+      <WrapperLayout {...layoutProps}>
+        <div className="text-center py-12">Carregando...</div>
+      </WrapperLayout>
+    );
+  }
+
+  if (!student) {
+    return (
+      <WrapperLayout {...layoutProps}>
+        <div className="text-center py-12">Aluno não encontrado</div>
+      </WrapperLayout>
+    );
+  }
+
+  if (!hasPermission) {
+    return (
+      <WrapperLayout {...layoutProps}>
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">Você não tem permissão para visualizar este aluno.</p>
+          <Button onClick={() => navigate(-1)} className="mt-4">
+            Voltar
+          </Button>
+        </div>
+      </WrapperLayout>
+    );
+  }
+
 
   const getRelationshipLabel = (type: string) => {
     const labels: Record<string, string> = {
