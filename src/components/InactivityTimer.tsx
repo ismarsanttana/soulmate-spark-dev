@@ -18,6 +18,7 @@ export const InactivityTimer = ({ onTimeout, timeoutMinutes = 30 }: InactivityTi
     const saved = localStorage.getItem('inactivity-timer-position');
     return saved ? JSON.parse(saved) : { x: window.innerWidth - 200, y: window.innerHeight - 120 };
   });
+  const [expandedPosition, setExpandedPosition] = useState(position);
   
   const dragRef = useRef<HTMLDivElement>(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
@@ -33,12 +34,19 @@ export const InactivityTimer = ({ onTimeout, timeoutMinutes = 30 }: InactivityTi
   const isWarning = timeRemaining < 5 * 60 * 1000;
   const isCritical = timeRemaining < 2 * 60 * 1000;
 
-  // Auto-expand when warning
+  // Auto-expand when warning and move to corner when minimized
   useEffect(() => {
     if (isWarning && isMinimized) {
       setIsMinimized(false);
+      setPosition(expandedPosition);
+    } else if (isMinimized) {
+      // Move to bottom right corner when minimized
+      setPosition({
+        x: window.innerWidth - 70,
+        y: window.innerHeight - 70
+      });
     }
-  }, [isWarning, isMinimized]);
+  }, [isWarning, isMinimized, expandedPosition]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button')) return;
@@ -69,7 +77,10 @@ export const InactivityTimer = ({ onTimeout, timeoutMinutes = 30 }: InactivityTi
   const handleMouseUp = () => {
     if (isDragging) {
       setIsDragging(false);
-      localStorage.setItem('inactivity-timer-position', JSON.stringify(position));
+      if (!isMinimized) {
+        setExpandedPosition(position);
+        localStorage.setItem('inactivity-timer-position', JSON.stringify(position));
+      }
     }
   };
 
@@ -139,6 +150,7 @@ export const InactivityTimer = ({ onTimeout, timeoutMinutes = 30 }: InactivityTi
             className="h-7 w-7 flex-shrink-0"
             onClick={(e) => {
               e.stopPropagation();
+              setExpandedPosition(position);
               setIsMinimized(true);
             }}
           >
