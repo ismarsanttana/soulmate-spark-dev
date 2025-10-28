@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { maskCPF, maskRG, maskNIS, maskPhone, maskCartaoSUS, maskEmail } from "@/lib/dataMasking";
 
 const StudentDetailContent = () => {
   const { studentId } = useParams();
@@ -768,7 +769,11 @@ const StudentDetailContent = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">CPF</p>
-                    <p className="text-base">{student.cpf || "Não informado"}</p>
+                    <p className="text-base">
+                      {student.cpf 
+                        ? (isParent ? maskCPF(student.cpf) : student.cpf)
+                        : "Não informado"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Data de Nascimento</p>
@@ -780,8 +785,36 @@ const StudentDetailContent = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Telefone</p>
-                    <p className="text-base">{student.telefone || "Não informado"}</p>
+                    <p className="text-base">
+                      {student.telefone 
+                        ? (isParent ? maskPhone(student.telefone) : student.telefone)
+                        : "Não informado"}
+                    </p>
                   </div>
+                  {student.rg && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">RG</p>
+                      <p className="text-base">
+                        {isParent ? maskRG(student.rg) : student.rg}
+                      </p>
+                    </div>
+                  )}
+                  {student.nis && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">NIS</p>
+                      <p className="text-base">
+                        {isParent ? maskNIS(student.nis) : student.nis}
+                      </p>
+                    </div>
+                  )}
+                  {student.cartao_sus && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Cartão SUS</p>
+                      <p className="text-base">
+                        {isParent ? maskCartaoSUS(student.cartao_sus) : student.cartao_sus}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -845,13 +878,13 @@ const StudentDetailContent = () => {
                             </div>
                             <div className="space-y-1 text-sm text-muted-foreground">
                               {rel.responsible?.email && (
-                                <p>Email: {rel.responsible.email}</p>
+                                <p>Email: {isParent ? maskEmail(rel.responsible.email) : rel.responsible.email}</p>
                               )}
                               {rel.responsible?.cpf && (
-                                <p>CPF: {rel.responsible.cpf}</p>
+                                <p>CPF: {isParent ? maskCPF(rel.responsible.cpf) : rel.responsible.cpf}</p>
                               )}
                               {rel.responsible?.telefone && (
-                                <p>Telefone: {rel.responsible.telefone}</p>
+                                <p>Telefone: {isParent ? maskPhone(rel.responsible.telefone) : rel.responsible.telefone}</p>
                               )}
                             </div>
                           </div>
