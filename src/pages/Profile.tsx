@@ -769,7 +769,12 @@ const Profile = () => {
                 <div key={child.id} className="p-4 rounded-xl border border-border bg-muted/40 dark:bg-muted/20">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-medium">{child.student?.full_name || "Nome não disponível"}</h3>
+                      <Link 
+                        to={`/aluno/${child.student_id}`}
+                        className="font-medium hover:underline text-primary"
+                      >
+                        {child.student?.full_name || "Nome não disponível"}
+                      </Link>
                       <p className="text-xs text-muted-foreground mt-1">
                         Relação: {child.relationship_type === 'pai' ? 'Pai' : child.relationship_type === 'mae' ? 'Mãe' : 'Responsável'}
                       </p>

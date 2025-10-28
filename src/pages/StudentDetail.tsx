@@ -8,13 +8,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { EducacaoLayout } from "@/components/educacao/EducacaoLayout";
-import { ArrowLeft, User, Calendar, CheckCircle, XCircle, FileText, Edit, Plus, Search } from "lucide-react";
-import { useState } from "react";
+import { Layout } from "@/components/Layout";
+import { ArrowLeft, User, Calendar, CheckCircle, XCircle, FileText, Edit, Plus, Search, TrendingUp, Award } from "lucide-react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 const StudentDetailContent = () => {
   const { studentId } = useParams();
@@ -23,6 +26,54 @@ const StudentDetailContent = () => {
   const [editStudentDialog, setEditStudentDialog] = useState(false);
   const [editResponsibleDialog, setEditResponsibleDialog] = useState(false);
   const [selectedResponsible, setSelectedResponsible] = useState<any>(null);
+  
+  // Verificar usuário atual e permissões
+  const { data: currentUser } = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+
+      return { ...user, roles: roles?.map(r => r.role) || [] };
+    },
+  });
+
+  // Verificar se o usuário tem permissão para ver este aluno
+  const { data: hasPermission, isLoading: permissionLoading } = useQuery({
+    queryKey: ["student-permission", studentId, currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser) return false;
+
+      // Admin, secretário de educação e professores têm acesso total
+      const hasEducationRole = currentUser.roles?.some((r: string) => 
+        r === 'admin' || r === 'secretario' || r === 'professor' || r === 'prefeito'
+      );
+
+      if (hasEducationRole) return true;
+
+      // Verificar se é pai/mãe do aluno
+      const { data: relationship } = await supabase
+        .from("parent_student_relationship")
+        .select("id")
+        .eq("parent_user_id", currentUser.id)
+        .eq("student_id", studentId)
+        .maybeSingle();
+
+      return !!relationship;
+    },
+    enabled: !!currentUser && !!studentId,
+  });
+
+  const isParent = useMemo(() => {
+    return currentUser?.roles?.includes('pai') && !currentUser?.roles?.some((r: string) => 
+      r === 'admin' || r === 'secretario' || r === 'professor' || r === 'prefeito'
+    );
+  }, [currentUser]);
   
   const [studentFormData, setStudentFormData] = useState({
     full_name: "",
@@ -292,32 +343,87 @@ const StudentDetailContent = () => {
     },
   });
 
-  if (studentLoading) {
+  const WrapperLayout = isParent ? Layout : EducacaoLayout;
+  const layoutProps = isParent ? {} : { activeTab, onTabChange: setActiveTab };
+
+  if (studentLoading || permissionLoading) {
     return (
-      <EducacaoLayout activeTab={activeTab} onTabChange={setActiveTab}>
+      <WrapperLayout {...layoutProps}>
         <div className="text-center py-12">Carregando...</div>
-      </EducacaoLayout>
+      </WrapperLayout>
     );
   }
 
   if (!student) {
     return (
-      <EducacaoLayout activeTab={activeTab} onTabChange={setActiveTab}>
+      <WrapperLayout {...layoutProps}>
         <div className="text-center py-12">Aluno não encontrado</div>
-      </EducacaoLayout>
+      </WrapperLayout>
     );
   }
 
-  const attendanceStats = {
-    total: attendanceRecords.length,
-    present: attendanceRecords.filter(a => a.status === "presente").length,
-    absent: attendanceRecords.filter(a => a.status === "ausente").length,
-    justified: attendanceRecords.filter(a => a.status === "justificado").length,
-  };
+  if (!hasPermission) {
+    return (
+      <WrapperLayout {...layoutProps}>
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">Você não tem permissão para visualizar este aluno.</p>
+          <Button onClick={() => navigate(-1)} className="mt-4">
+            Voltar
+          </Button>
+        </div>
+      </WrapperLayout>
+    );
+  }
+
+  const attendanceStats = useMemo(() => {
+    const stats = {
+      total: attendanceRecords.length,
+      present: attendanceRecords.filter(a => a.status === "presente").length,
+      absent: attendanceRecords.filter(a => a.status === "ausente").length,
+      justified: attendanceRecords.filter(a => a.status === "justificado").length,
+    };
+    return stats;
+  }, [attendanceRecords]);
 
   const attendanceRate = attendanceStats.total > 0 
     ? ((attendanceStats.present / attendanceStats.total) * 100).toFixed(1)
     : "0.0";
+
+  // Dados para gráfico de presença
+  const attendanceChartData = useMemo(() => [
+    { name: "Presente", value: attendanceStats.present, fill: "hsl(var(--chart-1))" },
+    { name: "Ausente", value: attendanceStats.absent, fill: "hsl(var(--chart-2))" },
+    { name: "Justificado", value: attendanceStats.justified, fill: "hsl(var(--chart-3))" },
+  ].filter(item => item.value > 0), [attendanceStats]);
+
+  // Análise de desempenho por disciplina
+  const subjectPerformance = useMemo(() => {
+    const subjects: Record<string, { grades: number[], subject: string }> = {};
+    
+    grades.forEach(grade => {
+      if (!subjects[grade.subject]) {
+        subjects[grade.subject] = { grades: [], subject: grade.subject };
+      }
+      subjects[grade.subject].grades.push(grade.grade);
+    });
+
+    return Object.values(subjects).map(({ subject, grades: subjectGrades }) => {
+      const average = subjectGrades.reduce((a, b) => a + b, 0) / subjectGrades.length;
+      const status = average >= 7 ? "Aprovado" : average >= 5 ? "Recuperação" : "Reprovado";
+      return {
+        subject,
+        average: average.toFixed(1),
+        status,
+        fill: average >= 7 ? "hsl(var(--chart-1))" : average >= 5 ? "hsl(var(--chart-3))" : "hsl(var(--chart-2))"
+      };
+    });
+  }, [grades]);
+
+  const overallAverage = useMemo(() => {
+    if (subjectPerformance.length === 0) return "0.0";
+    const sum = subjectPerformance.reduce((acc, curr) => acc + parseFloat(curr.average), 0);
+    return (sum / subjectPerformance.length).toFixed(1);
+  }, [subjectPerformance]);
 
   const getRelationshipLabel = (type: string) => {
     const labels: Record<string, string> = {
@@ -423,10 +529,10 @@ const StudentDetailContent = () => {
   };
 
   return (
-    <EducacaoLayout activeTab={activeTab} onTabChange={setActiveTab}>
-      <div className="space-y-6">
+    <WrapperLayout {...layoutProps}>
+      <div className="space-y-6 container max-w-7xl mx-auto py-8">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate("/edu")} size="sm">
+          <Button variant="ghost" onClick={() => navigate(isParent ? "/perfil" : "/edu")} size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
@@ -438,15 +544,33 @@ const StudentDetailContent = () => {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Taxa de Presença</CardTitle>
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                Taxa de Presença
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{attendanceRate}%</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-3xl font-bold text-green-600">{attendanceRate}%</div>
+              <p className="text-xs text-muted-foreground mt-1">
                 {attendanceStats.present} de {attendanceStats.total} dias
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Award className="h-4 w-4 text-primary" />
+                Média Geral
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-primary">{overallAverage}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {subjectPerformance.length} disciplinas
               </p>
             </CardContent>
           </Card>
@@ -480,10 +604,98 @@ const StudentDetailContent = () => {
           </Card>
         </div>
 
+        {/* Seção de Gráficos e Análises */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Análise de Frequência</CardTitle>
+              <CardDescription>Distribuição de presença nos últimos 30 dias</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {attendanceChartData.length > 0 ? (
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={attendanceChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={(entry: any) => `${entry.name}: ${entry.value} (${((entry.value / attendanceStats.total) * 100).toFixed(0)}%)`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {attendanceChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">Sem dados de frequência disponíveis</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Desempenho por Disciplina</CardTitle>
+              <CardDescription>Média de notas por matéria</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {subjectPerformance.length > 0 ? (
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={subjectPerformance}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="subject" angle={-45} textAnchor="end" height={100} />
+                      <YAxis domain={[0, 10]} />
+                      <Tooltip />
+                      <Bar dataKey="average" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">Sem notas registradas</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Card de Resumo de Aprovação */}
+        {subjectPerformance.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Situação Acadêmica
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-3">
+                {["Aprovado", "Recuperação", "Reprovado"].map((status) => {
+                  const count = subjectPerformance.filter(s => s.status === status).length;
+                  const color = status === "Aprovado" ? "text-green-600" : status === "Recuperação" ? "text-yellow-600" : "text-red-600";
+                  return (
+                    <div key={status} className="text-center p-4 border rounded-lg">
+                      <div className={`text-2xl font-bold ${color}`}>{count}</div>
+                      <div className="text-sm text-muted-foreground">{status}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs defaultValue="info" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="info">Informações</TabsTrigger>
-            <TabsTrigger value="responsibles">Responsáveis</TabsTrigger>
+            {!isParent && <TabsTrigger value="responsibles">Responsáveis</TabsTrigger>}
             <TabsTrigger value="attendance">Presença</TabsTrigger>
             <TabsTrigger value="grades">Notas</TabsTrigger>
           </TabsList>
@@ -492,10 +704,12 @@ const StudentDetailContent = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Dados Pessoais</CardTitle>
-                <Button variant="outline" size="sm" onClick={handleEditStudent}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar
-                </Button>
+                {!isParent && (
+                  <Button variant="outline" size="sm" onClick={handleEditStudent}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -937,13 +1151,13 @@ const StudentDetailContent = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </EducacaoLayout>
+    </WrapperLayout>
   );
 };
 
 const StudentDetail = () => {
   return (
-    <ProtectedRoute allowedRoles={["secretario", "professor"]}>
+    <ProtectedRoute allowedRoles={["secretario", "professor", "pai", "admin", "prefeito"]}>
       <StudentDetailContent />
     </ProtectedRoute>
   );

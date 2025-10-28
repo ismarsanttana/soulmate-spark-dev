@@ -89,6 +89,7 @@ const AnimatedRoutes = () => {
           <Route path="/ascom" element={<PainelSecretario />} />
           <Route path="/edu" element={<PainelEducacao />} />
           <Route path="/edu/aluno/:studentId" element={<StudentDetail />} />
+          <Route path="/aluno/:studentId" element={<StudentDetail />} />
           <Route path="/edu/professor" element={<PainelProfessor />} />
           <Route path="/painel-professor" element={<Navigate to="/edu/professor" replace />} />
           <Route path="/painel-aluno" element={<PainelAluno />} />
