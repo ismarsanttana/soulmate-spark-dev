@@ -282,15 +282,46 @@ const StudentDetailContent = () => {
         
         responsibleUserId = authData.user.id;
 
-        const { error: updateError } = await supabase.from("profiles").update({
-          full_name: responsibleFormData.full_name,
-          cpf: responsibleFormData.cpf,
-          telefone: responsibleFormData.telefone,
-          endereco_completo: responsibleFormData.endereco_completo,
-        }).eq("id", responsibleUserId);
+        // Aguardar um momento para o trigger criar o perfil
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-        if (updateError) throw updateError;
+        // Verificar se o perfil foi criado pelo trigger
+        const { data: existingProfile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", responsibleUserId)
+          .maybeSingle();
 
+        if (existingProfile) {
+          // Perfil já existe, apenas atualizar
+          const { error: updateError } = await supabase
+            .from("profiles")
+            .update({
+              full_name: responsibleFormData.full_name,
+              cpf: responsibleFormData.cpf,
+              telefone: responsibleFormData.telefone,
+              endereco_completo: responsibleFormData.endereco_completo,
+            })
+            .eq("id", responsibleUserId);
+
+          if (updateError) throw updateError;
+        } else {
+          // Perfil não existe, criar explicitamente
+          const { error: insertError } = await supabase
+            .from("profiles")
+            .insert({
+              id: responsibleUserId,
+              full_name: responsibleFormData.full_name,
+              email: responsibleFormData.email,
+              cpf: responsibleFormData.cpf,
+              telefone: responsibleFormData.telefone,
+              endereco_completo: responsibleFormData.endereco_completo,
+            });
+
+          if (insertError) throw insertError;
+        }
+
+        // Agora inserir a role
         const { error: roleError } = await supabase.from("user_roles").insert([{ 
           user_id: responsibleUserId, 
           role: "pai" 

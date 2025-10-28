@@ -252,22 +252,47 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
           
           responsibleUserId = respAuthData.user.id;
 
+          // Aguardar para garantir que o trigger criou o perfil
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          // Verificar se o perfil existe
+          const { data: existingProfile } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("id", responsibleUserId)
+            .maybeSingle();
+
           // Upload de documentos do responsável
           const respDocUrls: any = {};
           if (responsibleDocs.doc_rg) respDocUrls.doc_rg_url = await uploadDocument(responsibleDocs.doc_rg, responsibleUserId, 'resp_rg');
           if (responsibleDocs.doc_cpf) respDocUrls.doc_cpf_url = await uploadDocument(responsibleDocs.doc_cpf, responsibleUserId, 'resp_cpf');
           if (responsibleDocs.doc_guarda_tutela) respDocUrls.doc_guarda_tutela_url = await uploadDocument(responsibleDocs.doc_guarda_tutela, responsibleUserId, 'guarda');
 
-          // Atualizar perfil do responsável
-          await supabase.from("profiles").update({
-            full_name: responsibleData.full_name,
-            cpf: responsibleData.cpf,
-            rg: responsibleData.rg,
-            telefone: responsibleData.telefone,
-            telefone_emergencia: responsibleData.telefone_emergencia,
-            endereco_completo: responsibleData.endereco_completo,
-            ...respDocUrls,
-          }).eq("id", responsibleUserId);
+          if (existingProfile) {
+            // Perfil existe, atualizar
+            await supabase.from("profiles").update({
+              full_name: responsibleData.full_name,
+              cpf: responsibleData.cpf,
+              rg: responsibleData.rg,
+              telefone: responsibleData.telefone,
+              telefone_emergencia: responsibleData.telefone_emergencia,
+              endereco_completo: responsibleData.endereco_completo,
+              ...respDocUrls,
+            }).eq("id", responsibleUserId);
+          } else {
+            // Perfil não existe, criar
+            await supabase.from("profiles").insert({
+              id: responsibleUserId,
+              full_name: responsibleData.full_name,
+              email: responsibleData.email,
+              cpf: responsibleData.cpf,
+              rg: responsibleData.rg,
+              telefone: responsibleData.telefone,
+              telefone_emergencia: responsibleData.telefone_emergencia,
+              endereco_completo: responsibleData.endereco_completo,
+              ...respDocUrls,
+            });
+          }
 
           // Adicionar role de pai
           await supabase.from("user_roles").insert([{ 
