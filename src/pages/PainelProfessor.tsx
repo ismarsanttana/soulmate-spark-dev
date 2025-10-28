@@ -2,58 +2,16 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, Users, Calendar, FileText, ClipboardCheck, GraduationCap, MessageSquare, BarChart3 } from "lucide-react";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { Users, BookOpen, Calendar, FileText, Search } from "lucide-react";
 import { useState } from "react";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
-
-const menuItems = [
-  { value: "overview", title: "Visão Geral", icon: BarChart3 },
-  { value: "turmas", title: "Minhas Turmas", icon: Users },
-  { value: "presenca", title: "Registro de Presença", icon: ClipboardCheck },
-  { value: "notas", title: "Notas e Avaliações", icon: GraduationCap },
-  { value: "aulas", title: "Diário de Aulas", icon: BookOpen },
-  { value: "calendario", title: "Calendário de Provas", icon: Calendar },
-  { value: "relatorios", title: "Relatórios", icon: FileText },
-  { value: "chamados", title: "Chamados", icon: MessageSquare },
-];
-
-const ProfessorSidebar = ({ activeTab, onTabChange }: { activeTab: string; onTabChange: (tab: string) => void }) => {
-  return (
-    <Sidebar>
-      <SidebarContent>
-        <SidebarGroup>
-          <div className="px-4 py-2">
-            <h2 className="text-lg font-semibold">Painel do Professor</h2>
-            <p className="text-sm text-muted-foreground">Gestão de Turmas</p>
-          </div>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <SidebarMenuItem key={item.value}>
-                    <SidebarMenuButton
-                      onClick={() => onTabChange(item.value)}
-                      isActive={activeTab === item.value}
-                      tooltip={item.title}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
-  );
-};
+import { ProfessorLayout } from "@/components/professor/ProfessorLayout";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const ProfessorContent = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: user } = useQuery({
     queryKey: ["current-user"],
@@ -78,84 +36,206 @@ const ProfessorContent = () => {
     enabled: !!user?.id,
   });
 
+  const today = new Date().toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
   const renderContent = () => {
     switch (activeTab) {
       case "overview":
         return (
-          <div className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Turmas Ativas</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{classes?.length || 0}</div>
-                  <p className="text-xs text-muted-foreground">turmas sob sua responsabilidade</p>
+          <div className="space-y-4">
+            {/* Page Header */}
+            <div className="bg-card border border-border rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <h1 className="text-2xl font-bold">Painel do Professor</h1>
+                <p className="text-sm text-muted-foreground">
+                  Gestão de turmas, presença, avaliações e calendário
+                </p>
+              </div>
+              
+              <div className="relative flex-1 max-w-[520px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Pesquisar por turma, aluno, avaliação..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-11 rounded-xl"
+                />
+              </div>
+              
+              <div className="flex items-center gap-2 bg-muted/50 border border-border h-10 px-3 rounded-xl text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <span className="capitalize">{today}</span>
+              </div>
+            </div>
+
+            {/* KPIs */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-bold text-muted-foreground">Turmas Ativas</div>
+                      <div className="text-3xl font-extrabold mt-1">{classes?.length || 0}</div>
+                      <div className="text-xs font-bold mt-0.5 text-muted-foreground">—</div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Aulas Esta Semana</CardTitle>
-                  <BookOpen className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">-</div>
-                  <p className="text-xs text-muted-foreground">aulas registradas</p>
+
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl bg-green-500 text-white flex items-center justify-center shadow">
+                      <Calendar className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-bold text-muted-foreground">Aulas Esta Semana</div>
+                      <div className="text-3xl font-extrabold mt-1">0</div>
+                      <div className="text-xs font-bold mt-0.5 text-muted-foreground">—</div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Próximas Avaliações</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">-</div>
-                  <p className="text-xs text-muted-foreground">provas agendadas</p>
+
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl bg-purple-500 text-white flex items-center justify-center shadow">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-bold text-muted-foreground">Próximas Avaliações</div>
+                      <div className="text-3xl font-extrabold mt-1">0</div>
+                      <div className="text-xs font-bold mt-0.5 text-muted-foreground">—</div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pendências</CardTitle>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">-</div>
-                  <p className="text-xs text-muted-foreground">notas para lançar</p>
+
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-bold text-muted-foreground">Pendências</div>
+                      <div className="text-3xl font-extrabold mt-1">0</div>
+                      <div className="text-xs font-bold mt-0.5 text-muted-foreground">—</div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Minhas Turmas</CardTitle>
-                <CardDescription>Visão rápida das suas turmas ativas</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {classes && classes.length > 0 ? (
-                  <div className="space-y-4">
-                    {classes.map((cls) => (
-                      <div key={cls.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h3 className="font-semibold">{cls.class_name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {cls.grade_level} - {cls.shift} - {cls.school_name}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium">{cls.school_year}</p>
-                          <p className="text-xs text-muted-foreground">Ano Letivo</p>
-                        </div>
+
+            {/* Charts Section */}
+            <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+              <Card className="shadow-sm">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Frequência da Semana</CardTitle>
+                      <CardDescription>Percentual de presença por dia</CardDescription>
+                    </div>
+                    <Badge variant="secondary" className="gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                      Atualizado
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[120px] flex items-end justify-between gap-2">
+                    {["Seg", "Ter", "Qua", "Qui", "Sex"].map((day) => (
+                      <div key={day} className="flex-1 flex flex-col items-center gap-2">
+                        <div className="w-full bg-muted/30 rounded-t-lg h-full"></div>
+                        <span className="text-xs text-muted-foreground font-medium">{day}</span>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-muted-foreground">Nenhuma turma atribuída</p>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Distribuição de Notas</CardTitle>
+                      <CardDescription>Últimas avaliações</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex gap-2 flex-wrap">
+                    <Button size="sm" className="gap-2">
+                      <span className="text-lg">✓</span>
+                      Iniciar Chamada
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-2">
+                      <span className="text-lg">✎</span>
+                      Lançar Nota
+                    </Button>
+                  </div>
+                  <div className="h-[60px] bg-muted/20 rounded-lg"></div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Lists Section */}
+            <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg">Minhas Turmas</CardTitle>
+                  <CardDescription>Visão rápida das turmas ativas</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {classes && classes.length > 0 ? (
+                    <div className="space-y-2.5">
+                      {classes.map((cls) => (
+                        <div
+                          key={cls.id}
+                          className="flex items-center justify-between p-3 bg-muted/30 border border-border rounded-xl"
+                        >
+                          <div>
+                            <div className="font-bold">{cls.class_name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {cls.grade_level} — {cls.shift}
+                            </div>
+                          </div>
+                          <Badge variant="secondary">{cls.school_year}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-muted/20 border border-border rounded-xl">
+                      <span className="text-sm text-muted-foreground">Nenhuma turma atribuída</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg">Próximas Aulas</CardTitle>
+                  <CardDescription>Agenda das próximas aulas</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="p-3 bg-muted/20 border border-border rounded-xl">
+                    <span className="text-sm text-muted-foreground">Sem aulas agendadas</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         );
+      
       case "turmas":
         return (
           <Card>
@@ -168,6 +248,7 @@ const ProfessorContent = () => {
             </CardContent>
           </Card>
         );
+      
       case "presenca":
         return (
           <Card>
@@ -180,6 +261,7 @@ const ProfessorContent = () => {
             </CardContent>
           </Card>
         );
+      
       case "notas":
         return (
           <Card>
@@ -192,6 +274,7 @@ const ProfessorContent = () => {
             </CardContent>
           </Card>
         );
+      
       case "aulas":
         return (
           <Card>
@@ -204,6 +287,7 @@ const ProfessorContent = () => {
             </CardContent>
           </Card>
         );
+      
       case "calendario":
         return (
           <Card>
@@ -216,6 +300,7 @@ const ProfessorContent = () => {
             </CardContent>
           </Card>
         );
+      
       case "relatorios":
         return (
           <Card>
@@ -228,6 +313,7 @@ const ProfessorContent = () => {
             </CardContent>
           </Card>
         );
+      
       case "chamados":
         return (
           <Card>
@@ -240,23 +326,29 @@ const ProfessorContent = () => {
             </CardContent>
           </Card>
         );
+      
+      case "settings":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Configurações</CardTitle>
+              <CardDescription>Personalize suas preferências do painel</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Em desenvolvimento...</p>
+            </CardContent>
+          </Card>
+        );
+      
       default:
         return null;
     }
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <ProfessorSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-        
-        <main className="flex-1 overflow-auto">
-          <div className="container mx-auto p-6 space-y-6">
-            {renderContent()}
-          </div>
-        </main>
-      </div>
-    </SidebarProvider>
+    <ProfessorLayout activeTab={activeTab} onTabChange={setActiveTab}>
+      {renderContent()}
+    </ProfessorLayout>
   );
 };
 

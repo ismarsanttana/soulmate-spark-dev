@@ -47,7 +47,7 @@ export const useRoleNavigation = () => {
       }
     }
     if (roleData?.isProfessor) {
-      panels.push({ label: "Professor", path: "/painel-professor", icon: "chalkboard-teacher" });
+      panels.push({ label: "Professor", path: "/edu/professor", icon: "chalkboard-teacher" });
     }
     if (roleData?.isAluno) {
       panels.push({ label: "Aluno", path: "/painel-aluno", icon: "graduation-cap" });
