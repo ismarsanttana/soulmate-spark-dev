@@ -10,7 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { EducacaoLayout } from "@/components/educacao/EducacaoLayout";
 import { Layout } from "@/components/Layout";
 import { ArrowLeft, User, Calendar, CheckCircle, XCircle, FileText, Edit, Plus, Search, TrendingUp, Award } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -93,6 +93,54 @@ const StudentDetailContent = () => {
   const [isSearching, setIsSearching] = useState(false);
 
   const queryClient = useQueryClient();
+
+  // Realtime subscriptions para atualização automática
+  useEffect(() => {
+    if (!studentId) return;
+
+    const channel = supabase
+      .channel(`student-${studentId}-updates`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'students', filter: `id=eq.${studentId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['student-detail', studentId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'student_attendance', filter: `student_id=eq.${studentId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['student-attendance', studentId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'student_grades', filter: `student_id=eq.${studentId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['student-grades', studentId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'student_enrollments', filter: `student_id=eq.${studentId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['student-enrollment', studentId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'parent_student_relationship', filter: `student_id=eq.${studentId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['student-responsibles', studentId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [studentId, queryClient]);
 
   // Buscar informações do aluno
   const { data: student, isLoading: studentLoading } = useQuery({
