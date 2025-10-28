@@ -26,6 +26,7 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
     school_name: "",
     shift: "matutino",
     max_students: 40,
+    teacher_user_id: "",
   });
 
   const queryClient = useQueryClient();
@@ -35,9 +36,42 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("school_classes")
-        .select("*")
+        .select(`
+          *,
+          profiles!school_classes_teacher_user_id_fkey (
+            id,
+            full_name
+          )
+        `)
         .eq("status", "active")
         .order("grade_level", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: professors = [] } = useQuery({
+    queryKey: ["professors-list"],
+    queryFn: async () => {
+      // Busca usuários com role de professor
+      const { data: professorRoles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "professor");
+
+      if (rolesError) throw rolesError;
+      
+      const professorIds = professorRoles?.map(r => r.user_id) || [];
+      
+      if (professorIds.length === 0) return [];
+
+      // Busca perfis dos professores
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", professorIds)
+        .order("full_name");
 
       if (error) throw error;
       return data || [];
@@ -137,6 +171,7 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
       school_name: classItem.school_name || "",
       shift: classItem.shift,
       max_students: classItem.max_students,
+      teacher_user_id: classItem.teacher_user_id || "",
     });
     setDialogOpen(true);
   };
@@ -151,6 +186,7 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
       school_name: "",
       shift: "matutino",
       max_students: 40,
+      teacher_user_id: "",
     });
   };
 
@@ -197,6 +233,7 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
                   <TableHead>Série</TableHead>
                   <TableHead>Escola</TableHead>
                   <TableHead>Turno</TableHead>
+                  <TableHead>Professor</TableHead>
                   <TableHead>Alunos</TableHead>
                   <TableHead>Ano Letivo</TableHead>
                   <TableHead>Ações</TableHead>
@@ -214,6 +251,11 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
                       <TableCell>{classItem.school_name || "-"}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{getShiftLabel(classItem.shift)}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {classItem.profiles?.full_name || (
+                          <span className="text-muted-foreground text-sm">Sem professor</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -336,6 +378,26 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
                   max="100"
                   required
                 />
+              </div>
+
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="teacher">Professor Responsável</Label>
+                <Select
+                  value={formData.teacher_user_id}
+                  onValueChange={(value) => setFormData({ ...formData, teacher_user_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um professor..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhum professor atribuído</SelectItem>
+                    {professors.map((prof: any) => (
+                      <SelectItem key={prof.id} value={prof.id}>
+                        {prof.full_name} ({prof.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
