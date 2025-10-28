@@ -38,7 +38,7 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
         .from("school_classes")
         .select(`
           *,
-          profiles!school_classes_teacher_user_id_fkey (
+          teacher:profiles(
             id,
             full_name
           )
@@ -253,7 +253,7 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
                         <Badge variant="outline">{getShiftLabel(classItem.shift)}</Badge>
                       </TableCell>
                       <TableCell>
-                        {classItem.profiles?.full_name || (
+                        {classItem.teacher?.full_name || (
                           <span className="text-muted-foreground text-sm">Sem professor</span>
                         )}
                       </TableCell>
