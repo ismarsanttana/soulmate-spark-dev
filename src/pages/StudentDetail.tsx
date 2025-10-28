@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,13 +8,42 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { EducacaoLayout } from "@/components/educacao/EducacaoLayout";
-import { ArrowLeft, User, Calendar, CheckCircle, XCircle, FileText } from "lucide-react";
+import { ArrowLeft, User, Calendar, CheckCircle, XCircle, FileText, Edit, Plus } from "lucide-react";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 const StudentDetailContent = () => {
   const { studentId } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("painel");
+  const [editStudentDialog, setEditStudentDialog] = useState(false);
+  const [editResponsibleDialog, setEditResponsibleDialog] = useState(false);
+  const [selectedResponsible, setSelectedResponsible] = useState<any>(null);
+  
+  const [studentFormData, setStudentFormData] = useState({
+    full_name: "",
+    cpf: "",
+    birth_date: "",
+    telefone: "",
+    rg: "",
+    naturalidade: "",
+    nacionalidade: "Brasileira",
+  });
+
+  const [responsibleFormData, setResponsibleFormData] = useState({
+    full_name: "",
+    email: "",
+    cpf: "",
+    telefone: "",
+    endereco_completo: "",
+    relationship_type: "pai",
+  });
+
+  const queryClient = useQueryClient();
 
   // Buscar informações do aluno
   const { data: student, isLoading: studentLoading } = useQuery({
@@ -166,6 +195,150 @@ const StudentDetailContent = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  // Mutation para atualizar dados do aluno
+  const updateStudentMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const { error } = await supabase
+        .from("students")
+        .update(data)
+        .eq("id", studentId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["student-detail"] });
+      toast.success("Dados do aluno atualizados com sucesso!");
+      setEditStudentDialog(false);
+    },
+    onError: () => {
+      toast.error("Erro ao atualizar dados do aluno");
+    },
+  });
+
+  // Mutation para adicionar/atualizar responsável
+  const saveResponsibleMutation = useMutation({
+    mutationFn: async () => {
+      // Verificar se já existe um usuário com este email
+      const { data: existingUser } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", responsibleFormData.email)
+        .maybeSingle();
+
+      let responsibleUserId: string;
+
+      if (existingUser) {
+        // Atualizar usuário existente
+        responsibleUserId = existingUser.id;
+        await supabase
+          .from("profiles")
+          .update({
+            full_name: responsibleFormData.full_name,
+            cpf: responsibleFormData.cpf,
+            telefone: responsibleFormData.telefone,
+            endereco_completo: responsibleFormData.endereco_completo,
+          })
+          .eq("id", responsibleUserId);
+      } else {
+        // Criar novo usuário
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: responsibleFormData.email,
+          password: Math.random().toString(36).slice(-12) + "Aa1!",
+          options: { 
+            data: { full_name: responsibleFormData.full_name },
+            emailRedirectTo: `${window.location.origin}/`
+          },
+        });
+        
+        if (authError) throw authError;
+        if (!authData?.user) throw new Error("Erro ao criar responsável");
+        
+        responsibleUserId = authData.user.id;
+
+        await supabase.from("profiles").update({
+          full_name: responsibleFormData.full_name,
+          cpf: responsibleFormData.cpf,
+          telefone: responsibleFormData.telefone,
+          endereco_completo: responsibleFormData.endereco_completo,
+        }).eq("id", responsibleUserId);
+
+        await supabase.from("user_roles").insert([{ 
+          user_id: responsibleUserId, 
+          role: "pai" 
+        }]);
+      }
+
+      if (selectedResponsible) {
+        // Atualizar relacionamento existente
+        await supabase
+          .from("parent_student_relationship")
+          .update({
+            relationship_type: responsibleFormData.relationship_type,
+          })
+          .eq("id", selectedResponsible.id);
+      } else {
+        // Criar novo relacionamento
+        await supabase.from("parent_student_relationship").insert({
+          parent_user_id: responsibleUserId,
+          student_id: studentId,
+          relationship_type: responsibleFormData.relationship_type,
+          is_primary: true,
+          is_authorized_pickup: true,
+          can_view_grades: true,
+          can_view_attendance: true,
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["student-responsibles"] });
+      toast.success("Responsável salvo com sucesso!");
+      setEditResponsibleDialog(false);
+      setSelectedResponsible(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Erro ao salvar responsável");
+    },
+  });
+
+  const handleEditStudent = () => {
+    if (!student) return;
+    setStudentFormData({
+      full_name: student.full_name || "",
+      cpf: student.cpf || "",
+      birth_date: student.birth_date || "",
+      telefone: student.telefone || "",
+      rg: student.rg || "",
+      naturalidade: student.naturalidade || "",
+      nacionalidade: student.nacionalidade || "Brasileira",
+    });
+    setEditStudentDialog(true);
+  };
+
+  const handleAddResponsible = () => {
+    setSelectedResponsible(null);
+    setResponsibleFormData({
+      full_name: "",
+      email: "",
+      cpf: "",
+      telefone: "",
+      endereco_completo: "",
+      relationship_type: "pai",
+    });
+    setEditResponsibleDialog(true);
+  };
+
+  const handleEditResponsible = (responsible: any) => {
+    setSelectedResponsible(responsible);
+    setResponsibleFormData({
+      full_name: responsible.responsible?.full_name || "",
+      email: responsible.responsible?.email || "",
+      cpf: responsible.responsible?.cpf || "",
+      telefone: responsible.responsible?.telefone || "",
+      endereco_completo: responsible.responsible?.endereco_completo || "",
+      relationship_type: responsible.relationship_type || "pai",
+    });
+    setEditResponsibleDialog(true);
+  };
+
   return (
     <EducacaoLayout activeTab={activeTab} onTabChange={setActiveTab}>
       <div className="space-y-6">
@@ -234,8 +407,12 @@ const StudentDetailContent = () => {
 
           <TabsContent value="info" className="space-y-4">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Dados Pessoais</CardTitle>
+                <Button variant="outline" size="sm" onClick={handleEditStudent}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar
+                </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -292,9 +469,15 @@ const StudentDetailContent = () => {
 
           <TabsContent value="responsibles">
             <Card>
-              <CardHeader>
-                <CardTitle>Pais e Responsáveis</CardTitle>
-                <CardDescription>Lista de pessoas responsáveis pelo aluno</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Pais e Responsáveis</CardTitle>
+                  <CardDescription>Lista de pessoas responsáveis pelo aluno</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleAddResponsible}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar
+                </Button>
               </CardHeader>
               <CardContent>
                 {responsibles.length === 0 ? (
@@ -321,11 +504,18 @@ const StudentDetailContent = () => {
                               {rel.responsible?.cpf && (
                                 <p>CPF: {rel.responsible.cpf}</p>
                               )}
-                              {rel.responsible?.phone && (
-                                <p>Telefone: {rel.responsible.phone}</p>
+                              {rel.responsible?.telefone && (
+                                <p>Telefone: {rel.responsible.telefone}</p>
                               )}
                             </div>
                           </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEditResponsible(rel)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -464,6 +654,176 @@ const StudentDetailContent = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Dialog para editar dados do aluno */}
+        <Dialog open={editStudentDialog} onOpenChange={setEditStudentDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Editar Dados do Aluno</DialogTitle>
+              <DialogDescription>Atualize as informações pessoais do aluno</DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="full_name">Nome Completo *</Label>
+                <Input
+                  id="full_name"
+                  value={studentFormData.full_name}
+                  onChange={(e) => setStudentFormData({ ...studentFormData, full_name: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cpf">CPF *</Label>
+                <Input
+                  id="cpf"
+                  value={studentFormData.cpf}
+                  onChange={(e) => setStudentFormData({ ...studentFormData, cpf: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="birth_date">Data de Nascimento *</Label>
+                <Input
+                  id="birth_date"
+                  type="date"
+                  value={studentFormData.birth_date}
+                  onChange={(e) => setStudentFormData({ ...studentFormData, birth_date: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="telefone">Telefone</Label>
+                <Input
+                  id="telefone"
+                  value={studentFormData.telefone}
+                  onChange={(e) => setStudentFormData({ ...studentFormData, telefone: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rg">RG</Label>
+                <Input
+                  id="rg"
+                  value={studentFormData.rg}
+                  onChange={(e) => setStudentFormData({ ...studentFormData, rg: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="naturalidade">Naturalidade</Label>
+                <Input
+                  id="naturalidade"
+                  value={studentFormData.naturalidade}
+                  onChange={(e) => setStudentFormData({ ...studentFormData, naturalidade: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nacionalidade">Nacionalidade</Label>
+                <Input
+                  id="nacionalidade"
+                  value={studentFormData.nacionalidade}
+                  onChange={(e) => setStudentFormData({ ...studentFormData, nacionalidade: e.target.value })}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditStudentDialog(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={() => updateStudentMutation.mutate(studentFormData)}>
+                Salvar Alterações
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog para adicionar/editar responsável */}
+        <Dialog open={editResponsibleDialog} onOpenChange={setEditResponsibleDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedResponsible ? "Editar Responsável" : "Adicionar Responsável"}
+              </DialogTitle>
+              <DialogDescription>
+                {selectedResponsible 
+                  ? "Atualize as informações do responsável" 
+                  : "Cadastre um novo responsável para o aluno"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="resp_full_name">Nome Completo *</Label>
+                <Input
+                  id="resp_full_name"
+                  value={responsibleFormData.full_name}
+                  onChange={(e) => setResponsibleFormData({ ...responsibleFormData, full_name: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="resp_email">Email *</Label>
+                <Input
+                  id="resp_email"
+                  type="email"
+                  value={responsibleFormData.email}
+                  onChange={(e) => setResponsibleFormData({ ...responsibleFormData, email: e.target.value })}
+                  required
+                  disabled={!!selectedResponsible}
+                />
+                {selectedResponsible && (
+                  <p className="text-xs text-muted-foreground">Email não pode ser alterado</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="resp_cpf">CPF</Label>
+                <Input
+                  id="resp_cpf"
+                  value={responsibleFormData.cpf}
+                  onChange={(e) => setResponsibleFormData({ ...responsibleFormData, cpf: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="resp_telefone">Telefone</Label>
+                <Input
+                  id="resp_telefone"
+                  value={responsibleFormData.telefone}
+                  onChange={(e) => setResponsibleFormData({ ...responsibleFormData, telefone: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="relationship_type">Tipo de Relacionamento *</Label>
+                <Select
+                  value={responsibleFormData.relationship_type}
+                  onValueChange={(value) => setResponsibleFormData({ ...responsibleFormData, relationship_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pai">Pai</SelectItem>
+                    <SelectItem value="mae">Mãe</SelectItem>
+                    <SelectItem value="responsavel">Responsável</SelectItem>
+                    <SelectItem value="tutor">Tutor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="resp_endereco">Endereço Completo</Label>
+                <Input
+                  id="resp_endereco"
+                  value={responsibleFormData.endereco_completo}
+                  onChange={(e) => setResponsibleFormData({ ...responsibleFormData, endereco_completo: e.target.value })}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditResponsibleDialog(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={() => saveResponsibleMutation.mutate()}>
+                {selectedResponsible ? "Atualizar" : "Adicionar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </EducacaoLayout>
   );
