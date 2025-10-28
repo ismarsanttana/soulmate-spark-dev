@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Users, BookOpen, Calendar, FileText, Search } from "lucide-react";
 import { useState } from "react";
 import { ProfessorLayout } from "@/components/professor/ProfessorLayout";
+import { ProfessorProfile } from "@/components/professor/ProfessorProfile";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -341,17 +342,7 @@ const ProfessorContent = () => {
         );
       
       case "settings":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Configurações</CardTitle>
-              <CardDescription>Personalize suas preferências do painel</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <ProfessorProfile />;
       
       default:
         return null;
