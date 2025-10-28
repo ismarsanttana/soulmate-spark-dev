@@ -149,55 +149,6 @@ const StudentDetailContent = () => {
     enabled: !!studentId,
   });
 
-  if (studentLoading) {
-    return (
-      <EducacaoLayout activeTab={activeTab} onTabChange={setActiveTab}>
-        <div className="text-center py-12">Carregando...</div>
-      </EducacaoLayout>
-    );
-  }
-
-  if (!student) {
-    return (
-      <EducacaoLayout activeTab={activeTab} onTabChange={setActiveTab}>
-        <div className="text-center py-12">Aluno não encontrado</div>
-      </EducacaoLayout>
-    );
-  }
-
-  const attendanceStats = {
-    total: attendanceRecords.length,
-    present: attendanceRecords.filter(a => a.status === "presente").length,
-    absent: attendanceRecords.filter(a => a.status === "ausente").length,
-    justified: attendanceRecords.filter(a => a.status === "justificado").length,
-  };
-
-  const attendanceRate = attendanceStats.total > 0 
-    ? ((attendanceStats.present / attendanceStats.total) * 100).toFixed(1)
-    : "0.0";
-
-  const getRelationshipLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      pai: "Pai",
-      mae: "Mãe",
-      responsavel: "Responsável",
-      tutor: "Tutor",
-    };
-    return labels[type] || type;
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, any> = {
-      presente: { variant: "default", label: "Presente" },
-      ausente: { variant: "destructive", label: "Ausente" },
-      justificado: { variant: "secondary", label: "Justificado" },
-      atrasado: { variant: "outline", label: "Atrasado" },
-    };
-
-    const config = variants[status] || { variant: "outline", label: status };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
   // Mutation para atualizar dados do aluno
   const updateStudentMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -343,6 +294,55 @@ const StudentDetailContent = () => {
       toast.error(error.message || "Erro ao salvar responsável");
     },
   });
+
+  if (studentLoading) {
+    return (
+      <EducacaoLayout activeTab={activeTab} onTabChange={setActiveTab}>
+        <div className="text-center py-12">Carregando...</div>
+      </EducacaoLayout>
+    );
+  }
+
+  if (!student) {
+    return (
+      <EducacaoLayout activeTab={activeTab} onTabChange={setActiveTab}>
+        <div className="text-center py-12">Aluno não encontrado</div>
+      </EducacaoLayout>
+    );
+  }
+
+  const attendanceStats = {
+    total: attendanceRecords.length,
+    present: attendanceRecords.filter(a => a.status === "presente").length,
+    absent: attendanceRecords.filter(a => a.status === "ausente").length,
+    justified: attendanceRecords.filter(a => a.status === "justificado").length,
+  };
+
+  const attendanceRate = attendanceStats.total > 0 
+    ? ((attendanceStats.present / attendanceStats.total) * 100).toFixed(1)
+    : "0.0";
+
+  const getRelationshipLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      pai: "Pai",
+      mae: "Mãe",
+      responsavel: "Responsável",
+      tutor: "Tutor",
+    };
+    return labels[type] || type;
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, any> = {
+      presente: { variant: "default", label: "Presente" },
+      ausente: { variant: "destructive", label: "Ausente" },
+      justificado: { variant: "secondary", label: "Justificado" },
+      atrasado: { variant: "outline", label: "Atrasado" },
+    };
+
+    const config = variants[status] || { variant: "outline", label: status };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
 
   const handleEditStudent = () => {
     if (!student) return;
