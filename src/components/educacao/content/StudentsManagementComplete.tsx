@@ -65,25 +65,24 @@ export function StudentsManagementComplete({ secretariaSlug }: StudentsManagemen
     queryFn: async () => {
       const { data, error } = await supabase
         .from("parent_student_relationship")
-        .select(`
-          *,
-          parent:parent_user_id(id, email),
-          student:student_id(id, full_name)
-        `);
+        .select("*");
 
       if (error) throw error;
       
-      // Buscar dados dos responsáveis (profiles) separadamente
+      // Buscar dados dos responsáveis (profiles) e estudantes separadamente
       if (data && data.length > 0) {
         const userIds = data.map(r => r.parent_user_id);
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("*")
-          .in("id", userIds);
+        const studentIds = data.map(r => r.student_id);
+        
+        const [profilesResult, studentsResult] = await Promise.all([
+          supabase.from("profiles").select("*").in("id", userIds),
+          supabase.from("students").select("id, full_name").in("id", studentIds)
+        ]);
         
         return data.map(rel => ({
           ...rel,
-          responsible: profiles?.find(p => p.id === rel.parent_user_id)
+          responsible: profilesResult.data?.find(p => p.id === rel.parent_user_id),
+          student: studentsResult.data?.find(s => s.id === rel.student_id)
         }));
       }
       

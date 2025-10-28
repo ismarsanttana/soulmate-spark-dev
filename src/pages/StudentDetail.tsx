@@ -215,6 +215,11 @@ const StudentDetailContent = () => {
     mutationFn: async () => {
       let responsibleUserId: string;
 
+      // Validar dados obrigatórios
+      if (!responsibleFormData.email || !responsibleFormData.full_name) {
+        throw new Error("Email e nome completo são obrigatórios");
+      }
+
       // Verificar se já existe um usuário com este email ou CPF
       const { data: existingUserByEmail } = await supabase
         .from("profiles")
@@ -233,7 +238,7 @@ const StudentDetailContent = () => {
       if (existingUser) {
         // Usuário já existe, apenas atualizar dados
         responsibleUserId = existingUser.id;
-        await supabase
+        const { error: updateError } = await supabase
           .from("profiles")
           .update({
             full_name: responsibleFormData.full_name,
@@ -242,6 +247,8 @@ const StudentDetailContent = () => {
             endereco_completo: responsibleFormData.endereco_completo,
           })
           .eq("id", responsibleUserId);
+
+        if (updateError) throw updateError;
 
         // Garantir que tenha o role de pai
         const { data: existingRole } = await supabase
@@ -252,10 +259,11 @@ const StudentDetailContent = () => {
           .maybeSingle();
 
         if (!existingRole) {
-          await supabase.from("user_roles").insert([{ 
+          const { error: roleError } = await supabase.from("user_roles").insert([{ 
             user_id: responsibleUserId, 
             role: "pai" 
           }]);
+          if (roleError) throw roleError;
         }
       } else {
         // Criar novo usuário
@@ -273,27 +281,32 @@ const StudentDetailContent = () => {
         
         responsibleUserId = authData.user.id;
 
-        await supabase.from("profiles").update({
+        const { error: updateError } = await supabase.from("profiles").update({
           full_name: responsibleFormData.full_name,
           cpf: responsibleFormData.cpf,
           telefone: responsibleFormData.telefone,
           endereco_completo: responsibleFormData.endereco_completo,
         }).eq("id", responsibleUserId);
 
-        await supabase.from("user_roles").insert([{ 
+        if (updateError) throw updateError;
+
+        const { error: roleError } = await supabase.from("user_roles").insert([{ 
           user_id: responsibleUserId, 
           role: "pai" 
         }]);
+        if (roleError) throw roleError;
       }
 
       if (selectedResponsible) {
         // Atualizar relacionamento existente
-        await supabase
+        const { error: updateRelError } = await supabase
           .from("parent_student_relationship")
           .update({
             relationship_type: responsibleFormData.relationship_type,
           })
           .eq("id", selectedResponsible.id);
+        
+        if (updateRelError) throw updateRelError;
       } else {
         // Verificar se já existe relacionamento entre este responsável e o aluno
         const { data: existingRelationship } = await supabase
@@ -305,32 +318,51 @@ const StudentDetailContent = () => {
 
         if (existingRelationship) {
           // Atualizar relacionamento existente
-          await supabase
+          const { error: updateRelError } = await supabase
             .from("parent_student_relationship")
             .update({
               relationship_type: responsibleFormData.relationship_type,
             })
             .eq("id", existingRelationship.id);
+          
+          if (updateRelError) throw updateRelError;
         } else {
           // Criar novo relacionamento
-          await supabase.from("parent_student_relationship").insert({
-            parent_user_id: responsibleUserId,
-            student_id: studentId,
-            relationship_type: responsibleFormData.relationship_type,
-            is_primary: true,
-            is_authorized_pickup: true,
-            can_view_grades: true,
-            can_view_attendance: true,
-          });
+          const { error: insertRelError } = await supabase
+            .from("parent_student_relationship")
+            .insert({
+              parent_user_id: responsibleUserId,
+              student_id: studentId,
+              relationship_type: responsibleFormData.relationship_type,
+              is_primary: false,
+              is_authorized_pickup: true,
+              can_view_grades: true,
+              can_view_attendance: true,
+            });
+          
+          if (insertRelError) throw insertRelError;
         }
       }
+
+      return { responsibleUserId };
     },
     onSuccess: () => {
+      // Invalidar todas as queries relacionadas
       queryClient.invalidateQueries({ queryKey: ["student-responsibles"] });
+      queryClient.invalidateQueries({ queryKey: ["student-relationships"] });
+      queryClient.invalidateQueries({ queryKey: ["children"] });
       toast.success("Responsável salvo com sucesso!");
       setEditResponsibleDialog(false);
       setSelectedResponsible(null);
       setSearchCpf("");
+      setResponsibleFormData({
+        full_name: "",
+        email: "",
+        cpf: "",
+        telefone: "",
+        endereco_completo: "",
+        relationship_type: "pai",
+      });
     },
     onError: (error: any) => {
       toast.error(error.message || "Erro ao salvar responsável");

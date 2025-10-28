@@ -881,6 +881,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_parent_student_relationship_parent"
+            columns: ["parent_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_parent_student_relationship_student"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "parent_student_relationship_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
