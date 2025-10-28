@@ -74,25 +74,36 @@ const Educacao = () => {
       return;
     }
 
-    // Verificar se o usuário tem permissão (se for pai, verificar se é filho dele)
-    if (user) {
-      const isParent = children.some((c: any) => c.student_id === enrollment.student_id);
-      if (!isParent) {
-        // Verificar se tem role de educação
-        const { data: roles } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id);
-        
-        const hasEducationRole = roles?.some(r => 
-          r.role === 'admin' || r.role === 'secretario' || r.role === 'professor'
-        );
-        
-        if (!hasEducationRole) {
-          setBoletimData({ nome: null });
-          toast.error("Você não tem permissão para ver este boletim");
-          return;
-        }
+    // Verificar permissões
+    if (!user) {
+      setBoletimData({ nome: null });
+      toast.error("Você precisa estar logado para consultar boletins");
+      return;
+    }
+
+    // Verificar roles do usuário
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+    
+    const hasEducationRole = roles?.some(r => 
+      r.role === 'admin' || r.role === 'secretario' || r.role === 'professor'
+    );
+
+    // Se não tiver role de educação, verificar se é pai/mãe do aluno
+    if (!hasEducationRole) {
+      const { data: relationship } = await supabase
+        .from("parent_student_relationship")
+        .select("id")
+        .eq("parent_user_id", user.id)
+        .eq("student_id", enrollment.student_id)
+        .maybeSingle();
+
+      if (!relationship) {
+        setBoletimData({ nome: null });
+        toast.error("Você só pode consultar informações dos seus filhos");
+        return;
       }
     }
 
