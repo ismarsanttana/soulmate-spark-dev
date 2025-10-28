@@ -28,7 +28,7 @@ const StudentDetailContent = () => {
   const [selectedResponsible, setSelectedResponsible] = useState<any>(null);
   
   // Verificar usuário atual e permissões
-  const { data: currentUser } = useQuery({
+  const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -339,9 +339,12 @@ const StudentDetailContent = () => {
 
   // Determinar se o usuário é pai (antes de qualquer early return)
   const isParent = useMemo(() => {
-    return currentUser?.roles?.includes('pai') && !currentUser?.roles?.some((r: string) => 
+    if (!currentUser) return false;
+    const hasParentRole = currentUser.roles?.includes('pai');
+    const hasEducationRole = currentUser.roles?.some((r: string) => 
       r === 'admin' || r === 'secretario' || r === 'professor' || r === 'prefeito'
     );
+    return hasParentRole && !hasEducationRole;
   }, [currentUser]);
 
   // Calcular estatísticas de presença (antes de qualquer early return)
@@ -399,6 +402,15 @@ const StudentDetailContent = () => {
 
   const WrapperLayout = isParent ? Layout : EducacaoLayout;
   const layoutProps = isParent ? {} : { activeTab, onTabChange: setActiveTab };
+
+  // Se ainda está carregando o usuário, mostra loading no Layout padrão
+  if (userLoading) {
+    return (
+      <Layout>
+        <div className="text-center py-12">Carregando...</div>
+      </Layout>
+    );
+  }
 
   if (studentLoading || permissionLoading) {
     return (
