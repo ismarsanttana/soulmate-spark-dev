@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
 type ProfessorLayoutProps = {
@@ -67,7 +67,7 @@ export const ProfessorLayout = ({ children, activeTab, onTabChange }: ProfessorL
       if (!user?.id) return null;
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name")
+        .select("id, full_name, avatar_url")
         .eq("id", user.id)
         .maybeSingle();
       if (error) {
@@ -154,17 +154,21 @@ export const ProfessorLayout = ({ children, activeTab, onTabChange }: ProfessorL
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
 
-            <div className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl bg-white/20 border border-white/30">
+            <button
+              onClick={() => onTabChange("settings")}
+              className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl bg-white/20 border border-white/30 hover:bg-white/30 transition-colors cursor-pointer"
+            >
               <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.avatar_url || undefined} />
                 <AvatarFallback className="bg-white text-primary font-extrabold">
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
-              <div className="hidden sm:block leading-tight">
-                <div className="font-extrabold text-sm">{getFirstName()}</div>
-                <div className="text-xs opacity-90">Dashboard</div>
+              <div className="hidden sm:block leading-tight text-left">
+                <div className="font-extrabold text-sm">{profile?.full_name || "Professor"}</div>
+                <div className="text-xs opacity-90">Professor</div>
               </div>
-            </div>
+            </button>
 
             <Button
               variant="ghost"
