@@ -32,14 +32,16 @@ export function UsersRolesManagement() {
     },
   });
 
-  const { data: availableRoles } = useQuery({
-    queryKey: ["available-roles"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("roles").select("*").eq("is_active", true);
-      if (error) throw error;
-      return data;
-    },
-  });
+  // Roles disponíveis no sistema baseadas no enum app_role
+  const availableRoles = [
+    { id: 'admin', role_name: 'Admin' },
+    { id: 'prefeito', role_name: 'Prefeito' },
+    { id: 'secretario', role_name: 'Secretario' },
+    { id: 'professor', role_name: 'Professor' },
+    { id: 'aluno', role_name: 'Aluno' },
+    { id: 'pai', role_name: 'Pai' },
+    { id: 'cidadao', role_name: 'Cidadao' },
+  ];
 
   const { data: userRoles } = useQuery({
     queryKey: ["all-user-roles"],
@@ -70,14 +72,14 @@ export function UsersRolesManagement() {
 
   const addRole = useMutation({
     mutationFn: async ({ userId, roleId, secretariaSlug }: { userId: string; roleId: string; secretariaSlug?: string }) => {
-      const role = availableRoles?.find(r => r.id === roleId);
+      const role = availableRoles.find(r => r.id === roleId);
       const { error: roleError } = await supabase
         .from("user_roles")
-        .insert({ user_id: userId, role_id: roleId, role: role?.role_name.toLowerCase() as any });
+        .insert({ user_id: userId, role: roleId as any });
 
       if (roleError) throw roleError;
 
-      if (role?.role_name.toLowerCase() === "secretario" && secretariaSlug) {
+      if (roleId === "secretario" && secretariaSlug) {
         const { error: assignmentError } = await supabase
           .from("secretary_assignments")
           .insert({ user_id: userId, secretaria_slug: secretariaSlug });
@@ -121,7 +123,7 @@ export function UsersRolesManagement() {
   const getUserRoles = (userId: string) => {
     const userRoleIds = userRoles?.filter(ur => ur.user_id === userId) || [];
     return userRoleIds.map(ur => {
-      const role = availableRoles?.find(r => r.id === ur.role_id);
+      const role = availableRoles.find(r => r.id === ur.role);
       return { ...ur, roleName: role?.role_name || ur.role || "Unknown", roleId: role?.id };
     });
   };
@@ -225,16 +227,16 @@ export function UsersRolesManagement() {
                                 <DialogDescription>Adicione uma role para {profile.full_name}</DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4">
-                                <Select value={selectedRole} onValueChange={setSelectedRole}>
-                                  <SelectTrigger><SelectValue placeholder="Selecione uma role" /></SelectTrigger>
-                                  <SelectContent>
-                                    {availableRoles?.map((role) => (
-                                      <SelectItem key={role.id} value={role.id}>{role.role_name}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                 <Select value={selectedRole} onValueChange={setSelectedRole}>
+                                   <SelectTrigger><SelectValue placeholder="Selecione uma role" /></SelectTrigger>
+                                   <SelectContent>
+                                     {availableRoles.map((role) => (
+                                       <SelectItem key={role.id} value={role.id}>{role.role_name}</SelectItem>
+                                     ))}
+                                   </SelectContent>
+                                 </Select>
 
-                                {availableRoles?.find(r => r.id === selectedRole)?.role_name.toLowerCase() === "secretario" && (
+                                 {selectedRole === "secretario" && (
                                   <Select value={selectedSecretaria} onValueChange={setSelectedSecretaria}>
                                     <SelectTrigger><SelectValue placeholder="Selecione uma secretaria" /></SelectTrigger>
                                     <SelectContent>
@@ -245,20 +247,20 @@ export function UsersRolesManagement() {
                                   </Select>
                                 )}
 
-                                <Button
-                                  onClick={() => {
-                                    const isSecretario = availableRoles?.find(r => r.id === selectedRole)?.role_name.toLowerCase() === "secretario";
-                                    if (isSecretario && !selectedSecretaria) {
-                                      toast({ title: "Atenção", description: "Selecione uma secretaria.", variant: "destructive" });
-                                      return;
-                                    }
-                                    addRole.mutate({ userId: profile.id, roleId: selectedRole, secretariaSlug: isSecretario ? selectedSecretaria : undefined });
-                                  }}
-                                  disabled={!selectedRole}
-                                  className="w-full"
-                                >
-                                  Adicionar Role
-                                </Button>
+                                 <Button
+                                   onClick={() => {
+                                     const isSecretario = selectedRole === "secretario";
+                                     if (isSecretario && !selectedSecretaria) {
+                                       toast({ title: "Atenção", description: "Selecione uma secretaria.", variant: "destructive" });
+                                       return;
+                                     }
+                                     addRole.mutate({ userId: profile.id, roleId: selectedRole, secretariaSlug: isSecretario ? selectedSecretaria : undefined });
+                                   }}
+                                   disabled={!selectedRole}
+                                   className="w-full"
+                                 >
+                                   Adicionar Role
+                                 </Button>
                               </div>
                             </DialogContent>
                           </Dialog>
