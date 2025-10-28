@@ -9,8 +9,12 @@ import { ProfessorProfile } from "@/components/professor/ProfessorProfile";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { InactivityTimer } from "@/components/InactivityTimer";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const ProfessorContent = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -21,6 +25,30 @@ const ProfessorContent = () => {
       return user;
     },
   });
+
+  const { data: profile } = useQuery({
+    queryKey: ["user-profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return null;
+      }
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const handleInactivityTimeout = async () => {
+    await supabase.auth.signOut();
+    toast.info("Sessão encerrada por inatividade");
+    navigate("/auth");
+  };
 
   const { data: classes } = useQuery({
     queryKey: ["professor-classes", user?.id],
@@ -52,7 +80,7 @@ const ProfessorContent = () => {
             {/* Page Header */}
             <div className="bg-card border border-border rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3 flex-wrap">
               <div>
-                <h1 className="text-2xl font-bold">Olá, {user?.user_metadata?.full_name?.split(" ")[0] || "Professor"}</h1>
+                <h1 className="text-2xl font-bold">Olá, {profile?.full_name?.split(" ")[0] || "Professor"}</h1>
                 <p className="text-sm text-muted-foreground">
                   Gestão de turmas, presença, avaliações e calendário
                 </p>
@@ -352,6 +380,7 @@ const ProfessorContent = () => {
   return (
     <ProfessorLayout activeTab={activeTab} onTabChange={setActiveTab}>
       {renderContent()}
+      <InactivityTimer onTimeout={handleInactivityTimeout} timeoutMinutes={30} />
     </ProfessorLayout>
   );
 };
