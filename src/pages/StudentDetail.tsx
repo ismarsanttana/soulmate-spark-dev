@@ -101,6 +101,22 @@ const StudentDetailContent = () => {
     enabled: !!studentId,
   });
 
+  // Buscar notas do aluno
+  const { data: grades = [] } = useQuery({
+    queryKey: ["student-grades", studentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("student_grades")
+        .select("*")
+        .eq("student_id", studentId)
+        .order("assessment_date", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!studentId,
+  });
+
   if (studentLoading) {
     return (
       <EducacaoLayout activeTab={activeTab} onTabChange={setActiveTab}>
@@ -365,10 +381,85 @@ const StudentDetailContent = () => {
                 <CardDescription>Notas e desempenho acadêmico</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Funcionalidade de notas em desenvolvimento</p>
-                </div>
+                {grades.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Nenhuma nota lançada ainda</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Agrupar notas por período */}
+                    {Array.from(new Set(grades.map(g => g.period))).map(period => {
+                      const periodGrades = grades.filter(g => g.period === period);
+                      const subjects = Array.from(new Set(periodGrades.map(g => g.subject)));
+                      
+                      return (
+                        <div key={period}>
+                          <h3 className="text-lg font-semibold mb-4">{period}</h3>
+                          <div className="rounded-lg border">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Disciplina</TableHead>
+                                  <TableHead className="text-center">Prova 1</TableHead>
+                                  <TableHead className="text-center">Prova 2</TableHead>
+                                  <TableHead className="text-center">Trabalho</TableHead>
+                                  <TableHead className="text-center">Participação</TableHead>
+                                  <TableHead className="text-center font-bold">Média</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {subjects.map(subject => {
+                                  const subjectGrades = periodGrades.filter(g => g.subject === subject);
+                                  const prova1 = subjectGrades.find(g => g.assessment_type === 'Prova 1')?.grade || 0;
+                                  const prova2 = subjectGrades.find(g => g.assessment_type === 'Prova 2')?.grade || 0;
+                                  const trabalho = subjectGrades.find(g => g.assessment_type === 'Trabalho')?.grade || 0;
+                                  const participacao = subjectGrades.find(g => g.assessment_type === 'Participação')?.grade || 0;
+                                  
+                                  const media = ((Number(prova1) + Number(prova2) + Number(trabalho) + Number(participacao)) / 4).toFixed(2);
+                                  const isApproved = Number(media) >= 7.0;
+                                  
+                                  return (
+                                    <TableRow key={subject}>
+                                      <TableCell className="font-medium">{subject}</TableCell>
+                                      <TableCell className="text-center">{Number(prova1).toFixed(2)}</TableCell>
+                                      <TableCell className="text-center">{Number(prova2).toFixed(2)}</TableCell>
+                                      <TableCell className="text-center">{Number(trabalho).toFixed(2)}</TableCell>
+                                      <TableCell className="text-center">{Number(participacao).toFixed(2)}</TableCell>
+                                      <TableCell className="text-center">
+                                        <Badge variant={isApproved ? "default" : "destructive"}>
+                                          {media}
+                                        </Badge>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
+                          </div>
+                          
+                          {/* Média geral do período */}
+                          <div className="mt-4 flex justify-end">
+                            <div className="bg-muted rounded-lg p-4">
+                              <p className="text-sm text-muted-foreground">Média Geral do Período</p>
+                              <p className="text-2xl font-bold">
+                                {(() => {
+                                  const allSubjectAverages = subjects.map(subject => {
+                                    const subjectGrades = periodGrades.filter(g => g.subject === subject);
+                                    const sum = subjectGrades.reduce((acc, g) => acc + Number(g.grade), 0);
+                                    return sum / subjectGrades.length;
+                                  });
+                                  const periodAverage = (allSubjectAverages.reduce((a, b) => a + b, 0) / allSubjectAverages.length).toFixed(2);
+                                  return periodAverage;
+                                })()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
