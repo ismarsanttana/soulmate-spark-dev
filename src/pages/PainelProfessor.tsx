@@ -51,7 +51,7 @@ const ProfessorContent = () => {
             {/* Page Header */}
             <div className="bg-card border border-border rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3 flex-wrap">
               <div>
-                <h1 className="text-2xl font-bold">Painel do Professor</h1>
+                <h1 className="text-2xl font-bold">Olá, {user?.user_metadata?.full_name?.split(" ")[0] || "Professor"}</h1>
                 <p className="text-sm text-muted-foreground">
                   Gestão de turmas, presença, avaliações e calendário
                 </p>
@@ -242,6 +242,19 @@ const ProfessorContent = () => {
             <CardHeader>
               <CardTitle>Minhas Turmas</CardTitle>
               <CardDescription>Gerencie suas turmas e visualize informações detalhadas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Em desenvolvimento...</p>
+            </CardContent>
+          </Card>
+        );
+      
+      case "alunos":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Alunos</CardTitle>
+              <CardDescription>Visualize o desempenho dos alunos nas suas matérias</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">Em desenvolvimento...</p>

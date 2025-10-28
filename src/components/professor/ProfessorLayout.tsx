@@ -31,6 +31,7 @@ type ProfessorLayoutProps = {
 const menuItems = [
   { value: "overview", title: "Visão Geral", icon: LayoutDashboard },
   { value: "turmas", title: "Minhas Turmas", icon: Users },
+  { value: "alunos", title: "Alunos", icon: Users },
   { value: "presenca", title: "Registro de Presença", icon: CheckSquare },
   { value: "notas", title: "Notas e Avaliações", icon: Award },
   { value: "aulas", title: "Diário de Aulas", icon: BookOpen },
@@ -50,6 +51,7 @@ const mainMenuItems = [
 export const ProfessorLayout = ({ children, activeTab, onTabChange }: ProfessorLayoutProps) => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["current-user"],
@@ -98,6 +100,13 @@ export const ProfessorLayout = ({ children, activeTab, onTabChange }: ProfessorL
         .slice(0, 2);
     }
     return "PR";
+  };
+
+  const getFirstName = () => {
+    if (profile?.full_name) {
+      return profile.full_name.split(" ")[0];
+    }
+    return "Professor";
   };
 
   const today = new Date().toLocaleDateString("pt-BR", {
@@ -152,7 +161,7 @@ export const ProfessorLayout = ({ children, activeTab, onTabChange }: ProfessorL
                 </AvatarFallback>
               </Avatar>
               <div className="hidden sm:block leading-tight">
-                <div className="font-extrabold text-sm">Professor(a)</div>
+                <div className="font-extrabold text-sm">{getFirstName()}</div>
                 <div className="text-xs opacity-90">Dashboard</div>
               </div>
             </div>
@@ -173,21 +182,26 @@ export const ProfessorLayout = ({ children, activeTab, onTabChange }: ProfessorL
       {/* Main Content */}
       <div className="max-w-screen-xl mx-auto flex gap-4 p-4">
         {/* Sidebar */}
-        <aside className="w-[68px] flex-shrink-0 bg-card border border-border rounded-2xl shadow-sm p-2.5 flex flex-col gap-2 sticky top-20 h-[calc(100vh-96px)]">
+        <aside 
+          className={`${sidebarExpanded ? 'w-64' : 'w-[68px]'} flex-shrink-0 bg-card border border-border rounded-2xl shadow-sm p-2.5 flex flex-col gap-2 sticky top-20 h-[calc(100vh-96px)] transition-all duration-300`}
+          onMouseEnter={() => setSidebarExpanded(true)}
+          onMouseLeave={() => setSidebarExpanded(false)}
+        >
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.value}
                 onClick={() => onTabChange(item.value)}
-                className={`h-11 flex items-center justify-center rounded-xl transition-all border ${
+                className={`h-11 flex items-center ${sidebarExpanded ? 'justify-start px-3' : 'justify-center'} rounded-xl transition-all border gap-3 ${
                   activeTab === item.value
                     ? "bg-primary/10 text-primary border-primary/20"
                     : "text-muted-foreground hover:bg-muted/50 hover:text-primary border-transparent"
                 }`}
                 title={item.title}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {sidebarExpanded && <span className="text-sm font-medium whitespace-nowrap">{item.title}</span>}
               </button>
             );
           })}
@@ -196,14 +210,15 @@ export const ProfessorLayout = ({ children, activeTab, onTabChange }: ProfessorL
           
           <button
             onClick={() => onTabChange("settings")}
-            className={`h-11 flex items-center justify-center rounded-xl transition-all border ${
+            className={`h-11 flex items-center ${sidebarExpanded ? 'justify-start px-3' : 'justify-center'} rounded-xl transition-all border gap-3 ${
               activeTab === "settings"
                 ? "bg-primary/10 text-primary border-primary/20"
                 : "text-muted-foreground hover:bg-muted/50 hover:text-primary border-transparent"
             }`}
             title="Configurações"
           >
-            <Settings className="h-5 w-5" />
+            <Settings className="h-5 w-5 flex-shrink-0" />
+            {sidebarExpanded && <span className="text-sm font-medium whitespace-nowrap">Configurações</span>}
           </button>
         </aside>
 
