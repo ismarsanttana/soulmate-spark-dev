@@ -262,24 +262,11 @@ const StudentDetailContent = () => {
       });
 
       if (existingUser) {
-        // ✅ Usuário já existe - APENAS atualizar dados e garantir role
+        // ✅ Usuário já existe - usar ID sem atualizar perfil
         console.log('✅ Usuário existe, usando ID:', existingUser.id);
         responsibleUserId = existingUser.id;
         
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update({
-            full_name: responsibleFormData.full_name,
-            cpf: responsibleFormData.cpf,
-            telefone: responsibleFormData.telefone,
-            endereco_completo: responsibleFormData.endereco_completo,
-          })
-          .eq("id", responsibleUserId);
-
-        if (updateError) {
-          console.error('❌ Erro ao atualizar perfil:', updateError);
-          throw updateError;
-        }
+        // NÃO tentar atualizar o perfil pois o secretário não tem permissão RLS
 
         // Garantir que tenha o role de pai
         const { data: existingRole } = await supabase
