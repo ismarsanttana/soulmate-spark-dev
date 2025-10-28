@@ -770,7 +770,7 @@ const Profile = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <Link 
-                        to={`/aluno/${child.student_id}`}
+                        to={`/edu/aluno/${child.student_id}`}
                         className="font-medium hover:underline text-primary"
                       >
                         {child.student?.full_name || "Nome não disponível"}
