@@ -6,12 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ImageCropDialog } from "@/components/admin/ImageCropDialog";
 import { toast } from "sonner";
 import { Loader2, Upload, User } from "lucide-react";
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
 export const ProfessorProfile = () => {
   const queryClient = useQueryClient();
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>("");
+  const [tempAvatarUrl, setTempAvatarUrl] = useState<string | null>(null);
 
   const { data: user } = useQuery({
     queryKey: ["current-user"],
@@ -73,26 +79,63 @@ export const ProfessorProfile = () => {
     updateProfileMutation.mutate(data);
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
+    if (!file) return;
+
+    // Validar tamanho do arquivo
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Arquivo muito grande! O tamanho máximo é 20 MB.");
+      e.target.value = "";
+      return;
+    }
+
+    // Validar tipo do arquivo
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor, selecione uma imagem válida.");
+      e.target.value = "";
+      return;
+    }
+
+    // Criar URL temporária para preview e crop
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImageUrl(imageUrl);
+    setCropDialogOpen(true);
+    
+    // Limpar input para permitir selecionar o mesmo arquivo novamente
+    e.target.value = "";
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!user?.id) return;
 
     setIsUploadingAvatar(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
+    setCropDialogOpen(false);
 
+    try {
+      // Gerar nome único para o arquivo
+      const fileName = `${user.id}-${Date.now()}.webp`;
+      const filePath = fileName;
+
+      // Upload do arquivo WebP para o bucket
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, croppedBlob, {
+          contentType: 'image/webp',
+          upsert: true
+        });
 
       if (uploadError) throw uploadError;
 
+      // Obter URL pública
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
+      // Atualizar URL temporária para preview instantâneo
+      setTempAvatarUrl(publicUrl + `?t=${Date.now()}`);
+
+      // Atualizar perfil no banco de dados
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: publicUrl })
@@ -100,13 +143,30 @@ export const ProfessorProfile = () => {
 
       if (updateError) throw updateError;
 
+      // Invalidar queries para atualizar dados
       queryClient.invalidateQueries({ queryKey: ["professor-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      
       toast.success("Foto atualizada com sucesso!");
     } catch (error) {
       console.error("Erro ao fazer upload:", error);
       toast.error("Erro ao atualizar foto");
+      setTempAvatarUrl(null);
     } finally {
       setIsUploadingAvatar(false);
+      // Limpar URL temporária da imagem selecionada
+      if (selectedImageUrl) {
+        URL.revokeObjectURL(selectedImageUrl);
+        setSelectedImageUrl("");
+      }
+    }
+  };
+
+  const handleCropCancel = () => {
+    setCropDialogOpen(false);
+    if (selectedImageUrl) {
+      URL.revokeObjectURL(selectedImageUrl);
+      setSelectedImageUrl("");
     }
   };
 
@@ -148,7 +208,7 @@ export const ProfessorProfile = () => {
           {/* Avatar Section */}
           <div className="flex items-center gap-6">
             <Avatar className="h-24 w-24">
-              <AvatarImage src={profile?.avatar_url || undefined} />
+              <AvatarImage src={tempAvatarUrl || profile?.avatar_url || undefined} />
               <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
                 {getInitials()}
               </AvatarFallback>
@@ -171,14 +231,23 @@ export const ProfessorProfile = () => {
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={handleAvatarUpload}
+                onChange={handleAvatarSelect}
                 disabled={isUploadingAvatar}
               />
               <p className="text-xs text-muted-foreground">
-                JPG, PNG ou GIF. Máximo 2MB.
+                JPG, PNG ou GIF. Máximo 20MB. Será convertido para WebP.
               </p>
             </div>
           </div>
+
+          {/* Crop Dialog */}
+          <ImageCropDialog
+            open={cropDialogOpen}
+            imageUrl={selectedImageUrl}
+            onClose={handleCropCancel}
+            onCropComplete={handleCropComplete}
+            aspectRatio={1}
+          />
 
           {/* Profile Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
