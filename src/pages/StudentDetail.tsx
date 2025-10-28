@@ -90,10 +90,7 @@ const StudentDetailContent = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("parent_student_relationship")
-        .select(`
-          *,
-          parent:parent_user_id(id, email)
-        `)
+        .select("*")
         .eq("student_id", studentId);
 
       if (error) throw error;
