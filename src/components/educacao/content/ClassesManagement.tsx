@@ -36,18 +36,29 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("school_classes")
-        .select(`
-          *,
-          teacher:profiles(
-            id,
-            full_name
-          )
-        `)
+        .select("*")
         .eq("status", "active")
         .order("grade_level", { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      
+      // Buscar dados dos professores separadamente
+      const classesWithTeachers = await Promise.all(
+        (data || []).map(async (classItem) => {
+          if (classItem.teacher_user_id) {
+            const { data: teacher } = await supabase
+              .from("profiles")
+              .select("id, full_name")
+              .eq("id", classItem.teacher_user_id)
+              .single();
+            
+            return { ...classItem, teacher };
+          }
+          return classItem;
+        })
+      );
+      
+      return classesWithTeachers;
     },
   });
 
@@ -102,10 +113,14 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
       const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from("school_classes").insert({
-        ...data,
-        created_by: user?.id,
-      });
+      
+      // Remove teacher_user_id se estiver vazio
+      const insertData = { ...data, created_by: user?.id };
+      if (!insertData.teacher_user_id) {
+        delete insertData.teacher_user_id;
+      }
+      
+      const { error } = await supabase.from("school_classes").insert(insertData);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -390,11 +405,17 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
                     <SelectValue placeholder="Selecione um professor (opcional)..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {professors.map((prof: any) => (
-                      <SelectItem key={prof.id} value={prof.id}>
-                        {prof.full_name} ({prof.email})
-                      </SelectItem>
-                    ))}
+                    {professors.length === 0 ? (
+                      <div className="p-2 text-sm text-muted-foreground text-center">
+                        Nenhum professor cadastrado no sistema
+                      </div>
+                    ) : (
+                      professors.map((prof: any) => (
+                        <SelectItem key={prof.id} value={prof.id}>
+                          {prof.full_name} ({prof.email})
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
