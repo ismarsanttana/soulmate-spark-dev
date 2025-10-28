@@ -2098,6 +2098,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      search_profile_by_cpf: {
+        Args: { _cpf: string }
+        Returns: {
+          cpf: string
+          email: string
+          endereco_completo: string
+          full_name: string
+          id: string
+          telefone: string
+        }[]
+      }
     }
     Enums: {
       app_role:

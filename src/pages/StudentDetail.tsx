@@ -393,21 +393,20 @@ const StudentDetailContent = () => {
 
     setIsSearching(true);
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("cpf", searchCpf)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("search_profile_by_cpf", {
+        _cpf: searchCpf,
+      });
 
       if (error) throw error;
 
-      if (data) {
+      if (data && data.length > 0) {
+        const profile = data[0];
         setResponsibleFormData({
-          full_name: data.full_name || "",
-          email: data.email || "",
-          cpf: data.cpf || "",
-          telefone: data.telefone || "",
-          endereco_completo: data.endereco_completo || "",
+          full_name: profile.full_name || "",
+          email: profile.email || "",
+          cpf: profile.cpf || "",
+          telefone: profile.telefone || "",
+          endereco_completo: profile.endereco_completo || "",
           relationship_type: responsibleFormData.relationship_type,
         });
         toast.success("Responsável encontrado! Dados preenchidos automaticamente.");
@@ -418,8 +417,9 @@ const StudentDetailContent = () => {
           cpf: searchCpf,
         });
       }
-    } catch (error) {
-      toast.error("Erro ao buscar responsável");
+    } catch (error: any) {
+      console.error("Erro ao buscar responsável:", error);
+      toast.error(error.message || "Erro ao buscar responsável");
     } finally {
       setIsSearching(false);
     }
