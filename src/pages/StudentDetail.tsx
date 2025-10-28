@@ -221,24 +221,51 @@ const StudentDetailContent = () => {
         throw new Error("Email e nome completo são obrigatórios");
       }
 
+      // Limpar formatação do CPF para busca
+      const cleanCpf = responsibleFormData.cpf?.replace(/\D/g, '') || '';
+      
+      console.log('🔍 Buscando responsável:', { 
+        email: responsibleFormData.email, 
+        cpf: cleanCpf 
+      });
+
       // Verificar se já existe um usuário com este email ou CPF
-      const { data: existingUserByEmail } = await supabase
+      const { data: existingUserByEmail, error: emailSearchError } = await supabase
         .from("profiles")
         .select("id, email")
-        .eq("email", responsibleFormData.email)
+        .ilike("email", responsibleFormData.email.trim())
         .maybeSingle();
 
-      const { data: existingUserByCpf } = responsibleFormData.cpf ? await supabase
-        .from("profiles")
-        .select("id, email")
-        .eq("cpf", responsibleFormData.cpf)
-        .maybeSingle() : { data: null };
+      if (emailSearchError) {
+        console.error('❌ Erro ao buscar por email:', emailSearchError);
+      }
+
+      let existingUserByCpf = null;
+      if (cleanCpf) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, email, cpf")
+          .not("cpf", "is", null);
+        
+        existingUserByCpf = profiles?.find(p => 
+          p.cpf?.replace(/\D/g, '') === cleanCpf
+        ) || null;
+      }
 
       const existingUser = existingUserByEmail || existingUserByCpf;
 
+      console.log('🔎 Resultado da busca:', { 
+        existingUserByEmail: !!existingUserByEmail,
+        existingUserByCpf: !!existingUserByCpf,
+        existingUser: !!existingUser,
+        userId: existingUser?.id
+      });
+
       if (existingUser) {
-        // Usuário já existe, apenas atualizar dados
+        // ✅ Usuário já existe - APENAS atualizar dados e garantir role
+        console.log('✅ Usuário existe, usando ID:', existingUser.id);
         responsibleUserId = existingUser.id;
+        
         const { error: updateError } = await supabase
           .from("profiles")
           .update({
@@ -249,7 +276,10 @@ const StudentDetailContent = () => {
           })
           .eq("id", responsibleUserId);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('❌ Erro ao atualizar perfil:', updateError);
+          throw updateError;
+        }
 
         // Garantir que tenha o role de pai
         const { data: existingRole } = await supabase
@@ -260,16 +290,21 @@ const StudentDetailContent = () => {
           .maybeSingle();
 
         if (!existingRole) {
+          console.log('📝 Adicionando role de pai para usuário existente');
           const { error: roleError } = await supabase.from("user_roles").insert([{ 
             user_id: responsibleUserId, 
             role: "pai" 
           }]);
-          if (roleError) throw roleError;
+          if (roleError) {
+            console.error('❌ Erro ao adicionar role:', roleError);
+            throw roleError;
+          }
         }
       } else {
-        // Criar novo usuário
+        // ✅ Criar novo usuário APENAS se não existir
+        console.log('🆕 Usuário não existe, criando novo');
         const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: responsibleFormData.email,
+          email: responsibleFormData.email.trim(),
           password: Math.random().toString(36).slice(-12) + "Aa1!",
           options: { 
             data: { full_name: responsibleFormData.full_name },
@@ -277,10 +312,14 @@ const StudentDetailContent = () => {
           },
         });
         
-        if (authError) throw authError;
+        if (authError) {
+          console.error('❌ Erro no signUp:', authError);
+          throw authError;
+        }
         if (!authData?.user) throw new Error("Erro ao criar responsável");
         
         responsibleUserId = authData.user.id;
+        console.log('✅ Novo usuário criado:', responsibleUserId);
 
         // Aguardar um momento para o trigger criar o perfil
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -321,13 +360,18 @@ const StudentDetailContent = () => {
           if (insertError) throw insertError;
         }
 
-        // Agora inserir a role
+        // Inserir a role
         const { error: roleError } = await supabase.from("user_roles").insert([{ 
           user_id: responsibleUserId, 
           role: "pai" 
         }]);
-        if (roleError) throw roleError;
+        if (roleError) {
+          console.error('❌ Erro ao adicionar role:', roleError);
+          throw roleError;
+        }
       }
+
+      console.log('🔗 Criando relacionamento para userId:', responsibleUserId);
 
       if (selectedResponsible) {
         // Atualizar relacionamento existente
@@ -338,7 +382,10 @@ const StudentDetailContent = () => {
           })
           .eq("id", selectedResponsible.id);
         
-        if (updateRelError) throw updateRelError;
+        if (updateRelError) {
+          console.error('❌ Erro ao atualizar relacionamento:', updateRelError);
+          throw updateRelError;
+        }
       } else {
         // Verificar se já existe relacionamento entre este responsável e o aluno
         const { data: existingRelationship } = await supabase
@@ -349,6 +396,7 @@ const StudentDetailContent = () => {
           .maybeSingle();
 
         if (existingRelationship) {
+          console.log('🔄 Relacionamento já existe, atualizando');
           // Atualizar relacionamento existente
           const { error: updateRelError } = await supabase
             .from("parent_student_relationship")
@@ -357,8 +405,12 @@ const StudentDetailContent = () => {
             })
             .eq("id", existingRelationship.id);
           
-          if (updateRelError) throw updateRelError;
+          if (updateRelError) {
+            console.error('❌ Erro ao atualizar relacionamento:', updateRelError);
+            throw updateRelError;
+          }
         } else {
+          console.log('➕ Criando novo relacionamento');
           // Criar novo relacionamento
           const { error: insertRelError } = await supabase
             .from("parent_student_relationship")
@@ -372,10 +424,14 @@ const StudentDetailContent = () => {
               can_view_attendance: true,
             });
           
-          if (insertRelError) throw insertRelError;
+          if (insertRelError) {
+            console.error('❌ Erro ao criar relacionamento:', insertRelError);
+            throw insertRelError;
+          }
         }
       }
 
+      console.log('✅ Responsável adicionado com sucesso!');
       return { responsibleUserId };
     },
     onSuccess: () => {
