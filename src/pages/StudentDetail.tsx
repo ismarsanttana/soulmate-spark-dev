@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { EducacaoLayout } from "@/components/educacao/EducacaoLayout";
-import { ArrowLeft, User, Calendar, CheckCircle, XCircle, FileText, Edit, Plus } from "lucide-react";
+import { ArrowLeft, User, Calendar, CheckCircle, XCircle, FileText, Edit, Plus, Search } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,9 @@ const StudentDetailContent = () => {
     endereco_completo: "",
     relationship_type: "pai",
   });
+
+  const [searchCpf, setSearchCpf] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -217,17 +220,25 @@ const StudentDetailContent = () => {
   // Mutation para adicionar/atualizar responsável
   const saveResponsibleMutation = useMutation({
     mutationFn: async () => {
-      // Verificar se já existe um usuário com este email
-      const { data: existingUser } = await supabase
+      let responsibleUserId: string;
+
+      // Verificar se já existe um usuário com este email ou CPF
+      const { data: existingUserByEmail } = await supabase
         .from("profiles")
-        .select("id")
+        .select("id, email")
         .eq("email", responsibleFormData.email)
         .maybeSingle();
 
-      let responsibleUserId: string;
+      const { data: existingUserByCpf } = responsibleFormData.cpf ? await supabase
+        .from("profiles")
+        .select("id, email")
+        .eq("cpf", responsibleFormData.cpf)
+        .maybeSingle() : { data: null };
+
+      const existingUser = existingUserByEmail || existingUserByCpf;
 
       if (existingUser) {
-        // Atualizar usuário existente
+        // Usuário já existe, apenas atualizar dados
         responsibleUserId = existingUser.id;
         await supabase
           .from("profiles")
@@ -238,6 +249,21 @@ const StudentDetailContent = () => {
             endereco_completo: responsibleFormData.endereco_completo,
           })
           .eq("id", responsibleUserId);
+
+        // Garantir que tenha o role de pai
+        const { data: existingRole } = await supabase
+          .from("user_roles")
+          .select("id")
+          .eq("user_id", responsibleUserId)
+          .eq("role", "pai")
+          .maybeSingle();
+
+        if (!existingRole) {
+          await supabase.from("user_roles").insert([{ 
+            user_id: responsibleUserId, 
+            role: "pai" 
+          }]);
+        }
       } else {
         // Criar novo usuário
         const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -276,16 +302,34 @@ const StudentDetailContent = () => {
           })
           .eq("id", selectedResponsible.id);
       } else {
-        // Criar novo relacionamento
-        await supabase.from("parent_student_relationship").insert({
-          parent_user_id: responsibleUserId,
-          student_id: studentId,
-          relationship_type: responsibleFormData.relationship_type,
-          is_primary: true,
-          is_authorized_pickup: true,
-          can_view_grades: true,
-          can_view_attendance: true,
-        });
+        // Verificar se já existe relacionamento entre este responsável e o aluno
+        const { data: existingRelationship } = await supabase
+          .from("parent_student_relationship")
+          .select("id")
+          .eq("parent_user_id", responsibleUserId)
+          .eq("student_id", studentId)
+          .maybeSingle();
+
+        if (existingRelationship) {
+          // Atualizar relacionamento existente
+          await supabase
+            .from("parent_student_relationship")
+            .update({
+              relationship_type: responsibleFormData.relationship_type,
+            })
+            .eq("id", existingRelationship.id);
+        } else {
+          // Criar novo relacionamento
+          await supabase.from("parent_student_relationship").insert({
+            parent_user_id: responsibleUserId,
+            student_id: studentId,
+            relationship_type: responsibleFormData.relationship_type,
+            is_primary: true,
+            is_authorized_pickup: true,
+            can_view_grades: true,
+            can_view_attendance: true,
+          });
+        }
       }
     },
     onSuccess: () => {
@@ -293,6 +337,7 @@ const StudentDetailContent = () => {
       toast.success("Responsável salvo com sucesso!");
       setEditResponsibleDialog(false);
       setSelectedResponsible(null);
+      setSearchCpf("");
     },
     onError: (error: any) => {
       toast.error(error.message || "Erro ao salvar responsável");
@@ -315,6 +360,7 @@ const StudentDetailContent = () => {
 
   const handleAddResponsible = () => {
     setSelectedResponsible(null);
+    setSearchCpf("");
     setResponsibleFormData({
       full_name: "",
       email: "",
@@ -337,6 +383,46 @@ const StudentDetailContent = () => {
       relationship_type: responsible.relationship_type || "pai",
     });
     setEditResponsibleDialog(true);
+  };
+
+  const handleSearchByCpf = async () => {
+    if (!searchCpf || searchCpf.length < 11) {
+      toast.error("Digite um CPF válido para buscar");
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("cpf", searchCpf)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setResponsibleFormData({
+          full_name: data.full_name || "",
+          email: data.email || "",
+          cpf: data.cpf || "",
+          telefone: data.telefone || "",
+          endereco_completo: data.endereco_completo || "",
+          relationship_type: responsibleFormData.relationship_type,
+        });
+        toast.success("Responsável encontrado! Dados preenchidos automaticamente.");
+      } else {
+        toast.info("CPF não encontrado. Preencha os dados para criar um novo cadastro.");
+        setResponsibleFormData({
+          ...responsibleFormData,
+          cpf: searchCpf,
+        });
+      }
+    } catch (error) {
+      toast.error("Erro ao buscar responsável");
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   return (
@@ -748,6 +834,35 @@ const StudentDetailContent = () => {
                   : "Cadastre um novo responsável para o aluno"}
               </DialogDescription>
             </DialogHeader>
+            
+            {!selectedResponsible && (
+              <div className="p-4 bg-muted/50 rounded-lg border space-y-3">
+                <Label htmlFor="search_cpf" className="text-sm font-medium">
+                  Buscar Responsável por CPF
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="search_cpf"
+                    placeholder="Digite o CPF (somente números)"
+                    value={searchCpf}
+                    onChange={(e) => setSearchCpf(e.target.value.replace(/\D/g, ""))}
+                    maxLength={11}
+                  />
+                  <Button 
+                    variant="secondary" 
+                    onClick={handleSearchByCpf}
+                    disabled={isSearching || searchCpf.length < 11}
+                  >
+                    <Search className="h-4 w-4 mr-2" />
+                    {isSearching ? "Buscando..." : "Buscar"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Se o responsável já estiver cadastrado no sistema, seus dados serão preenchidos automaticamente.
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-2">
                 <Label htmlFor="resp_full_name">Nome Completo *</Label>
