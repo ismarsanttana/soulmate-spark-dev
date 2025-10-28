@@ -4,7 +4,7 @@ export interface Secretaria {
   description?: string;
 }
 
-const secretarias: Secretaria[] = [
+export const secretarias: Secretaria[] = [
   {
     slug: "assistencia",
     title: "Secretaria de Assistência Social",
@@ -19,6 +19,11 @@ const secretarias: Secretaria[] = [
     slug: "saude",
     title: "Secretaria de Saúde",
     description: "Atendimento médico, consultas e exames"
+  },
+  {
+    slug: "comunicacao",
+    title: "Secretaria de Comunicação",
+    description: "Notícias, comunicados oficiais e transparência"
   },
   {
     slug: "financas",

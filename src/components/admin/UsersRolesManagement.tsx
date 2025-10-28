@@ -17,7 +17,6 @@ export function UsersRolesManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("");
-  const [selectedSecretaria, setSelectedSecretaria] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data: profiles } = useQuery({
@@ -32,15 +31,30 @@ export function UsersRolesManagement() {
     },
   });
 
-  // Roles disponíveis no sistema baseadas no enum app_role
+  const { data: secretarias } = useQuery({
+    queryKey: ["secretarias"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("secretarias").select("*").eq("is_active", true).order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Roles disponíveis no sistema com opções específicas para secretários
   const availableRoles = [
-    { id: 'admin', role_name: 'Admin' },
-    { id: 'prefeito', role_name: 'Prefeito' },
-    { id: 'secretario', role_name: 'Secretario' },
-    { id: 'professor', role_name: 'Professor' },
-    { id: 'aluno', role_name: 'Aluno' },
-    { id: 'pai', role_name: 'Pai' },
-    { id: 'cidadao', role_name: 'Cidadao' },
+    { id: 'admin', role_name: 'Admin', baseRole: 'admin' },
+    { id: 'prefeito', role_name: 'Prefeito', baseRole: 'prefeito' },
+    { id: 'professor', role_name: 'Professor', baseRole: 'professor' },
+    { id: 'aluno', role_name: 'Aluno', baseRole: 'aluno' },
+    { id: 'pai', role_name: 'Pai', baseRole: 'pai' },
+    { id: 'cidadao', role_name: 'Cidadão', baseRole: 'cidadao' },
+    // Opções específicas de secretários
+    ...(secretarias?.map(sec => ({
+      id: `secretario-${sec.slug}`,
+      role_name: sec.name,
+      baseRole: 'secretario',
+      secretariaSlug: sec.slug
+    })) || [])
   ];
 
   const { data: userRoles } = useQuery({
@@ -52,14 +66,6 @@ export function UsersRolesManagement() {
     },
   });
 
-  const { data: secretarias } = useQuery({
-    queryKey: ["secretarias"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("secretarias").select("*").eq("is_active", true).order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const { data: secretaryAssignments } = useQuery({
     queryKey: ["secretary-assignments"],
@@ -71,18 +77,21 @@ export function UsersRolesManagement() {
   });
 
   const addRole = useMutation({
-    mutationFn: async ({ userId, roleId, secretariaSlug }: { userId: string; roleId: string; secretariaSlug?: string }) => {
+    mutationFn: async ({ userId, roleId }: { userId: string; roleId: string }) => {
       const role = availableRoles.find(r => r.id === roleId);
+      if (!role) throw new Error("Role não encontrada");
+
       const { error: roleError } = await supabase
         .from("user_roles")
-        .insert({ user_id: userId, role: roleId as any });
+        .insert({ user_id: userId, role: role.baseRole as any });
 
       if (roleError) throw roleError;
 
-      if (roleId === "secretario" && secretariaSlug) {
+      // Se for uma role de secretário específico, adicionar assignment
+      if (role.baseRole === "secretario" && 'secretariaSlug' in role && role.secretariaSlug) {
         const { error: assignmentError } = await supabase
           .from("secretary_assignments")
-          .insert({ user_id: userId, secretaria_slug: secretariaSlug });
+          .insert({ user_id: userId, secretaria_slug: role.secretariaSlug });
 
         if (assignmentError) throw assignmentError;
       }
@@ -94,7 +103,6 @@ export function UsersRolesManagement() {
       setDialogOpen(false);
       setSelectedUserId(null);
       setSelectedRole("");
-      setSelectedSecretaria("");
     },
     onError: (error: Error) => {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -213,7 +221,7 @@ export function UsersRolesManagement() {
                         <TableCell className="text-right">
                           <Dialog open={dialogOpen && selectedUserId === profile.id} onOpenChange={(open) => {
                             setDialogOpen(open);
-                            if (!open) { setSelectedUserId(null); setSelectedRole(""); setSelectedSecretaria(""); }
+                            if (!open) { setSelectedUserId(null); setSelectedRole(""); }
                           }}>
                             <DialogTrigger asChild>
                               <Button variant="outline" size="sm" onClick={() => setSelectedUserId(profile.id)}>
@@ -236,26 +244,8 @@ export function UsersRolesManagement() {
                                    </SelectContent>
                                  </Select>
 
-                                 {selectedRole === "secretario" && (
-                                  <Select value={selectedSecretaria} onValueChange={setSelectedSecretaria}>
-                                    <SelectTrigger><SelectValue placeholder="Selecione uma secretaria" /></SelectTrigger>
-                                    <SelectContent>
-                                      {secretarias?.map((sec: any) => (
-                                        <SelectItem key={sec.id} value={sec.slug}>{sec.name}</SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                )}
-
                                  <Button
-                                   onClick={() => {
-                                     const isSecretario = selectedRole === "secretario";
-                                     if (isSecretario && !selectedSecretaria) {
-                                       toast({ title: "Atenção", description: "Selecione uma secretaria.", variant: "destructive" });
-                                       return;
-                                     }
-                                     addRole.mutate({ userId: profile.id, roleId: selectedRole, secretariaSlug: isSecretario ? selectedSecretaria : undefined });
-                                   }}
+                                   onClick={() => addRole.mutate({ userId: profile.id, roleId: selectedRole })}
                                    disabled={!selectedRole}
                                    className="w-full"
                                  >
