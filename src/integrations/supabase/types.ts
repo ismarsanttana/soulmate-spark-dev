@@ -1824,6 +1824,73 @@ export type Database = {
           },
         ]
       }
+      student_grades: {
+        Row: {
+          assessment_date: string
+          assessment_type: string
+          class_id: string
+          comments: string | null
+          created_at: string | null
+          grade: number
+          id: string
+          period: string
+          student_id: string
+          subject: string
+          teacher_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assessment_date: string
+          assessment_type: string
+          class_id: string
+          comments?: string | null
+          created_at?: string | null
+          grade: number
+          id?: string
+          period: string
+          student_id: string
+          subject: string
+          teacher_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assessment_date?: string
+          assessment_type?: string
+          class_id?: string
+          comments?: string | null
+          created_at?: string | null
+          grade?: number
+          id?: string
+          period?: string
+          student_id?: string
+          subject?: string
+          teacher_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_grades_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "school_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_grades_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_grades_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           alergias: string | null
