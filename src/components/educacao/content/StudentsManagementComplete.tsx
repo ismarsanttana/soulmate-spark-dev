@@ -107,8 +107,8 @@ export function StudentsManagementComplete({ secretariaSlug }: StudentsManagemen
     );
   });
 
-  const getResponsible = (studentUserId: string) => {
-    const rel = relationships.find((r: any) => r.related_user_id === studentUserId);
+  const getResponsible = (studentId: string) => {
+    const rel = relationships.find((r: any) => r.student_id === studentId);
     return (rel as any)?.responsible?.full_name || "Não cadastrado";
   };
 

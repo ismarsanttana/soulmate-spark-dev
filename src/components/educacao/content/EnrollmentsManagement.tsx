@@ -337,8 +337,8 @@ export function EnrollmentsManagement({ secretariaSlug }: EnrollmentsManagementP
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentData.full_name || !studentData.email || !enrollmentData.class_id) {
-      toast.error("Preencha todos os campos obrigatórios");
+    if (!studentData.full_name || !studentData.cpf || !studentData.birth_date || !enrollmentData.class_id) {
+      toast.error("Preencha todos os campos obrigatórios (Nome, CPF, Data de Nascimento e Turma)");
       return;
     }
     createStudentAndEnrollment.mutate();
