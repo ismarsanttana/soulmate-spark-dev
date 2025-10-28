@@ -81,6 +81,18 @@ export function UsersRolesManagement() {
       const role = availableRoles.find(r => r.id === roleId);
       if (!role) throw new Error("Role não encontrada");
 
+      // Verificar se a role já existe para este usuário
+      const { data: existingRole } = await supabase
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("role", role.baseRole as any)
+        .maybeSingle();
+
+      if (existingRole) {
+        throw new Error(`O usuário já possui a role ${role.role_name}`);
+      }
+
       const { error: roleError } = await supabase
         .from("user_roles")
         .insert({ user_id: userId, role: role.baseRole as any });
