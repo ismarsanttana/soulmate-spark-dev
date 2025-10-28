@@ -654,21 +654,21 @@ const StudentDetailContent = () => {
 
   return (
     <WrapperLayout {...layoutProps}>
-      <div className="space-y-6 container max-w-7xl mx-auto py-8">
-        <div className="flex items-center gap-4">
+      <div className="space-y-4 md:space-y-6 container max-w-7xl mx-auto py-4 md:py-8 px-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <Button variant="ghost" onClick={() => navigate(isParent ? "/perfil" : "/edu")} size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
+            <ArrowLeft className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Voltar</span>
           </Button>
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">{student.full_name}</h2>
-            <p className="text-muted-foreground">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl md:text-3xl font-bold tracking-tight truncate">{student.full_name}</h2>
+            <p className="text-sm md:text-base text-muted-foreground truncate">
               Matrícula: {enrollment?.matricula || "N/A"}
             </p>
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -729,15 +729,15 @@ const StudentDetailContent = () => {
         </div>
 
         {/* Seção de Gráficos e Análises */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
           <Card>
-            <CardHeader>
-              <CardTitle>Análise de Frequência</CardTitle>
-              <CardDescription>Distribuição de presença nos últimos 30 dias</CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base md:text-lg">Análise de Frequência</CardTitle>
+              <CardDescription className="text-xs md:text-sm">Distribuição de presença nos últimos 30 dias</CardDescription>
             </CardHeader>
             <CardContent>
               {attendanceChartData.length > 0 ? (
-                <div className="h-[300px]">
+                <div className="h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -745,8 +745,13 @@ const StudentDetailContent = () => {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={(entry: any) => `${entry.name}: ${entry.value} (${((entry.value / attendanceStats.total) * 100).toFixed(0)}%)`}
-                        outerRadius={80}
+                        label={(entry: any) => {
+                          const percentage = ((entry.value / attendanceStats.total) * 100).toFixed(0);
+                          return window.innerWidth < 640 
+                            ? `${entry.value}` 
+                            : `${entry.name}: ${entry.value} (${percentage}%)`;
+                        }}
+                        outerRadius={window.innerWidth < 640 ? 60 : 80}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -760,31 +765,37 @@ const StudentDetailContent = () => {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center text-muted-foreground py-8">Sem dados de frequência disponíveis</p>
+                <p className="text-center text-muted-foreground py-8 text-sm">Sem dados de frequência disponíveis</p>
               )}
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Desempenho por Disciplina</CardTitle>
-              <CardDescription>Média de notas por matéria</CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base md:text-lg">Desempenho por Disciplina</CardTitle>
+              <CardDescription className="text-xs md:text-sm">Média de notas por matéria</CardDescription>
             </CardHeader>
             <CardContent>
               {subjectPerformance.length > 0 ? (
-                <div className="h-[300px]">
+                <div className="h-[250px] md:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={subjectPerformance}>
+                    <BarChart data={subjectPerformance} margin={{ bottom: 60, left: 0, right: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="subject" angle={-45} textAnchor="end" height={100} />
-                      <YAxis domain={[0, 10]} />
+                      <XAxis 
+                        dataKey="subject" 
+                        angle={-45} 
+                        textAnchor="end" 
+                        height={80}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis domain={[0, 10]} tick={{ fontSize: 12 }} />
                       <Tooltip />
                       <Bar dataKey="average" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center text-muted-foreground py-8">Sem notas registradas</p>
+                <p className="text-center text-muted-foreground py-8 text-sm">Sem notas registradas</p>
               )}
             </CardContent>
           </Card>
@@ -793,21 +804,21 @@ const StudentDetailContent = () => {
         {/* Card de Resumo de Aprovação */}
         {subjectPerformance.length > 0 && (
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <TrendingUp className="h-4 w-4 md:h-5 md:w-5" />
                 Situação Acadêmica
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-3 md:gap-4 grid-cols-3">
                 {["Aprovado", "Recuperação", "Reprovado"].map((status) => {
                   const count = subjectPerformance.filter(s => s.status === status).length;
                   const color = status === "Aprovado" ? "text-green-600" : status === "Recuperação" ? "text-yellow-600" : "text-red-600";
                   return (
-                    <div key={status} className="text-center p-4 border rounded-lg">
-                      <div className={`text-2xl font-bold ${color}`}>{count}</div>
-                      <div className="text-sm text-muted-foreground">{status}</div>
+                    <div key={status} className="text-center p-3 md:p-4 border rounded-lg">
+                      <div className={`text-xl md:text-2xl font-bold ${color}`}>{count}</div>
+                      <div className="text-xs md:text-sm text-muted-foreground">{status}</div>
                     </div>
                   );
                 })}
@@ -817,26 +828,26 @@ const StudentDetailContent = () => {
         )}
 
         <Tabs defaultValue="info" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="info">Informações</TabsTrigger>
-            {!isParent && <TabsTrigger value="responsibles">Responsáveis</TabsTrigger>}
-            <TabsTrigger value="attendance">Presença</TabsTrigger>
-            <TabsTrigger value="grades">Notas</TabsTrigger>
+          <TabsList className={`grid w-full ${isParent ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'}`}>
+            <TabsTrigger value="info" className="text-xs md:text-sm">Informações</TabsTrigger>
+            {!isParent && <TabsTrigger value="responsibles" className="text-xs md:text-sm">Responsáveis</TabsTrigger>}
+            <TabsTrigger value="attendance" className="text-xs md:text-sm">Presença</TabsTrigger>
+            <TabsTrigger value="grades" className="text-xs md:text-sm">Notas</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="info" className="space-y-4">
+          <TabsContent value="info" className="space-y-3 md:space-y-4">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Dados Pessoais</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <CardTitle className="text-base md:text-lg">Dados Pessoais</CardTitle>
                 {!isParent && (
                   <Button variant="outline" size="sm" onClick={handleEditStudent}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
+                    <Edit className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                    <span className="text-xs md:text-sm">Editar</span>
                   </Button>
                 )}
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <CardContent className="space-y-3 md:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Nome Completo</p>
                     <p className="text-base">{student.full_name}</p>
@@ -894,11 +905,11 @@ const StudentDetailContent = () => {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Informações Acadêmicas</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base md:text-lg">Informações Acadêmicas</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <CardContent className="space-y-3 md:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Matrícula</p>
                     <p className="text-base font-mono">{enrollment?.matricula || "N/A"}</p>
@@ -922,14 +933,14 @@ const StudentDetailContent = () => {
 
           <TabsContent value="responsibles">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3">
                 <div>
-                  <CardTitle>Pais e Responsáveis</CardTitle>
-                  <CardDescription>Lista de pessoas responsáveis pelo aluno</CardDescription>
+                  <CardTitle className="text-base md:text-lg">Pais e Responsáveis</CardTitle>
+                  <CardDescription className="text-xs md:text-sm">Lista de pessoas responsáveis pelo aluno</CardDescription>
                 </div>
                 <Button variant="outline" size="sm" onClick={handleAddResponsible}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar
+                  <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                  <span className="text-xs md:text-sm">Adicionar</span>
                 </Button>
               </CardHeader>
               <CardContent>
@@ -937,81 +948,86 @@ const StudentDetailContent = () => {
                   <div className="text-center py-8 text-muted-foreground">
                     Nenhum responsável cadastrado
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {responsibles.map((rel: any) => (
-                      <div key={rel.id} className="border rounded-lg p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                              <p className="font-medium">{rel.responsible?.full_name}</p>
-                              <Badge variant="outline">
-                                {getRelationshipLabel(rel.relationship_type)}
-                              </Badge>
-                            </div>
-                            <div className="space-y-1 text-sm text-muted-foreground">
-                              {rel.responsible?.email && (
-                                <p>Email: {isParent ? maskEmail(rel.responsible.email) : rel.responsible.email}</p>
-                              )}
-                              {rel.responsible?.cpf && (
-                                <p>CPF: {isParent ? maskCPF(rel.responsible.cpf) : rel.responsible.cpf}</p>
-                              )}
-                              {rel.responsible?.telefone && (
-                                <p>Telefone: {isParent ? maskPhone(rel.responsible.telefone) : rel.responsible.telefone}</p>
-                              )}
-                            </div>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleEditResponsible(rel)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                 ) : (
+                   <div className="space-y-3 md:space-y-4">
+                     {responsibles.map((rel: any) => (
+                       <div key={rel.id} className="border rounded-lg p-3 md:p-4">
+                         <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                           <div className="space-y-2 flex-1 min-w-0">
+                             <div className="flex items-center gap-2 flex-wrap">
+                               <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                               <p className="font-medium truncate">{rel.responsible?.full_name}</p>
+                               <Badge variant="outline" className="text-xs">
+                                 {getRelationshipLabel(rel.relationship_type)}
+                               </Badge>
+                             </div>
+                             <div className="space-y-1 text-xs md:text-sm text-muted-foreground">
+                               {rel.responsible?.email && (
+                                 <p className="break-all">Email: {isParent ? maskEmail(rel.responsible.email) : rel.responsible.email}</p>
+                               )}
+                               {rel.responsible?.cpf && (
+                                 <p>CPF: {isParent ? maskCPF(rel.responsible.cpf) : rel.responsible.cpf}</p>
+                               )}
+                               {rel.responsible?.telefone && (
+                                 <p>Telefone: {isParent ? maskPhone(rel.responsible.telefone) : rel.responsible.telefone}</p>
+                               )}
+                             </div>
+                           </div>
+                           <Button 
+                             variant="ghost" 
+                             size="sm"
+                             onClick={() => handleEditResponsible(rel)}
+                             className="shrink-0"
+                           >
+                             <Edit className="h-3 w-3 md:h-4 md:w-4" />
+                           </Button>
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="attendance">
             <Card>
-              <CardHeader>
-                <CardTitle>Registro de Presença</CardTitle>
-                <CardDescription>Últimos 30 dias de registro</CardDescription>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base md:text-lg">Registro de Presença</CardTitle>
+                <CardDescription className="text-xs md:text-sm">Últimos 30 dias de registro</CardDescription>
               </CardHeader>
               <CardContent>
                 {attendanceRecords.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-8 text-muted-foreground text-sm">
                     Nenhum registro de presença
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Observações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {attendanceRecords.map((record: any) => (
-                        <TableRow key={record.id}>
-                          <TableCell>
-                            {new Date(record.attendance_date).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(record.status)}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {record.notes || "-"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <div className="overflow-x-auto -mx-6 sm:mx-0">
+                    <div className="inline-block min-w-full align-middle">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs md:text-sm">Data</TableHead>
+                            <TableHead className="text-xs md:text-sm">Status</TableHead>
+                            <TableHead className="text-xs md:text-sm">Observações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {attendanceRecords.map((record: any) => (
+                            <TableRow key={record.id}>
+                              <TableCell className="text-xs md:text-sm">
+                                {new Date(record.attendance_date).toLocaleDateString()}
+                              </TableCell>
+                              <TableCell className="text-xs md:text-sm">{getStatusBadge(record.status)}</TableCell>
+                              <TableCell className="text-xs md:text-sm text-muted-foreground">
+                                {record.notes || "-"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -1019,18 +1035,18 @@ const StudentDetailContent = () => {
 
           <TabsContent value="grades">
             <Card>
-              <CardHeader>
-                <CardTitle>Boletim Escolar</CardTitle>
-                <CardDescription>Notas e desempenho acadêmico</CardDescription>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base md:text-lg">Boletim Escolar</CardTitle>
+                <CardDescription className="text-xs md:text-sm">Notas e desempenho acadêmico</CardDescription>
               </CardHeader>
               <CardContent>
                 {grades.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Nenhuma nota lançada ainda</p>
+                    <FileText className="h-10 w-10 md:h-12 md:w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-sm md:text-base">Nenhuma nota lançada ainda</p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-4 md:space-y-6">
                     {/* Agrupar notas por período */}
                     {Array.from(new Set(grades.map(g => g.period))).map(period => {
                       const periodGrades = grades.filter(g => g.period === period);
@@ -1038,54 +1054,58 @@ const StudentDetailContent = () => {
                       
                       return (
                         <div key={period}>
-                          <h3 className="text-lg font-semibold mb-4">{period}</h3>
-                          <div className="rounded-lg border">
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>Disciplina</TableHead>
-                                  <TableHead className="text-center">Prova 1</TableHead>
-                                  <TableHead className="text-center">Prova 2</TableHead>
-                                  <TableHead className="text-center">Trabalho</TableHead>
-                                  <TableHead className="text-center">Participação</TableHead>
-                                  <TableHead className="text-center font-bold">Média</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {subjects.map(subject => {
-                                  const subjectGrades = periodGrades.filter(g => g.subject === subject);
-                                  const prova1 = subjectGrades.find(g => g.assessment_type === 'Prova 1')?.grade || 0;
-                                  const prova2 = subjectGrades.find(g => g.assessment_type === 'Prova 2')?.grade || 0;
-                                  const trabalho = subjectGrades.find(g => g.assessment_type === 'Trabalho')?.grade || 0;
-                                  const participacao = subjectGrades.find(g => g.assessment_type === 'Participação')?.grade || 0;
-                                  
-                                  const media = ((Number(prova1) + Number(prova2) + Number(trabalho) + Number(participacao)) / 4).toFixed(2);
-                                  const isApproved = Number(media) >= 7.0;
-                                  
-                                  return (
-                                    <TableRow key={subject}>
-                                      <TableCell className="font-medium">{subject}</TableCell>
-                                      <TableCell className="text-center">{Number(prova1).toFixed(2)}</TableCell>
-                                      <TableCell className="text-center">{Number(prova2).toFixed(2)}</TableCell>
-                                      <TableCell className="text-center">{Number(trabalho).toFixed(2)}</TableCell>
-                                      <TableCell className="text-center">{Number(participacao).toFixed(2)}</TableCell>
-                                      <TableCell className="text-center">
-                                        <Badge variant={isApproved ? "default" : "destructive"}>
-                                          {media}
-                                        </Badge>
-                                      </TableCell>
+                          <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">{period}</h3>
+                          <div className="rounded-lg border overflow-hidden">
+                            <div className="overflow-x-auto -mx-6 sm:mx-0">
+                              <div className="inline-block min-w-full align-middle">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead className="text-xs md:text-sm whitespace-nowrap">Disciplina</TableHead>
+                                      <TableHead className="text-center text-xs md:text-sm whitespace-nowrap">Prova 1</TableHead>
+                                      <TableHead className="text-center text-xs md:text-sm whitespace-nowrap">Prova 2</TableHead>
+                                      <TableHead className="text-center text-xs md:text-sm whitespace-nowrap">Trabalho</TableHead>
+                                      <TableHead className="text-center text-xs md:text-sm whitespace-nowrap">Particip.</TableHead>
+                                      <TableHead className="text-center text-xs md:text-sm font-bold whitespace-nowrap">Média</TableHead>
                                     </TableRow>
-                                  );
-                                })}
-                              </TableBody>
-                            </Table>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {subjects.map(subject => {
+                                      const subjectGrades = periodGrades.filter(g => g.subject === subject);
+                                      const prova1 = subjectGrades.find(g => g.assessment_type === 'Prova 1')?.grade || 0;
+                                      const prova2 = subjectGrades.find(g => g.assessment_type === 'Prova 2')?.grade || 0;
+                                      const trabalho = subjectGrades.find(g => g.assessment_type === 'Trabalho')?.grade || 0;
+                                      const participacao = subjectGrades.find(g => g.assessment_type === 'Participação')?.grade || 0;
+                                      
+                                      const media = ((Number(prova1) + Number(prova2) + Number(trabalho) + Number(participacao)) / 4).toFixed(2);
+                                      const isApproved = Number(media) >= 7.0;
+                                      
+                                      return (
+                                        <TableRow key={subject}>
+                                          <TableCell className="font-medium text-xs md:text-sm">{subject}</TableCell>
+                                          <TableCell className="text-center text-xs md:text-sm">{Number(prova1).toFixed(2)}</TableCell>
+                                          <TableCell className="text-center text-xs md:text-sm">{Number(prova2).toFixed(2)}</TableCell>
+                                          <TableCell className="text-center text-xs md:text-sm">{Number(trabalho).toFixed(2)}</TableCell>
+                                          <TableCell className="text-center text-xs md:text-sm">{Number(participacao).toFixed(2)}</TableCell>
+                                          <TableCell className="text-center">
+                                            <Badge variant={isApproved ? "default" : "destructive"} className="text-xs">
+                                              {media}
+                                            </Badge>
+                                          </TableCell>
+                                        </TableRow>
+                                      );
+                                    })}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </div>
                           </div>
                           
                           {/* Média geral do período */}
-                          <div className="mt-4 flex justify-end">
-                            <div className="bg-muted rounded-lg p-4">
-                              <p className="text-sm text-muted-foreground">Média Geral do Período</p>
-                              <p className="text-2xl font-bold">
+                          <div className="mt-3 md:mt-4 flex justify-end">
+                            <div className="bg-muted rounded-lg p-3 md:p-4">
+                              <p className="text-xs md:text-sm text-muted-foreground">Média Geral do Período</p>
+                              <p className="text-xl md:text-2xl font-bold">
                                 {(() => {
                                   const allSubjectAverages = subjects.map(subject => {
                                     const subjectGrades = periodGrades.filter(g => g.subject === subject);
@@ -1110,12 +1130,12 @@ const StudentDetailContent = () => {
 
         {/* Dialog para editar dados do aluno */}
         <Dialog open={editStudentDialog} onOpenChange={setEditStudentDialog}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Editar Dados do Aluno</DialogTitle>
-              <DialogDescription>Atualize as informações pessoais do aluno</DialogDescription>
+              <DialogTitle className="text-base md:text-lg">Editar Dados do Aluno</DialogTitle>
+              <DialogDescription className="text-xs md:text-sm">Atualize as informações pessoais do aluno</DialogDescription>
             </DialogHeader>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="col-span-2 space-y-2">
                 <Label htmlFor="full_name">Nome Completo *</Label>
                 <Input
@@ -1177,11 +1197,11 @@ const StudentDetailContent = () => {
                 />
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditStudentDialog(false)}>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setEditStudentDialog(false)} className="text-xs md:text-sm">
                 Cancelar
               </Button>
-              <Button onClick={() => updateStudentMutation.mutate(studentFormData)}>
+              <Button onClick={() => updateStudentMutation.mutate(studentFormData)} className="text-xs md:text-sm">
                 Salvar Alterações
               </Button>
             </DialogFooter>
@@ -1190,12 +1210,12 @@ const StudentDetailContent = () => {
 
         {/* Dialog para adicionar/editar responsável */}
         <Dialog open={editResponsibleDialog} onOpenChange={setEditResponsibleDialog}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-base md:text-lg">
                 {selectedResponsible ? "Editar Responsável" : "Adicionar Responsável"}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-xs md:text-sm">
                 {selectedResponsible 
                   ? "Atualize as informações do responsável" 
                   : "Cadastre um novo responsável para o aluno"}
@@ -1203,24 +1223,26 @@ const StudentDetailContent = () => {
             </DialogHeader>
             
             {!selectedResponsible && (
-              <div className="p-4 bg-muted/50 rounded-lg border space-y-3">
-                <Label htmlFor="search_cpf" className="text-sm font-medium">
+              <div className="p-3 md:p-4 bg-muted/50 rounded-lg border space-y-2 md:space-y-3">
+                <Label htmlFor="search_cpf" className="text-xs md:text-sm font-medium">
                   Buscar Responsável por CPF
                 </Label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     id="search_cpf"
                     placeholder="Digite o CPF (somente números)"
                     value={searchCpf}
                     onChange={(e) => setSearchCpf(e.target.value.replace(/\D/g, ""))}
                     maxLength={11}
+                    className="text-sm"
                   />
                   <Button 
                     variant="secondary" 
                     onClick={handleSearchByCpf}
                     disabled={isSearching || searchCpf.length < 11}
+                    className="shrink-0 text-xs md:text-sm"
                   >
-                    <Search className="h-4 w-4 mr-2" />
+                    <Search className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                     {isSearching ? "Buscando..." : "Buscar"}
                   </Button>
                 </div>
@@ -1230,9 +1252,9 @@ const StudentDetailContent = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 space-y-2">
-                <Label htmlFor="resp_full_name">Nome Completo *</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+              <div className="col-span-full sm:col-span-2 space-y-2">
+                <Label htmlFor="resp_full_name" className="text-xs md:text-sm">Nome Completo *</Label>
                 <Input
                   id="resp_full_name"
                   value={responsibleFormData.full_name}
@@ -1241,7 +1263,7 @@ const StudentDetailContent = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="resp_email">Email *</Label>
+                <Label htmlFor="resp_email" className="text-xs md:text-sm">Email *</Label>
                 <Input
                   id="resp_email"
                   type="email"
@@ -1255,7 +1277,7 @@ const StudentDetailContent = () => {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="resp_cpf">CPF</Label>
+                <Label htmlFor="resp_cpf" className="text-xs md:text-sm">CPF</Label>
                 <Input
                   id="resp_cpf"
                   value={responsibleFormData.cpf}
@@ -1263,7 +1285,7 @@ const StudentDetailContent = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="resp_telefone">Telefone</Label>
+                <Label htmlFor="resp_telefone" className="text-xs md:text-sm">Telefone</Label>
                 <Input
                   id="resp_telefone"
                   value={responsibleFormData.telefone}
@@ -1271,7 +1293,7 @@ const StudentDetailContent = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="relationship_type">Tipo de Relacionamento *</Label>
+                <Label htmlFor="relationship_type" className="text-xs md:text-sm">Tipo de Relacionamento *</Label>
                 <Select
                   value={responsibleFormData.relationship_type}
                   onValueChange={(value) => setResponsibleFormData({ ...responsibleFormData, relationship_type: value })}
@@ -1287,8 +1309,8 @@ const StudentDetailContent = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="col-span-2 space-y-2">
-                <Label htmlFor="resp_endereco">Endereço Completo</Label>
+              <div className="col-span-full sm:col-span-2 space-y-2">
+                <Label htmlFor="resp_endereco" className="text-xs md:text-sm">Endereço Completo</Label>
                 <Input
                   id="resp_endereco"
                   value={responsibleFormData.endereco_completo}
@@ -1296,11 +1318,11 @@ const StudentDetailContent = () => {
                 />
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditResponsibleDialog(false)}>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setEditResponsibleDialog(false)} className="text-xs md:text-sm">
                 Cancelar
               </Button>
-              <Button onClick={() => saveResponsibleMutation.mutate()}>
+              <Button onClick={() => saveResponsibleMutation.mutate()} className="text-xs md:text-sm">
                 {selectedResponsible ? "Atualizar" : "Adicionar"}
               </Button>
             </DialogFooter>
