@@ -145,7 +145,7 @@ const Profile = () => {
     }
   }, [profileError]);
 
-  const { data: protocols = [], isLoading: protocolsLoading, error: protocolsError } = useQuery<
+  const { data: protocols = [], isLoading: protocolsLoading, error: protocolsError} = useQuery<
     ProtocolRow[]
   >({
     queryKey: ["protocols", user?.id],
@@ -162,6 +162,45 @@ const Profile = () => {
     },
     enabled: !!user,
     retry: 1,
+  });
+
+  // Buscar filhos vinculados (para pais)
+  const { data: children = [] } = useQuery({
+    queryKey: ["children", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from("parent_student_relationship")
+        .select("*")
+        .eq("parent_user_id", user.id);
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        const studentIds = data.map(r => r.student_id);
+        const { data: students } = await supabase
+          .from("students")
+          .select("*")
+          .in("id", studentIds);
+        
+        // Buscar matrículas
+        const { data: enrollments } = await supabase
+          .from("student_enrollments")
+          .select("*, class:class_id(*)")
+          .in("student_id", studentIds)
+          .eq("status", "active");
+        
+        return data.map(rel => ({
+          ...rel,
+          student: students?.find(s => s.id === rel.student_id),
+          enrollment: enrollments?.find(e => e.student_id === rel.student_id)
+        }));
+      }
+      
+      return [];
+    },
+    enabled: !!user,
   });
 
   useEffect(() => {
@@ -707,6 +746,53 @@ const Profile = () => {
             </div>
           </form>
         </section>
+
+        {/* Seção Meus Filhos (apenas para pais) */}
+        {children.length > 0 && (
+          <section className="bg-card dark:bg-card rounded-2xl p-5 shadow-sm mb-5 card-hover border border-border">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="font-semibold text-lg">Meus Filhos</h2>
+                <p className="text-xs text-muted-foreground">
+                  Acompanhe os estudos e frequência dos seus filhos
+                </p>
+              </div>
+              <Link
+                to="/educacao"
+                className="text-xs text-primary font-semibold hover:underline"
+              >
+                Consultar boletim
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {children.map((child: any) => (
+                <div key={child.id} className="p-4 rounded-xl border border-border bg-muted/40 dark:bg-muted/20">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium">{child.student?.full_name || "Nome não disponível"}</h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Relação: {child.relationship_type === 'pai' ? 'Pai' : child.relationship_type === 'mae' ? 'Mãe' : 'Responsável'}
+                      </p>
+                      {child.enrollment && (
+                        <>
+                          <p className="text-xs text-muted-foreground">
+                            Matrícula: {child.enrollment.matricula}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Turma: {child.enrollment.class?.class_name || 'Não atribuído'} - {child.enrollment.class?.grade_level}
+                          </p>
+                        </>
+                      )}
+                    </div>
+                    <span className="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary">
+                      {child.enrollment?.status === 'active' ? 'Matriculado' : 'Inativo'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="bg-card dark:bg-card rounded-2xl p-5 shadow-sm mb-5 card-hover border border-border">
           <div className="flex items-center justify-between mb-4">

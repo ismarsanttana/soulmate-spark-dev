@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { getSecretariaBySlug } from "@/lib/secretarias";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const Educacao = () => {
   const secretaria = getSecretariaBySlug("educacao");
@@ -19,35 +22,98 @@ const Educacao = () => {
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
   const [calendarModalEvent, setCalendarModalEvent] = useState<{ day: number; event: string } | null>(null);
 
-  const handleBoletimSubmit = (e: React.FormEvent) => {
+  // Buscar usuário logado e seus filhos
+  const { data: user } = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+
+  const { data: children = [] } = useQuery({
+    queryKey: ["children", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data } = await supabase
+        .from("parent_student_relationship")
+        .select("*")
+        .eq("parent_user_id", user.id);
+      
+      if (!data) return [];
+      
+      const studentIds = data.map(r => r.student_id);
+      const { data: enrollments } = await supabase
+        .from("student_enrollments")
+        .select("matricula, student_id")
+        .in("student_id", studentIds);
+      
+      return enrollments || [];
+    },
+    enabled: !!user,
+  });
+
+  const handleBoletimSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (boletimMatricula === "2025-67890") {
-      setBoletimData({
-        nome: "Maria Fernanda",
-        serie: "8º ano",
-        notas: [
-          { disciplina: "Português", nota: 9.5 },
-          { disciplina: "Matemática", nota: 8.8 },
-          { disciplina: "História", nota: 9.2 },
-          { disciplina: "Geografia", nota: 9.0 },
-          { disciplina: "Ciências", nota: 8.5 }
-        ]
-      });
-    } else if (boletimMatricula === "2025-12345") {
-      setBoletimData({
-        nome: "João Pedro",
-        serie: "6º ano",
-        notas: [
-          { disciplina: "Português", nota: 8.2 },
-          { disciplina: "Matemática", nota: 7.9 },
-          { disciplina: "História", nota: 8.5 },
-          { disciplina: "Geografia", nota: 8.0 },
-          { disciplina: "Ciências", nota: 7.8 }
-        ]
-      });
-    } else {
+    
+    // Buscar aluno pela matrícula
+    const { data: enrollment, error: enrollmentError } = await supabase
+      .from("student_enrollments")
+      .select(`
+        *,
+        student:student_id(*),
+        class:class_id(*)
+      `)
+      .eq("matricula", boletimMatricula)
+      .maybeSingle();
+
+    if (enrollmentError || !enrollment) {
       setBoletimData({ nome: null });
+      toast.error("Matrícula não encontrada");
+      return;
     }
+
+    // Verificar se o usuário tem permissão (se for pai, verificar se é filho dele)
+    if (user) {
+      const isParent = children.some((c: any) => c.student_id === enrollment.student_id);
+      if (!isParent) {
+        // Verificar se tem role de educação
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id);
+        
+        const hasEducationRole = roles?.some(r => 
+          r.role === 'admin' || r.role === 'secretario' || r.role === 'professor'
+        );
+        
+        if (!hasEducationRole) {
+          setBoletimData({ nome: null });
+          toast.error("Você não tem permissão para ver este boletim");
+          return;
+        }
+      }
+    }
+
+    // Buscar notas do aluno
+    const { data: grades } = await supabase
+      .from("student_grades")
+      .select("*")
+      .eq("student_id", enrollment.student_id)
+      .order("assessment_date", { ascending: false });
+
+    setBoletimData({
+      nome: enrollment.student?.full_name,
+      serie: enrollment.class?.grade_level || enrollment.grade_level,
+      turma: enrollment.class?.class_name,
+      notas: grades?.map(g => ({
+        disciplina: g.subject,
+        nota: g.grade,
+        data: new Date(g.assessment_date).toLocaleDateString('pt-BR')
+      })) || []
+    });
+
     setTimeout(() => {
       document.getElementById("boletim-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
@@ -120,18 +186,30 @@ const Educacao = () => {
                   {boletimData.nome ? (
                     <>
                       <h4 className="font-bold mb-2">Aluno: {boletimData.nome}</h4>
-                      <p className="text-sm text-muted-foreground mb-3">Série: {boletimData.serie}</p>
-                      <div className="space-y-2">
-                        {boletimData.notas.map((item: any, idx: number) => (
-                          <div key={idx} className="flex justify-between items-center p-2 bg-background rounded">
-                            <span className="text-sm font-medium">{item.disciplina}</span>
-                            <span className="text-sm font-bold text-primary">{item.nota}</span>
-                          </div>
-                        ))}
-                      </div>
+                      <p className="text-sm text-muted-foreground mb-1">Série: {boletimData.serie}</p>
+                      {boletimData.turma && (
+                        <p className="text-sm text-muted-foreground mb-3">Turma: {boletimData.turma}</p>
+                      )}
+                      {boletimData.notas.length > 0 ? (
+                        <div className="space-y-2">
+                          {boletimData.notas.map((item: any, idx: number) => (
+                            <div key={idx} className="flex justify-between items-center p-2 bg-background rounded">
+                              <div>
+                                <span className="text-sm font-medium">{item.disciplina}</span>
+                                {item.data && (
+                                  <span className="text-xs text-muted-foreground ml-2">({item.data})</span>
+                                )}
+                              </div>
+                              <span className="text-sm font-bold text-primary">{item.nota}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Nenhuma nota lançada ainda.</p>
+                      )}
                     </>
                   ) : (
-                    <p className="text-destructive text-sm">Matrícula não encontrada. Tente 2025-67890 ou 2025-12345.</p>
+                    <p className="text-destructive text-sm">Matrícula não encontrada ou você não tem permissão para visualizar.</p>
                   )}
                 </div>
               )}
