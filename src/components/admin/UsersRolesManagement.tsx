@@ -143,7 +143,22 @@ export function UsersRolesManagement() {
   const getUserRoles = (userId: string) => {
     const userRoleIds = userRoles?.filter(ur => ur.user_id === userId) || [];
     return userRoleIds.map(ur => {
-      const role = availableRoles.find(r => r.id === ur.role);
+      // Para secretários, procurar a role específica com base no assignment
+      if (ur.role === "secretario") {
+        const assignment = secretaryAssignments?.find(sa => sa.user_id === userId);
+        if (assignment) {
+          const specificRole = availableRoles.find(r => 
+            r.baseRole === "secretario" && 'secretariaSlug' in r && r.secretariaSlug === assignment.secretaria_slug
+          );
+          if (specificRole) {
+            return { ...ur, roleName: specificRole.role_name, roleId: specificRole.id };
+          }
+        }
+        return { ...ur, roleName: "Secretário", roleId: "secretario" };
+      }
+      
+      // Para outras roles, usar baseRole para comparação
+      const role = availableRoles.find(r => r.baseRole === ur.role);
       return { ...ur, roleName: role?.role_name || ur.role || "Unknown", roleId: role?.id };
     });
   };
@@ -218,13 +233,20 @@ export function UsersRolesManagement() {
                         <TableCell>
                           <div className="flex gap-1 flex-wrap">
                             {roles.length > 0 ? (
-                              roles.map((userRole) => (
-                                <Badge key={userRole.id} variant="secondary" className={roleColors[userRole.roleName.toLowerCase()] || "bg-gray-100"}>
-                                  {userRole.roleName}
-                                  {userRole.role === "secretario" && secretaria && ` - ${secretaria.name}`}
-                                  <button onClick={() => removeRole.mutate(userRole.id)} className="ml-1 hover:bg-black/10 rounded-full">×</button>
-                                </Badge>
-                              ))
+                              roles.map((userRole) => {
+                                const isSecretario = userRole.role === "secretario";
+                                const secretaria = isSecretario ? getUserSecretaria(profile.id) : null;
+                                const displayName = isSecretario && secretaria 
+                                  ? `${userRole.roleName} - ${secretaria.name}`
+                                  : userRole.roleName;
+                                
+                                return (
+                                  <Badge key={userRole.id} variant="secondary" className={roleColors[userRole.role] || "bg-gray-100"}>
+                                    {displayName}
+                                    <button onClick={() => removeRole.mutate(userRole.id)} className="ml-1 hover:bg-black/10 rounded-full">×</button>
+                                  </Badge>
+                                );
+                              })
                             ) : (
                               <span className="text-sm text-muted-foreground">Sem roles</span>
                             )}
