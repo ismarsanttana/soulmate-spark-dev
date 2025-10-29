@@ -10,7 +10,7 @@ import { StudentBirthdays } from "@/components/professor/StudentBirthdays";
 import { MyClasses } from "@/components/professor/MyClasses";
 import { StudentsView } from "@/components/professor/StudentsView";
 import { AttendanceRegistration } from "@/components/professor/AttendanceRegistration";
-import { GradesManagement } from "@/components/professor/GradesManagement";
+import { GradesManagementNew } from "@/components/professor/GradesManagementNew";
 import { ClassDiary } from "@/components/professor/ClassDiary";
 import { ExamCalendar } from "@/components/professor/ExamCalendar";
 import { Reports } from "@/components/professor/Reports";
@@ -283,7 +283,7 @@ const ProfessorContent = () => {
         return <AttendanceRegistration />;
       
       case "notas":
-        return <GradesManagement />;
+        return <GradesManagementNew />;
       
       case "aulas":
         return <ClassDiary />;
