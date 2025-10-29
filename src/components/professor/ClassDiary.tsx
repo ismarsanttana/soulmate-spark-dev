@@ -76,7 +76,7 @@ export const ClassDiary = () => {
     queryFn: async () => {
       if (!selectedClass) return [];
       const { data, error } = await supabase
-        .from("class_diary")
+        .from("class_diary" as any)
         .select("*")
         .eq("class_id", selectedClass)
         .order("lesson_date", { ascending: false });
@@ -92,13 +92,13 @@ export const ClassDiary = () => {
 
       if (editingEntry) {
         const { error } = await supabase
-          .from("class_diary")
+          .from("class_diary" as any)
           .update(data)
           .eq("id", editingEntry.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from("class_diary")
+          .from("class_diary" as any)
           .insert({
             ...data,
             class_id: selectedClass,
@@ -121,7 +121,7 @@ export const ClassDiary = () => {
   const deleteMutation = useMutation({
     mutationFn: async (entryId: string) => {
       const { error } = await supabase
-        .from("class_diary")
+        .from("class_diary" as any)
         .delete()
         .eq("id", entryId);
       if (error) throw error;

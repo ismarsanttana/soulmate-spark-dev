@@ -82,7 +82,7 @@ export const AttendanceRegistration = () => {
       if (!selectedClass) return [];
       
       const { data, error } = await supabase
-        .from("student_attendance")
+        .from("student_attendance" as any)
         .select("*")
         .eq("class_id", selectedClass)
         .eq("attendance_date", format(selectedDate, "yyyy-MM-dd"));
@@ -92,7 +92,7 @@ export const AttendanceRegistration = () => {
       // Populate attendanceData with existing records
       if (data && data.length > 0) {
         const records: Record<string, AttendanceStatus> = {};
-        data.forEach(record => {
+        data.forEach((record: any) => {
           records[record.student_id] = record.status as AttendanceStatus;
         });
         setAttendanceData(records);
@@ -122,14 +122,14 @@ export const AttendanceRegistration = () => {
 
       // Delete existing records for this date
       await supabase
-        .from("student_attendance")
+        .from("student_attendance" as any)
         .delete()
         .eq("class_id", selectedClass)
         .eq("attendance_date", dateStr);
 
       // Insert new records
       const { error } = await supabase
-        .from("student_attendance")
+        .from("student_attendance" as any)
         .insert(records);
 
       if (error) throw error;

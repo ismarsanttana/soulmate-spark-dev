@@ -76,7 +76,7 @@ export const ExamCalendar = () => {
     queryFn: async () => {
       if (!selectedClass) return [];
       const { data, error } = await supabase
-        .from("exam_schedule")
+        .from("exam_schedule" as any)
         .select("*")
         .eq("class_id", selectedClass)
         .order("exam_date", { ascending: true });
@@ -92,13 +92,13 @@ export const ExamCalendar = () => {
 
       if (editingExam) {
         const { error } = await supabase
-          .from("exam_schedule")
+          .from("exam_schedule" as any)
           .update(data)
           .eq("id", editingExam.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from("exam_schedule")
+          .from("exam_schedule" as any)
           .insert({
             ...data,
             class_id: selectedClass,
@@ -121,7 +121,7 @@ export const ExamCalendar = () => {
   const deleteMutation = useMutation({
     mutationFn: async (examId: string) => {
       const { error } = await supabase
-        .from("exam_schedule")
+        .from("exam_schedule" as any)
         .delete()
         .eq("id", examId);
       if (error) throw error;

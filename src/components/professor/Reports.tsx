@@ -84,13 +84,13 @@ export const Reports = () => {
 
       // Fetch attendance
       const { data: attendance } = await supabase
-        .from("student_attendance")
+        .from("student_attendance" as any)
         .select("*")
         .eq("class_id", selectedClass);
 
       // Fetch grades
       const { data: grades } = await supabase
-        .from("student_grades")
+        .from("student_grades" as any)
         .select("*")
         .eq("class_id", selectedClass);
 

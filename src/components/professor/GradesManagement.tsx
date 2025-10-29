@@ -93,7 +93,7 @@ export const GradesManagement = () => {
       if (!selectedClass) return [];
       
       let query = supabase
-        .from("student_grades")
+        .from("student_grades" as any)
         .select(`
           *,
           student:profiles(full_name)
@@ -118,13 +118,13 @@ export const GradesManagement = () => {
 
       if (editingGrade) {
         const { error } = await supabase
-          .from("student_grades")
+          .from("student_grades" as any)
           .update(data)
           .eq("id", editingGrade.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from("student_grades")
+          .from("student_grades" as any)
           .insert({
             ...data,
             class_id: selectedClass,
@@ -147,7 +147,7 @@ export const GradesManagement = () => {
   const deleteMutation = useMutation({
     mutationFn: async (gradeId: string) => {
       const { error } = await supabase
-        .from("student_grades")
+        .from("student_grades" as any)
         .delete()
         .eq("id", gradeId);
       if (error) throw error;
