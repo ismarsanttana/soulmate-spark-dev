@@ -202,78 +202,71 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
           });
 
         if (teacherError) throw teacherError;
+        
+        return { userId: selectedTeacher.id, isNew: false };
       } else {
-        // Check if user with this CPF already exists
-        let existingUserId: string | null = null;
-
+        // Creating new professor
+        let userId: string | null = null;
+        
+        // Check if profile with CPF or email already exists using RPC
         if (data.cpf) {
-          const { data: existingProfile, error: cpfCheckError } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("cpf", data.cpf)
-            .maybeSingle();
-
-          if (cpfCheckError) throw cpfCheckError;
+          const { data: existingByCpf, error: cpfError } = await supabase
+            .rpc("search_profile_by_cpf", { _cpf: data.cpf });
           
-          if (existingProfile) {
-            existingUserId = existingProfile.id;
+          if (cpfError) throw cpfError;
+          
+          if (existingByCpf && existingByCpf.length > 0) {
+            userId = existingByCpf[0].id;
             
-            // Check if this user is already a professor
-            const { data: existingRole, error: roleCheckError } = await supabase
+            // Check if already a professor
+            const { data: roleCheck } = await supabase
               .from("user_roles")
               .select("role")
-              .eq("user_id", existingUserId)
+              .eq("user_id", userId)
               .eq("role", "professor")
               .maybeSingle();
-
-            if (roleCheckError) throw roleCheckError;
             
-            if (existingRole) {
-              throw new Error("Este CPF já está cadastrado como professor. Use a opção 'Editar' na lista de professores.");
+            if (roleCheck) {
+              throw new Error("Este CPF já está cadastrado como professor. Use a opção 'Editar'.");
             }
           }
         }
-
-        // Check email if no CPF match was found
-        if (!existingUserId) {
-          const { data: existingByEmail, error: emailCheckError } = await supabase
+        
+        // If not found by CPF, check by email
+        if (!userId && data.email) {
+          const { data: existingByEmail } = await supabase
             .from("profiles")
             .select("id")
             .eq("email", data.email)
             .maybeSingle();
-
-          if (emailCheckError) throw emailCheckError;
           
           if (existingByEmail) {
-            existingUserId = existingByEmail.id;
+            userId = existingByEmail.id;
             
-            // Check if this user is already a professor
-            const { data: existingRole, error: roleCheckError } = await supabase
+            // Check if already a professor
+            const { data: roleCheck } = await supabase
               .from("user_roles")
               .select("role")
-              .eq("user_id", existingUserId)
+              .eq("user_id", userId)
               .eq("role", "professor")
               .maybeSingle();
-
-            if (roleCheckError) throw roleCheckError;
             
-            if (existingRole) {
-              throw new Error("Este email já está cadastrado como professor. Use a opção 'Editar' na lista de professores.");
+            if (roleCheck) {
+              throw new Error("Este email já está cadastrado como professor. Use a opção 'Editar'.");
             }
           }
         }
-
-        // If user exists but is not a professor, add professor role
-        if (existingUserId) {
-          // Update profile with any missing data
+        
+        // If user exists, add professor role and data
+        if (userId) {
+          // Update profile if needed
           const { error: profileError } = await supabase
             .from("profiles")
             .update({
               full_name: data.full_name,
-              cpf: data.cpf || undefined,
-              telefone: data.telefone || undefined,
+              telefone: data.telefone,
             })
-            .eq("id", existingUserId);
+            .eq("id", userId);
 
           if (profileError) throw profileError;
 
@@ -281,17 +274,17 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
           const { error: roleError } = await supabase
             .from("user_roles")
             .insert({
-              user_id: existingUserId,
+              user_id: userId,
               role: "professor",
             });
 
-          if (roleError) throw roleError;
+          if (roleError && roleError.code !== "23505") throw roleError;
 
           // Insert teacher data
           const { error: teacherError } = await supabase
             .from("teachers")
             .insert({
-              user_id: existingUserId,
+              user_id: userId,
               carga_horaria_semanal: data.carga_horaria_semanal,
               banco_horas: data.banco_horas,
               especialidade: data.especialidade,
@@ -304,76 +297,103 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
 
           if (teacherError) throw teacherError;
 
-          return existingUserId;
+          return { userId, isNew: true };
+        } else {
+          // Create new profile without auth user (they can register later)
+          // Generate a temporary ID for the profile
+          const tempId = crypto.randomUUID();
+          
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .insert({
+              id: tempId,
+              full_name: data.full_name,
+              cpf: data.cpf,
+              email: data.email,
+              telefone: data.telefone,
+            });
+
+          if (profileError) throw profileError;
+
+          // Add professor role
+          const { error: roleError } = await supabase
+            .from("user_roles")
+            .insert({
+              user_id: tempId,
+              role: "professor",
+            });
+
+          if (roleError) throw roleError;
+
+          // Insert teacher data
+          const { error: teacherError } = await supabase
+            .from("teachers")
+            .insert({
+              user_id: tempId,
+              carga_horaria_semanal: data.carga_horaria_semanal,
+              banco_horas: data.banco_horas,
+              especialidade: data.especialidade,
+              formacao: data.formacao,
+              registro_profissional: data.registro_profissional,
+              data_admissao: data.data_admissao || null,
+              situacao: data.situacao,
+              observacoes: data.observacoes,
+            });
+
+          if (teacherError) throw teacherError;
+
+          return { userId: tempId, isNew: true };
         }
-
-        // Create new user if no existing user was found
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: data.email,
-          email_confirm: true,
-          user_metadata: {
-            full_name: data.full_name,
-          }
-        });
-
-        if (authError) throw authError;
-        if (!authData.user) throw new Error("Erro ao criar usuário");
-
-        // Insert profile
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .insert({
-            id: authData.user.id,
-            full_name: data.full_name,
-            cpf: data.cpf,
-            email: data.email,
-            telefone: data.telefone,
-          });
-
-        if (profileError) throw profileError;
-
-        // Insert professor role
-        const { error: roleError } = await supabase
-          .from("user_roles")
-          .insert({
-            user_id: authData.user.id,
-            role: "professor",
-          });
-
-        if (roleError) throw roleError;
-
-        // Insert teacher data
-        const { error: teacherError } = await supabase
-          .from("teachers")
-          .insert({
-            user_id: authData.user.id,
-            carga_horaria_semanal: data.carga_horaria_semanal,
-            banco_horas: data.banco_horas,
-            especialidade: data.especialidade,
-            formacao: data.formacao,
-            registro_profissional: data.registro_profissional,
-            data_admissao: data.data_admissao || null,
-            situacao: data.situacao,
-            observacoes: data.observacoes,
-          });
-
-        if (teacherError) throw teacherError;
-
-        return authData.user.id;
       }
     },
-    onSuccess: (userId) => {
-      queryClient.invalidateQueries({ queryKey: ["professors-list"] });
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({ queryKey: ["professors-list"] });
       
       const message = selectedTeacher 
         ? "Professor atualizado com sucesso!" 
-        : userId 
-          ? "Professor cadastrado com sucesso!" 
-          : "Papel de professor adicionado ao usuário existente!";
+        : "Professor cadastrado com sucesso!";
       
       toast.success(message);
-      setEditDialogOpen(false);
-      resetTeacherForm();
+      
+      // If new teacher, load the created teacher and set as selected to enable tabs
+      if (result?.isNew && result?.userId) {
+        // Fetch the newly created teacher
+        const { data: newTeacherProfile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", result.userId)
+          .single();
+          
+        const { data: newTeacherData } = await supabase
+          .from("teachers")
+          .select("*")
+          .eq("user_id", result.userId)
+          .single();
+          
+        if (newTeacherProfile && newTeacherData) {
+          const newTeacher = { ...newTeacherProfile, ...newTeacherData };
+          setSelectedTeacher(newTeacher);
+          setTeacherFormData({
+            full_name: newTeacher.full_name || "",
+            cpf: newTeacher.cpf || "",
+            email: newTeacher.email || "",
+            telefone: newTeacher.telefone || "",
+            carga_horaria_semanal: newTeacher.carga_horaria_semanal || 40,
+            banco_horas: newTeacher.banco_horas || 0,
+            especialidade: newTeacher.especialidade || "",
+            formacao: newTeacher.formacao || "",
+            registro_profissional: newTeacher.registro_profissional || "",
+            data_admissao: newTeacher.data_admissao || "",
+            situacao: newTeacher.situacao || "ativo",
+            observacoes: newTeacher.observacoes || ""
+          });
+          toast.info("Agora você pode gerenciar turmas e identificação facial");
+        }
+      } else {
+        // If editing, close dialog and reset
+        setEditDialogOpen(false);
+        resetTeacherForm();
+      }
     },
     onError: (error: any) => {
       toast.error("Erro ao salvar professor: " + error.message);
@@ -472,22 +492,24 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
 
   const handleSearchCpf = async () => {
     if (!cpfSearch || cpfSearch.length < 11) {
-      toast.error("Digite um CPF válido");
+      toast.error("Digite um CPF válido (mínimo 11 dígitos)");
       return;
     }
 
     setSearchingCpf(true);
     try {
-      // Busca o perfil pelo CPF
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, full_name, cpf, email, telefone")
-        .eq("cpf", cpfSearch)
-        .maybeSingle();
+      // Usa a RPC function que tem SECURITY DEFINER
+      const { data: profiles, error: searchError } = await supabase
+        .rpc("search_profile_by_cpf", { _cpf: cpfSearch });
 
-      if (profileError) throw profileError;
+      if (searchError) {
+        console.error("Erro na busca:", searchError);
+        throw searchError;
+      }
 
-      if (profile) {
+      if (profiles && profiles.length > 0) {
+        const profile = profiles[0];
+        
         // Verifica se já é professor
         const { data: roleData, error: roleError } = await supabase
           .from("user_roles")
@@ -496,7 +518,10 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
           .eq("role", "professor")
           .maybeSingle();
 
-        if (roleError) throw roleError;
+        if (roleError) {
+          console.error("Erro ao verificar role:", roleError);
+          throw roleError;
+        }
 
         if (roleData) {
           toast.error("Este CPF já está cadastrado como professor. Use a opção 'Editar' na lista.");
@@ -512,12 +537,19 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
           email: profile.email || "",
           telefone: profile.telefone || "",
         });
-        toast.success("Dados encontrados! Complete as informações e salve para adicionar como professor.");
+        toast.success("✓ Dados encontrados! Complete as informações e clique em Salvar.");
+        setCpfSearch("");
       } else {
-        toast.info("Nenhum cadastro encontrado. Preencha todos os dados para criar novo professor.");
+        toast.info("Nenhum cadastro encontrado com este CPF. Preencha todos os dados manualmente.");
+        setTeacherFormData({
+          ...teacherFormData,
+          cpf: cpfSearch,
+        });
+        setCpfSearch("");
       }
     } catch (error: any) {
-      toast.error("Erro ao buscar CPF: " + error.message);
+      console.error("Erro completo:", error);
+      toast.error("Erro ao buscar CPF: " + (error.message || "Erro desconhecido"));
     } finally {
       setSearchingCpf(false);
     }
