@@ -196,10 +196,32 @@ export const INEPConsulta = ({ secretariaSlug }: INEPConsultaProps) => {
               {searchSchoolMutation.data && (
                 <Card className="border-primary/20">
                   <CardContent className="pt-6 space-y-4">
+                    {searchSchoolMutation.data.warning && (
+                      <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-md">
+                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm text-amber-900 dark:text-amber-200 font-medium">
+                            Atenção: Dados indisponíveis automaticamente
+                          </p>
+                          <p className="text-xs text-amber-800 dark:text-amber-300 mt-1">
+                            {searchSchoolMutation.data.warning}
+                          </p>
+                          <a 
+                            href={`https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/inep-data/catalogo-de-escolas`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-amber-700 dark:text-amber-400 underline mt-2 inline-block hover:text-amber-900 dark:hover:text-amber-200"
+                          >
+                            Verificar dados oficiais no site do INEP →
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm text-muted-foreground">Código INEP</p>
-                        <p className="font-medium">{searchSchoolMutation.data.data.codigo_inep}</p>
+                        <p className="font-medium font-mono">{searchSchoolMutation.data.data.codigo_inep}</p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Nome da Escola</p>
@@ -211,17 +233,23 @@ export const INEPConsulta = ({ secretariaSlug }: INEPConsultaProps) => {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">UF</p>
-                        <p className="font-medium">{searchSchoolMutation.data.data.uf}</p>
+                        <p className="font-medium">{searchSchoolMutation.data.data.uf || 'Não informado'}</p>
                       </div>
                     </div>
-                    <Button 
-                      onClick={() => handleImport(searchSchoolMutation.data.data)}
-                      disabled={importSchoolMutation.isPending}
-                      className="w-full"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Importar Escola
-                    </Button>
+                    
+                    <div className="pt-2 border-t">
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Revise os dados acima antes de importar. Se necessário, consulte o site oficial do INEP para confirmar as informações.
+                      </p>
+                      <Button 
+                        onClick={() => handleImport(searchSchoolMutation.data.data)}
+                        disabled={importSchoolMutation.isPending}
+                        className="w-full"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        {importSchoolMutation.isPending ? 'Importando...' : 'Importar Escola'}
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               )}
