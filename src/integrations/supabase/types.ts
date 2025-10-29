@@ -2069,6 +2069,54 @@ export type Database = {
         }
         Relationships: []
       }
+      teachers: {
+        Row: {
+          banco_horas: number | null
+          carga_horaria_semanal: number | null
+          created_at: string
+          created_by: string | null
+          data_admissao: string | null
+          especialidade: string | null
+          formacao: string | null
+          id: string
+          observacoes: string | null
+          registro_profissional: string | null
+          situacao: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          banco_horas?: number | null
+          carga_horaria_semanal?: number | null
+          created_at?: string
+          created_by?: string | null
+          data_admissao?: string | null
+          especialidade?: string | null
+          formacao?: string | null
+          id?: string
+          observacoes?: string | null
+          registro_profissional?: string | null
+          situacao?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          banco_horas?: number | null
+          carga_horaria_semanal?: number | null
+          created_at?: string
+          created_by?: string | null
+          data_admissao?: string | null
+          especialidade?: string | null
+          formacao?: string | null
+          id?: string
+          observacoes?: string | null
+          registro_profissional?: string | null
+          situacao?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_relationships: {
         Row: {
           created_at: string
