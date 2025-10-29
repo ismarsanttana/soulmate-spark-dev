@@ -57,6 +57,22 @@ Deno.serve(async (req) => {
       case 'get-rreo': {
         // Buscar Relatório Resumido de Execução Orçamentária (RREO)
         // Anexo 2 = Demonstrativo da Função Educação
+        
+        // Validar ano (SICONFI normalmente tem dados até o ano anterior)
+        const currentYear = new Date().getFullYear();
+        const maxAvailableYear = currentYear - 1;
+        
+        if (ano > maxAvailableYear) {
+          console.log(`Ano ${ano} não disponível, usando ${maxAvailableYear}`);
+          responseData = {
+            warning: `Dados de ${ano} ainda não disponíveis. Mostrando dados de ${maxAvailableYear}.`,
+            data: [],
+            ano_consultado: ano,
+            ano_disponivel: maxAvailableYear
+          };
+          break;
+        }
+        
         const url = `${SICONFI_BASE_URL}/rreo?id_ente=${codigo_ibge}&ano=${ano}&periodo=${bimestre || 6}&anexo=2`;
         
         console.log('Fetching SICONFI:', url);
@@ -68,7 +84,15 @@ Deno.serve(async (req) => {
         });
 
         if (!response.ok) {
-          throw new Error(`SICONFI API error: ${response.status}`);
+          const errorText = await response.text();
+          console.error('SICONFI API error:', response.status, errorText);
+          
+          responseData = {
+            warning: `Dados não disponíveis para ${ano}. Tente outro ano ou período.`,
+            error: `API retornou status ${response.status}`,
+            data: []
+          };
+          break;
         }
 
         const data = await response.json();

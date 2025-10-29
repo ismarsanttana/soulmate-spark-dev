@@ -14,7 +14,8 @@ interface SiconfiTabProps {
 }
 
 export default function SiconfiTab({ secretariaSlug }: SiconfiTabProps) {
-  const [ano, setAno] = useState(new Date().getFullYear().toString());
+  // Usar ano anterior por padrão (dados mais recentes disponíveis)
+  const [ano, setAno] = useState((new Date().getFullYear() - 1).toString());
   const [bimestre, setBimestre] = useState("6");
   const queryClient = useQueryClient();
 
@@ -91,7 +92,8 @@ export default function SiconfiTab({ secretariaSlug }: SiconfiTabProps) {
                 value={ano}
                 onChange={(e) => setAno(e.target.value)}
                 min="2015"
-                max={new Date().getFullYear()}
+                max={new Date().getFullYear() - 1}
+                placeholder={`Ex: ${new Date().getFullYear() - 1}`}
               />
             </div>
             <div className="space-y-2">

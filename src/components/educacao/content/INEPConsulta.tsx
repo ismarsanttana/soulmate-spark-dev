@@ -27,6 +27,7 @@ interface School {
 export const INEPConsulta = ({ secretariaSlug }: INEPConsultaProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSchool, setSelectedSchool] = useState<string | null>(null);
+  const [editableSchoolData, setEditableSchoolData] = useState<any>(null);
   const queryClient = useQueryClient();
 
   // Buscar escolas cadastradas
@@ -71,6 +72,7 @@ export const INEPConsulta = ({ secretariaSlug }: INEPConsultaProps) => {
     },
     onSuccess: (data) => {
       toast.success(data.cached ? "Dados carregados do cache" : "Escola encontrada no INEP");
+      setEditableSchoolData(data.data);
     },
     onError: (error: any) => {
       toast.error("Erro ao buscar escola: " + error.message);
@@ -134,7 +136,7 @@ export const INEPConsulta = ({ secretariaSlug }: INEPConsultaProps) => {
   };
 
   const handleImport = (schoolData: any) => {
-    importSchoolMutation.mutate(schoolData);
+    importSchoolMutation.mutate(editableSchoolData || schoolData);
   };
 
   return (
@@ -201,49 +203,75 @@ export const INEPConsulta = ({ secretariaSlug }: INEPConsultaProps) => {
                         <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
                         <div className="flex-1">
                           <p className="text-sm text-amber-900 dark:text-amber-200 font-medium">
-                            Atenção: Dados indisponíveis automaticamente
+                            Atenção: Complete os dados antes de importar
                           </p>
                           <p className="text-xs text-amber-800 dark:text-amber-300 mt-1">
                             {searchSchoolMutation.data.warning}
                           </p>
-                          <a 
-                            href={`https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/inep-data/catalogo-de-escolas`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-amber-700 dark:text-amber-400 underline mt-2 inline-block hover:text-amber-900 dark:hover:text-amber-200"
-                          >
-                            Verificar dados oficiais no site do INEP →
-                          </a>
+                          {searchSchoolMutation.data.link && (
+                            <a 
+                              href={searchSchoolMutation.data.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-amber-700 dark:text-amber-400 underline mt-2 inline-block hover:text-amber-900 dark:hover:text-amber-200"
+                            >
+                              Consultar dados oficiais do INEP →
+                            </a>
+                          )}
                         </div>
                       </div>
                     )}
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">Código INEP</p>
-                        <p className="font-medium font-mono">{searchSchoolMutation.data.data.codigo_inep}</p>
+                        <Input
+                          value={editableSchoolData?.codigo_inep || searchSchoolMutation.data.data.codigo_inep}
+                          disabled
+                          className="font-mono"
+                        />
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Nome da Escola</p>
-                        <p className="font-medium">{searchSchoolMutation.data.data.nome_escola}</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">Nome da Escola *</p>
+                        <Input
+                          value={editableSchoolData?.nome_escola || searchSchoolMutation.data.data.nome_escola}
+                          onChange={(e) => setEditableSchoolData({
+                            ...(editableSchoolData || searchSchoolMutation.data.data),
+                            nome_escola: e.target.value
+                          })}
+                          placeholder="Digite o nome completo da escola"
+                        />
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">Município</p>
-                        <p className="font-medium">{searchSchoolMutation.data.data.municipio}</p>
+                        <Input
+                          value={editableSchoolData?.municipio || searchSchoolMutation.data.data.municipio}
+                          onChange={(e) => setEditableSchoolData({
+                            ...(editableSchoolData || searchSchoolMutation.data.data),
+                            municipio: e.target.value
+                          })}
+                        />
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">UF</p>
-                        <p className="font-medium">{searchSchoolMutation.data.data.uf || 'Não informado'}</p>
+                        <Input
+                          value={editableSchoolData?.uf || searchSchoolMutation.data.data.uf}
+                          onChange={(e) => setEditableSchoolData({
+                            ...(editableSchoolData || searchSchoolMutation.data.data),
+                            uf: e.target.value
+                          })}
+                          maxLength={2}
+                        />
                       </div>
                     </div>
                     
                     <div className="pt-2 border-t">
                       <p className="text-xs text-muted-foreground mb-2">
-                        Revise os dados acima antes de importar. Se necessário, consulte o site oficial do INEP para confirmar as informações.
+                        ⚠️ Revise e complete os dados acima antes de importar. O nome da escola é obrigatório.
                       </p>
                       <Button 
                         onClick={() => handleImport(searchSchoolMutation.data.data)}
-                        disabled={importSchoolMutation.isPending}
+                        disabled={importSchoolMutation.isPending || !editableSchoolData?.nome_escola || editableSchoolData.nome_escola.includes('INEP ')}
                         className="w-full"
                       >
                         <Download className="h-4 w-4 mr-2" />

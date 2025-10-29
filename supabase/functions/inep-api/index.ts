@@ -54,8 +54,9 @@ serve(async (req) => {
 
         // Verificar cache primeiro
         const { data: cached } = await supabase
-          .from('inep_cache')
+          .from('api_cache')
           .select('*')
+          .eq('api_source', 'inep')
           .eq('endpoint', 'escola')
           .eq('parameters', JSON.stringify({ codigo_inep: codigoInep }))
           .gt('expires_at', new Date().toISOString())
@@ -69,119 +70,42 @@ serve(async (req) => {
           );
         }
 
-        // Buscar dados da escola usando a API do QEdu (fonte de dados oficiais do INEP)
-        console.log('Buscando escola no QEdu:', codigoInep);
-        
-        try {
-          // Tentar API do QEdu primeiro (mantém cache dos dados do INEP)
-          const qeduUrl = `https://www.qedu.org.br/api/escola/${codigoInep}`;
-          
-          console.log('Tentando API QEdu:', qeduUrl);
-          
-          const qeduResponse = await fetch(qeduUrl, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (compatible; ConectaAfogados/1.0)',
-              'Accept': 'application/json',
-            }
-          });
+        console.log('Buscando escola - código INEP:', codigoInep);
 
-          if (qeduResponse.ok) {
-            const qeduData = await qeduResponse.json();
-            console.log('Dados do QEdu:', qeduData);
+        // Retornar estrutura básica que permite ao usuário complementar manualmente
+        // APIs externas (QEdu, Educacenso) estão instáveis com certificados expirados
+        const schoolData: INEPSchoolResponse = {
+          codigo_inep: codigoInep,
+          nome_escola: `Escola INEP ${codigoInep}`,
+          municipio: 'Afogados da Ingazeira',
+          uf: 'PE',
+          localizacao: 'urbana',
+          dependencia_administrativa: 'municipal'
+        };
 
-            const schoolData: INEPSchoolResponse = {
-              codigo_inep: codigoInep,
-              nome_escola: qeduData.nome || `Escola INEP ${codigoInep}`,
-              municipio: qeduData.municipio || 'Não informado',
-              uf: qeduData.uf || '',
-              localizacao: qeduData.localizacao || 'urbana',
-              dependencia_administrativa: qeduData.dependencia_administrativa || 'municipal'
-            };
+        const responseData = {
+          data: schoolData,
+          warning: 'Dados básicos gerados. Complete as informações (nome da escola, etc.) antes de importar. Consulte o site do INEP para dados oficiais.',
+          link: 'https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/inep-data'
+        };
 
-            // Salvar no cache (24h)
-            const expiresAt = new Date();
-            expiresAt.setHours(expiresAt.getHours() + 24);
+        // Salvar no cache (24h)
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24);
 
-            await supabase.from('inep_cache').insert({
-              endpoint: 'escola',
-              parameters: { codigo_inep: codigoInep },
-              response_data: schoolData,
-              expires_at: expiresAt.toISOString(),
-              created_by: user.id
-            });
+        await supabase.from('api_cache').insert({
+          api_source: 'inep',
+          endpoint: 'escola',
+          parameters: { codigo_inep: codigoInep },
+          response_data: schoolData,
+          expires_at: expiresAt.toISOString(),
+          created_by: user.id
+        });
 
-            return new Response(
-              JSON.stringify({ data: schoolData, cached: false }),
-              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          }
-
-          console.log('QEdu falhou, tentando buscar diretamente do Educacenso');
-          
-          // Fallback: Buscar no Educacenso (se disponível)
-          const educacensoUrl = `https://educacenso.inep.gov.br/api/escola/${codigoInep}`;
-          const educacensoResponse = await fetch(educacensoUrl, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (compatible; ConectaAfogados/1.0)',
-              'Accept': 'application/json',
-            }
-          });
-
-          if (educacensoResponse.ok) {
-            const educacensoData = await educacensoResponse.json();
-            console.log('Dados do Educacenso:', educacensoData);
-
-            const schoolData: INEPSchoolResponse = {
-              codigo_inep: codigoInep,
-              nome_escola: educacensoData.NO_ENTIDADE || `Escola INEP ${codigoInep}`,
-              municipio: educacensoData.NO_MUNICIPIO || 'Não informado',
-              uf: educacensoData.SG_UF || '',
-              localizacao: educacensoData.TP_LOCALIZACAO === 1 ? 'urbana' : 'rural',
-              dependencia_administrativa: educacensoData.TP_DEPENDENCIA === 3 ? 'municipal' : 'estadual'
-            };
-
-            // Salvar no cache
-            const expiresAt = new Date();
-            expiresAt.setHours(expiresAt.getHours() + 24);
-
-            await supabase.from('inep_cache').insert({
-              endpoint: 'escola',
-              parameters: { codigo_inep: codigoInep },
-              response_data: schoolData,
-              expires_at: expiresAt.toISOString(),
-              created_by: user.id
-            });
-
-            return new Response(
-              JSON.stringify({ data: schoolData, cached: false }),
-              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          }
-
-          throw new Error('Não foi possível buscar dados da escola nas APIs disponíveis');
-
-        } catch (apiError) {
-          console.error('Erro ao buscar na API:', apiError);
-          
-          // Fallback: Retornar dados parciais com aviso para consulta manual
-          const mockData: INEPSchoolResponse = {
-            codigo_inep: codigoInep,
-            nome_escola: `Código INEP ${codigoInep}`,
-            municipio: 'Dados indisponíveis - Consulte o site do INEP',
-            uf: '',
-            localizacao: 'urbana',
-            dependencia_administrativa: 'municipal'
-          };
-
-          return new Response(
-            JSON.stringify({ 
-              data: mockData, 
-              cached: false,
-              warning: 'Os dados da escola não puderam ser carregados automaticamente. Por favor, consulte o site oficial do INEP (https://www.gov.br/inep) para verificar as informações corretas e preencha manualmente.'
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+        return new Response(
+          JSON.stringify(responseData),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       case 'search-by-municipality': {
@@ -192,8 +116,9 @@ serve(async (req) => {
 
         // Verificar cache
         const { data: cached } = await supabase
-          .from('inep_cache')
+          .from('api_cache')
           .select('*')
+          .eq('api_source', 'inep')
           .eq('endpoint', 'municipio')
           .eq('parameters', JSON.stringify({ codigo_municipio: codigoMunicipio }))
           .gt('expires_at', new Date().toISOString())
@@ -225,7 +150,8 @@ serve(async (req) => {
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 24);
 
-        await supabase.from('inep_cache').insert({
+        await supabase.from('api_cache').insert({
+          api_source: 'inep',
           endpoint: 'municipio',
           parameters: { codigo_municipio: codigoMunicipio },
           response_data: mockData,
