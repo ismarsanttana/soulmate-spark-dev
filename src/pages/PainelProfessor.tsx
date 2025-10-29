@@ -7,6 +7,13 @@ import { useState } from "react";
 import { ProfessorLayout } from "@/components/professor/ProfessorLayout";
 import { ProfessorProfile } from "@/components/professor/ProfessorProfile";
 import { StudentBirthdays } from "@/components/professor/StudentBirthdays";
+import { MyClasses } from "@/components/professor/MyClasses";
+import { StudentsView } from "@/components/professor/StudentsView";
+import { AttendanceRegistration } from "@/components/professor/AttendanceRegistration";
+import { GradesManagement } from "@/components/professor/GradesManagement";
+import { ClassDiary } from "@/components/professor/ClassDiary";
+import { ExamCalendar } from "@/components/professor/ExamCalendar";
+import { Reports } from "@/components/professor/Reports";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -267,98 +274,28 @@ const ProfessorContent = () => {
         );
       
       case "turmas":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Minhas Turmas</CardTitle>
-              <CardDescription>Gerencie suas turmas e visualize informações detalhadas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <MyClasses />;
       
       case "alunos":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Alunos</CardTitle>
-              <CardDescription>Visualize o desempenho dos alunos nas suas matérias</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <StudentsView />;
       
       case "presenca":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Registro de Presença</CardTitle>
-              <CardDescription>Faça a chamada diária dos alunos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <AttendanceRegistration />;
       
       case "notas":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Notas e Avaliações</CardTitle>
-              <CardDescription>Gerencie notas, avaliações e trabalhos dos alunos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <GradesManagement />;
       
       case "aulas":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Diário de Aulas</CardTitle>
-              <CardDescription>Registre o conteúdo ministrado em cada aula</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <ClassDiary />;
       
       case "calendario":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Calendário de Provas</CardTitle>
-              <CardDescription>Agende e visualize o calendário de avaliações</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <ExamCalendar />;
       
       case "aniversarios":
         return <StudentBirthdays />;
       
       case "relatorios":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Relatórios</CardTitle>
-              <CardDescription>Gere relatórios detalhados de notas e desempenho</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Em desenvolvimento...</p>
-            </CardContent>
-          </Card>
-        );
+        return <Reports />;
       
       case "chamados":
         return (
