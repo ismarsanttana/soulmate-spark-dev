@@ -50,6 +50,39 @@ export type Database = {
         }
         Relationships: []
       }
+      api_cache: {
+        Row: {
+          api_source: string
+          cached_at: string | null
+          created_by: string | null
+          endpoint: string
+          expires_at: string
+          id: string
+          parameters: Json | null
+          response_data: Json | null
+        }
+        Insert: {
+          api_source: string
+          cached_at?: string | null
+          created_by?: string | null
+          endpoint: string
+          expires_at: string
+          id?: string
+          parameters?: Json | null
+          response_data?: Json | null
+        }
+        Update: {
+          api_source?: string
+          cached_at?: string | null
+          created_by?: string | null
+          endpoint?: string
+          expires_at?: string
+          id?: string
+          parameters?: Json | null
+          response_data?: Json | null
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           app_name: string
@@ -505,6 +538,59 @@ export type Database = {
           },
         ]
       }
+      enem_data: {
+        Row: {
+          ano: number
+          codigo_inep: string
+          created_at: string | null
+          id: string
+          media_ch: number | null
+          media_cn: number | null
+          media_geral: number | null
+          media_lc: number | null
+          media_mt: number | null
+          media_redacao: number | null
+          school_id: string | null
+          total_participantes: number | null
+        }
+        Insert: {
+          ano: number
+          codigo_inep: string
+          created_at?: string | null
+          id?: string
+          media_ch?: number | null
+          media_cn?: number | null
+          media_geral?: number | null
+          media_lc?: number | null
+          media_mt?: number | null
+          media_redacao?: number | null
+          school_id?: string | null
+          total_participantes?: number | null
+        }
+        Update: {
+          ano?: number
+          codigo_inep?: string
+          created_at?: string | null
+          id?: string
+          media_ch?: number | null
+          media_cn?: number | null
+          media_geral?: number | null
+          media_lc?: number | null
+          media_mt?: number | null
+          media_redacao?: number | null
+          school_id?: string | null
+          total_participantes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enem_data_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string
@@ -576,6 +662,65 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "secretarias"
             referencedColumns: ["slug"]
+          },
+        ]
+      }
+      ideb_data: {
+        Row: {
+          ano: number
+          codigo_inep: string
+          created_at: string | null
+          id: string
+          localizacao: string | null
+          meta_anos_finais: number | null
+          meta_anos_iniciais: number | null
+          meta_ensino_medio: number | null
+          nota_anos_finais: number | null
+          nota_anos_iniciais: number | null
+          nota_ensino_medio: number | null
+          rede: string | null
+          school_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ano: number
+          codigo_inep: string
+          created_at?: string | null
+          id?: string
+          localizacao?: string | null
+          meta_anos_finais?: number | null
+          meta_anos_iniciais?: number | null
+          meta_ensino_medio?: number | null
+          nota_anos_finais?: number | null
+          nota_anos_iniciais?: number | null
+          nota_ensino_medio?: number | null
+          rede?: string | null
+          school_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ano?: number
+          codigo_inep?: string
+          created_at?: string | null
+          id?: string
+          localizacao?: string | null
+          meta_anos_finais?: number | null
+          meta_anos_iniciais?: number | null
+          meta_ensino_medio?: number | null
+          nota_anos_finais?: number | null
+          nota_anos_iniciais?: number | null
+          nota_ensino_medio?: number | null
+          rede?: string | null
+          school_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideb_data_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -939,6 +1084,48 @@ export type Database = {
           status?: Database["public"]["Enums"]["protocol_status"]
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      orcamento_educacao: {
+        Row: {
+          ano: number
+          bimestre: number | null
+          categoria: string
+          fonte: string
+          id: string
+          percentual_executado: number | null
+          synced_at: string | null
+          synced_by: string | null
+          tipo: string
+          valor_previsto: number | null
+          valor_realizado: number | null
+        }
+        Insert: {
+          ano: number
+          bimestre?: number | null
+          categoria: string
+          fonte: string
+          id?: string
+          percentual_executado?: number | null
+          synced_at?: string | null
+          synced_by?: string | null
+          tipo: string
+          valor_previsto?: number | null
+          valor_realizado?: number | null
+        }
+        Update: {
+          ano?: number
+          bimestre?: number | null
+          categoria?: string
+          fonte?: string
+          id?: string
+          percentual_executado?: number | null
+          synced_at?: string | null
+          synced_by?: string | null
+          tipo?: string
+          valor_previsto?: number | null
+          valor_realizado?: number | null
         }
         Relationships: []
       }
@@ -2360,6 +2547,51 @@ export type Database = {
           situacao?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      transferencias_federais: {
+        Row: {
+          ano: number
+          cnpj_favorecido: string | null
+          data_pagamento: string | null
+          favorecido: string | null
+          fonte: string | null
+          id: string
+          mes: number | null
+          orgao_superior: string | null
+          programa: string
+          synced_at: string | null
+          synced_by: string | null
+          valor: number | null
+        }
+        Insert: {
+          ano: number
+          cnpj_favorecido?: string | null
+          data_pagamento?: string | null
+          favorecido?: string | null
+          fonte?: string | null
+          id?: string
+          mes?: number | null
+          orgao_superior?: string | null
+          programa: string
+          synced_at?: string | null
+          synced_by?: string | null
+          valor?: number | null
+        }
+        Update: {
+          ano?: number
+          cnpj_favorecido?: string | null
+          data_pagamento?: string | null
+          favorecido?: string | null
+          fonte?: string | null
+          id?: string
+          mes?: number | null
+          orgao_superior?: string | null
+          programa?: string
+          synced_at?: string | null
+          synced_by?: string | null
+          valor?: number | null
         }
         Relationships: []
       }
