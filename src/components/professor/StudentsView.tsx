@@ -13,12 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
+import { StudentDetailDialog } from "./StudentDetailDialog";
 
 export const StudentsView = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClass, setSelectedClass] = useState<string>("all");
-  const navigate = useNavigate();
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["current-user"],
@@ -155,7 +156,10 @@ export const StudentsView = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => navigate(`/aluno/${enrollment.student?.id}`)}
+                    onClick={() => {
+                      setSelectedStudentId(enrollment.student?.id);
+                      setDetailDialogOpen(true);
+                    }}
                   >
                     <Eye className="h-4 w-4 mr-2" />
                     Ver Perfil
@@ -175,6 +179,12 @@ export const StudentsView = () => {
           </CardContent>
         </Card>
       )}
+
+      <StudentDetailDialog 
+        studentId={selectedStudentId}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+      />
     </div>
   );
 };
