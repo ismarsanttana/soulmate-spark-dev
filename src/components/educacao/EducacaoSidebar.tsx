@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, Users, BookOpen, ClipboardList, User, Clock, ShoppingCart, Bus, BarChart2, Headset, GraduationCap } from "lucide-react";
+import { Home, Users, BookOpen, ClipboardList, User, Clock, ShoppingCart, Bus, BarChart2, Headset, GraduationCap, Database } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ const menuItems = [
   { value: "turmas", title: "Gerenciar Turmas", icon: BookOpen },
   { value: "matriculas", title: "Matrículas", icon: ClipboardList },
   { value: "alunos", title: "Alunos", icon: User },
+  { value: "inep", title: "INEP", icon: Database },
   { value: "ponto", title: "Ponto Eletrônico", icon: Clock },
   { value: "compras", title: "Compras", icon: ShoppingCart },
   { value: "frota", title: "Frota", icon: Bus },

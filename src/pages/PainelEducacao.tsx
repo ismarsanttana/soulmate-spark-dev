@@ -17,6 +17,7 @@ import { ComprasManagement } from "@/components/educacao/content/ComprasManageme
 import { FrotaManagement } from "@/components/educacao/content/FrotaManagement";
 import { SecretarioProfile } from "@/components/secretario/SecretarioProfile";
 import { ProfessorsManagement } from "@/components/educacao/content/ProfessorsManagement";
+import { INEPConsulta } from "@/components/educacao/content/INEPConsulta";
 
 const PainelEducacaoContent = () => {
   const [activeTab, setActiveTab] = useState("painel");
@@ -90,6 +91,8 @@ const PainelEducacaoContent = () => {
         return <EnrollmentsManagement secretariaSlug={assignment.secretaria_slug} />;
       case "alunos":
         return <StudentsManagementComplete secretariaSlug={assignment.secretaria_slug} />;
+      case "inep":
+        return <INEPConsulta secretariaSlug={assignment.secretaria_slug} />;
       case "ponto":
         return <TimeclockManagement secretariaSlug={assignment.secretaria_slug} />;
       case "compras":
