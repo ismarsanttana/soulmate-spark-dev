@@ -40,14 +40,14 @@ serve(async (req) => {
       throw new Error('Não autenticado');
     }
 
-    const url = new URL(req.url);
-    const action = url.searchParams.get('action');
+    const requestBody = await req.json();
+    const { action, codigo_inep, codigo_municipio } = requestBody;
 
-    console.log('INEP API - Action:', action);
+    console.log('INEP API - Action:', action, 'Body:', requestBody);
 
     switch (action) {
       case 'search-school': {
-        const codigoInep = url.searchParams.get('codigo_inep');
+        const codigoInep = codigo_inep;
         if (!codigoInep) {
           throw new Error('Código INEP é obrigatório');
         }
@@ -99,7 +99,7 @@ serve(async (req) => {
       }
 
       case 'search-by-municipality': {
-        const codigoMunicipio = url.searchParams.get('codigo_municipio');
+        const codigoMunicipio = codigo_municipio;
         if (!codigoMunicipio) {
           throw new Error('Código do município é obrigatório');
         }
@@ -154,7 +154,7 @@ serve(async (req) => {
       }
 
       case 'import-school': {
-        const { codigo_inep, nome_escola, codigo_municipio_inep, municipio, uf } = await req.json();
+        const { nome_escola, codigo_municipio_inep, municipio, uf } = requestBody;
 
         // Verificar se a escola já existe
         const { data: existing } = await supabase
@@ -205,7 +205,7 @@ serve(async (req) => {
       }
 
       case 'get-ideb': {
-        const codigoInep = url.searchParams.get('codigo_inep');
+        const codigoInep = codigo_inep;
         if (!codigoInep) {
           throw new Error('Código INEP é obrigatório');
         }
