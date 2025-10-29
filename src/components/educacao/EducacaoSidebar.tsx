@@ -16,7 +16,7 @@ const menuItems = [
   { value: "turmas", title: "Gerenciar Turmas", icon: BookOpen },
   { value: "matriculas", title: "Matrículas", icon: ClipboardList },
   { value: "alunos", title: "Alunos", icon: User },
-  { value: "inep", title: "INEP", icon: Database },
+  { value: "inep", title: "Hub de Dados", icon: Database },
   { value: "ponto", title: "Ponto Eletrônico", icon: Clock },
   { value: "compras", title: "Compras", icon: ShoppingCart },
   { value: "frota", title: "Frota", icon: Bus },
