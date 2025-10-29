@@ -1217,6 +1217,65 @@ export type Database = {
           },
         ]
       }
+      scheduled_assessments: {
+        Row: {
+          assessment_type: string
+          class_id: string
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          scheduled_date: string
+          scheduled_time: string | null
+          status: string | null
+          subject: string
+          teacher_id: string
+          title: string
+          topics: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          assessment_type: string
+          class_id: string
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          scheduled_date: string
+          scheduled_time?: string | null
+          status?: string | null
+          subject: string
+          teacher_id: string
+          title: string
+          topics?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          assessment_type?: string
+          class_id?: string
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          scheduled_date?: string
+          scheduled_time?: string | null
+          status?: string | null
+          subject?: string
+          teacher_id?: string
+          title?: string
+          topics?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_assessments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "school_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_classes: {
         Row: {
           class_name: string

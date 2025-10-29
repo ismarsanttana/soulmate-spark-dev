@@ -38,14 +38,13 @@ export const ExamCalendar = () => {
 
   const [formData, setFormData] = useState({
     subject: "",
-    exam_name: "",
-    exam_type: "prova" as const,
-    exam_date: new Date(),
-    exam_time: "",
+    title: "",
+    assessment_type: "Prova" as string,
+    scheduled_date: new Date(),
+    scheduled_time: "",
     duration_minutes: "",
     topics: "",
-    instructions: "",
-    total_points: "10",
+    description: "",
   });
 
   const { data: user } = useQuery({
@@ -76,10 +75,10 @@ export const ExamCalendar = () => {
     queryFn: async () => {
       if (!selectedClass) return [];
       const { data, error } = await supabase
-        .from("exam_schedule" as any)
+        .from("scheduled_assessments")
         .select("*")
         .eq("class_id", selectedClass)
-        .order("exam_date", { ascending: true });
+        .order("scheduled_date", { ascending: true });
       if (error) throw error;
       return data || [];
     },
@@ -92,47 +91,47 @@ export const ExamCalendar = () => {
 
       if (editingExam) {
         const { error } = await supabase
-          .from("exam_schedule" as any)
+          .from("scheduled_assessments")
           .update(data)
           .eq("id", editingExam.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from("exam_schedule" as any)
+          .from("scheduled_assessments")
           .insert({
             ...data,
             class_id: selectedClass,
-            created_by: user.id,
+            teacher_id: user.id,
           });
         if (error) throw error;
       }
     },
     onSuccess: () => {
-      toast.success(editingExam ? "Prova atualizada!" : "Prova agendada com sucesso!");
+      toast.success(editingExam ? "Avaliação atualizada!" : "Avaliação agendada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["exam-schedule"] });
       handleCloseDialog();
     },
     onError: (error) => {
       console.error(error);
-      toast.error("Erro ao salvar prova");
+      toast.error("Erro ao salvar avaliação");
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (examId: string) => {
       const { error } = await supabase
-        .from("exam_schedule" as any)
+        .from("scheduled_assessments")
         .delete()
         .eq("id", examId);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Prova excluída!");
+      toast.success("Avaliação excluída!");
       queryClient.invalidateQueries({ queryKey: ["exam-schedule"] });
     },
     onError: (error) => {
       console.error(error);
-      toast.error("Erro ao excluir prova");
+      toast.error("Erro ao excluir avaliação");
     },
   });
 
@@ -141,27 +140,25 @@ export const ExamCalendar = () => {
       setEditingExam(exam);
       setFormData({
         subject: exam.subject,
-        exam_name: exam.exam_name,
-        exam_type: exam.exam_type,
-        exam_date: new Date(exam.exam_date),
-        exam_time: exam.exam_time || "",
+        title: exam.title,
+        assessment_type: exam.assessment_type,
+        scheduled_date: new Date(exam.scheduled_date),
+        scheduled_time: exam.scheduled_time || "",
         duration_minutes: exam.duration_minutes?.toString() || "",
         topics: exam.topics?.join(", ") || "",
-        instructions: exam.instructions || "",
-        total_points: exam.total_points?.toString() || "10",
+        description: exam.description || "",
       });
     } else {
       setEditingExam(null);
       setFormData({
         subject: "",
-        exam_name: "",
-        exam_type: "prova",
-        exam_date: new Date(),
-        exam_time: "",
+        title: "",
+        assessment_type: "Prova",
+        scheduled_date: new Date(),
+        scheduled_time: "",
         duration_minutes: "",
         topics: "",
-        instructions: "",
-        total_points: "10",
+        description: "",
       });
     }
     setDialogOpen(true);
@@ -173,7 +170,7 @@ export const ExamCalendar = () => {
   };
 
   const handleSubmit = () => {
-    if (!formData.subject || !formData.exam_name) {
+    if (!formData.subject || !formData.title) {
       toast.error("Preencha os campos obrigatórios");
       return;
     }
@@ -185,14 +182,13 @@ export const ExamCalendar = () => {
 
     saveMutation.mutate({
       subject: formData.subject,
-      exam_name: formData.exam_name,
-      exam_type: formData.exam_type,
-      exam_date: format(formData.exam_date, "yyyy-MM-dd"),
-      exam_time: formData.exam_time || null,
+      title: formData.title,
+      assessment_type: formData.assessment_type,
+      scheduled_date: format(formData.scheduled_date, "yyyy-MM-dd"),
+      scheduled_time: formData.scheduled_time || null,
       duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
       topics: topicsArray,
-      instructions: formData.instructions,
-      total_points: parseFloat(formData.total_points) || 10,
+      description: formData.description,
     });
   };
 
@@ -285,17 +281,17 @@ export const ExamCalendar = () => {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-bold">{exam.exam_name}</h4>
-                          <Badge className={getExamTypeColor(exam.exam_type)}>
-                            {exam.exam_type.charAt(0).toUpperCase() + exam.exam_type.slice(1)}
+                          <h4 className="font-bold">{exam.title}</h4>
+                          <Badge className={getExamTypeColor(exam.assessment_type)}>
+                            {exam.assessment_type}
                           </Badge>
-                          {getExamStatusBadge(exam.exam_date)}
+                          {getExamStatusBadge(exam.scheduled_date)}
                         </div>
                         
                         <div className="text-sm text-muted-foreground mb-2">
                           <span className="font-semibold">{exam.subject}</span> •{" "}
-                          {format(new Date(exam.exam_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                          {exam.exam_time && ` às ${exam.exam_time}`}
+                          {format(new Date(exam.scheduled_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                          {exam.scheduled_time && ` às ${exam.scheduled_time}`}
                           {exam.duration_minutes && ` • ${exam.duration_minutes} min`}
                         </div>
 
@@ -305,15 +301,11 @@ export const ExamCalendar = () => {
                           </div>
                         )}
 
-                        {exam.instructions && (
+                        {exam.description && (
                           <div className="text-sm text-muted-foreground">
-                            {exam.instructions}
+                            {exam.description}
                           </div>
                         )}
-
-                        <div className="text-sm font-semibold mt-2">
-                          Pontuação: {exam.total_points} pontos
-                        </div>
                       </div>
 
                       <div className="flex gap-2">
@@ -374,28 +366,28 @@ export const ExamCalendar = () => {
               <div>
                 <Label>Tipo *</Label>
                 <Select
-                  value={formData.exam_type}
-                  onValueChange={(value: any) => setFormData({ ...formData, exam_type: value })}
+                  value={formData.assessment_type}
+                  onValueChange={(value: any) => setFormData({ ...formData, assessment_type: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="prova">Prova</SelectItem>
-                    <SelectItem value="avaliacao">Avaliação</SelectItem>
-                    <SelectItem value="simulado">Simulado</SelectItem>
-                    <SelectItem value="recuperacao">Recuperação</SelectItem>
+                    <SelectItem value="Prova">Prova</SelectItem>
+                    <SelectItem value="Trabalho">Trabalho</SelectItem>
+                    <SelectItem value="Atividade">Atividade</SelectItem>
+                    <SelectItem value="Simulado">Simulado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div>
-              <Label>Nome da Prova *</Label>
+              <Label>Título da Avaliação *</Label>
               <Input
-                value={formData.exam_name}
-                onChange={(e) => setFormData({ ...formData, exam_name: e.target.value })}
-                placeholder="Ex: Prova Bimestral"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Ex: Prova Bimestral de Português"
               />
             </div>
 
@@ -408,20 +400,20 @@ export const ExamCalendar = () => {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !formData.exam_date && "text-muted-foreground"
+                        !formData.scheduled_date && "text-muted-foreground"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.exam_date
-                        ? format(formData.exam_date, "PPP", { locale: ptBR })
+                      {formData.scheduled_date
+                        ? format(formData.scheduled_date, "PPP", { locale: ptBR })
                         : "Selecione a data"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
-                      selected={formData.exam_date}
-                      onSelect={(date) => date && setFormData({ ...formData, exam_date: date })}
+                      selected={formData.scheduled_date}
+                      onSelect={(date) => date && setFormData({ ...formData, scheduled_date: date })}
                       locale={ptBR}
                       initialFocus
                     />
@@ -433,32 +425,20 @@ export const ExamCalendar = () => {
                 <Label>Horário</Label>
                 <Input
                   type="time"
-                  value={formData.exam_time}
-                  onChange={(e) => setFormData({ ...formData, exam_time: e.target.value })}
+                  value={formData.scheduled_time}
+                  onChange={(e) => setFormData({ ...formData, scheduled_time: e.target.value })}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Duração (minutos)</Label>
-                <Input
-                  type="number"
-                  value={formData.duration_minutes}
-                  onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })}
-                  placeholder="Ex: 60"
-                />
-              </div>
-
-              <div>
-                <Label>Pontuação Total</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={formData.total_points}
-                  onChange={(e) => setFormData({ ...formData, total_points: e.target.value })}
-                />
-              </div>
+            <div>
+              <Label>Duração (minutos)</Label>
+              <Input
+                type="number"
+                value={formData.duration_minutes}
+                onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })}
+                placeholder="Ex: 90"
+              />
             </div>
 
             <div>
@@ -466,17 +446,17 @@ export const ExamCalendar = () => {
               <Textarea
                 value={formData.topics}
                 onChange={(e) => setFormData({ ...formData, topics: e.target.value })}
-                placeholder="Ex: Equações, Funções, Trigonometria"
+                placeholder="Ex: Interpretação de texto, Verbos, Acentuação"
                 rows={2}
               />
             </div>
 
             <div>
-              <Label>Instruções</Label>
+              <Label>Descrição</Label>
               <Textarea
-                value={formData.instructions}
-                onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
-                placeholder="Instruções para os alunos..."
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Descrição da avaliação..."
                 rows={3}
               />
             </div>
