@@ -203,6 +203,31 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
 
         if (teacherError) throw teacherError;
       } else {
+        // Check if user with this CPF or email already exists
+        if (data.cpf) {
+          const { data: existingByCpf, error: cpfCheckError } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("cpf", data.cpf)
+            .maybeSingle();
+
+          if (cpfCheckError) throw cpfCheckError;
+          if (existingByCpf) {
+            throw new Error("Já existe um usuário cadastrado com este CPF");
+          }
+        }
+
+        const { data: existingByEmail, error: emailCheckError } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("email", data.email)
+          .maybeSingle();
+
+        if (emailCheckError) throw emailCheckError;
+        if (existingByEmail) {
+          throw new Error("Já existe um usuário cadastrado com este email");
+        }
+
         // Create new user and profile
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
           email: data.email,
@@ -254,13 +279,23 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
           });
 
         if (teacherError) throw teacherError;
+
+        return authData.user.id;
       }
     },
-    onSuccess: () => {
+    onSuccess: (newUserId) => {
       queryClient.invalidateQueries({ queryKey: ["professors-list"] });
-      toast.success(selectedTeacher ? "Professor atualizado!" : "Professor criado!");
-      setEditDialogOpen(false);
-      resetTeacherForm();
+      toast.success(selectedTeacher ? "Professor atualizado!" : "Professor criado com sucesso!");
+      
+      if (!selectedTeacher && newUserId) {
+        // Se criou um novo professor, recarregar a lista e fechar o dialog
+        setEditDialogOpen(false);
+        resetTeacherForm();
+      } else {
+        // Se editou, apenas invalidar queries
+        setEditDialogOpen(false);
+        resetTeacherForm();
+      }
     },
     onError: (error: any) => {
       toast.error("Erro ao salvar professor: " + error.message);
@@ -365,6 +400,23 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
 
     setSearchingCpf(true);
     try {
+      // Primeiro, verifica se já existe um professor com este CPF
+      const { data: existingProf, error: profError } = await supabase
+        .from("user_roles")
+        .select("user_id, profiles!inner(id, full_name, cpf, email, telefone)")
+        .eq("role", "professor")
+        .eq("profiles.cpf", cpfSearch)
+        .maybeSingle();
+
+      if (profError && profError.code !== "PGRST116") throw profError;
+
+      if (existingProf) {
+        toast.error("Este CPF já está cadastrado como professor. Use a opção 'Editar' na lista.");
+        setCpfSearch("");
+        return;
+      }
+
+      // Se não existe como professor, busca no cadastro geral
       const { data, error } = await supabase
         .rpc("search_profile_by_cpf", { _cpf: cpfSearch });
 
@@ -379,9 +431,9 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
           email: profile.email || "",
           telefone: profile.telefone || "",
         });
-        toast.success("Dados encontrados e preenchidos!");
+        toast.success("Dados encontrados! Complete as informações e salve.");
       } else {
-        toast.info("Nenhum cadastro encontrado com este CPF");
+        toast.info("Nenhum cadastro encontrado. Preencha todos os dados.");
       }
     } catch (error: any) {
       toast.error("Erro ao buscar CPF: " + error.message);
@@ -641,10 +693,10 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="dados">Dados Pessoais</TabsTrigger>
               <TabsTrigger value="turmas" disabled={!selectedTeacher}>
-                Turmas
+                Turmas {!selectedTeacher && "(Salve primeiro)"}
               </TabsTrigger>
               <TabsTrigger value="facial" disabled={!selectedTeacher}>
-                Identificação Facial
+                Identificação Facial {!selectedTeacher && "(Salve primeiro)"}
               </TabsTrigger>
             </TabsList>
 
