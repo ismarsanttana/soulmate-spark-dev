@@ -1,5 +1,9 @@
 -- Script para inserir provas e trabalhos agendados para o professor Fernando
 -- Execute este script no Supabase SQL Editor
+-- IMPORTANTE: Execute apenas UMA VEZ para evitar duplicação de dados
+
+-- Limpar avaliações existentes (opcional - apenas se quiser recomeçar)
+-- DELETE FROM public.scheduled_assessments WHERE teacher_id = 'ad49f722-203c-490e-af21-f0d388528053';
 
 -- Inserir avaliações para as 3 turmas do professor Fernando
 INSERT INTO public.scheduled_assessments (class_id, teacher_id, subject, assessment_type, title, description, scheduled_date, scheduled_time, duration_minutes, topics, status)

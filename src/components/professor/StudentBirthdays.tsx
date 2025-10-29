@@ -59,16 +59,16 @@ export const StudentBirthdays = () => {
       
       if (studentIds.length === 0) return [];
       
-      // Buscar perfis dos alunos
-      const { data: profiles, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, full_name, birth_date, avatar_url")
+      // Buscar dados dos alunos da tabela students
+      const { data: studentsData, error: studentsError } = await supabase
+        .from("students")
+        .select("id, full_name, birth_date")
         .in("id", studentIds)
         .not("birth_date", "is", null);
       
-      if (profileError) throw profileError;
+      if (studentsError) throw studentsError;
       
-      return profiles || [];
+      return studentsData || [];
     },
     enabled: !!classes && classes.length > 0,
   });
