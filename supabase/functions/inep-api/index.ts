@@ -154,7 +154,13 @@ serve(async (req) => {
       }
 
       case 'import-school': {
-        const { nome_escola, codigo_municipio_inep, municipio, uf } = requestBody;
+        const { nome_escola, codigo_municipio_inep, municipio, uf, localizacao, dependencia_administrativa } = requestBody;
+
+        if (!codigo_inep || !nome_escola) {
+          throw new Error('Código INEP e nome da escola são obrigatórios');
+        }
+
+        console.log('Importando escola:', { codigo_inep, nome_escola });
 
         // Verificar se a escola já existe
         const { data: existing } = await supabase
@@ -176,18 +182,23 @@ serve(async (req) => {
           .insert({
             codigo_inep,
             nome_escola,
-            codigo_municipio_inep,
-            municipio,
-            uf,
+            codigo_municipio_inep: codigo_municipio_inep || null,
+            municipio: municipio || null,
+            uf: uf || null,
             situacao_funcionamento: 'ativa',
-            dependencia_administrativa: 'municipal',
-            localizacao: 'urbana',
+            dependencia_administrativa: dependencia_administrativa || 'municipal',
+            localizacao: localizacao || 'urbana',
             created_by: user.id
           })
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erro ao inserir escola:', error);
+          throw error;
+        }
+
+        console.log('Escola importada com sucesso:', school.id);
 
         // Registrar log de sincronização
         await supabase.from('inep_sync_log').insert({
