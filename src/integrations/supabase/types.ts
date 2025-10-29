@@ -579,6 +579,74 @@ export type Database = {
           },
         ]
       }
+      inep_cache: {
+        Row: {
+          cached_at: string | null
+          created_by: string | null
+          endpoint: string
+          expires_at: string
+          id: string
+          parameters: Json | null
+          response_data: Json | null
+        }
+        Insert: {
+          cached_at?: string | null
+          created_by?: string | null
+          endpoint: string
+          expires_at: string
+          id?: string
+          parameters?: Json | null
+          response_data?: Json | null
+        }
+        Update: {
+          cached_at?: string | null
+          created_by?: string | null
+          endpoint?: string
+          expires_at?: string
+          id?: string
+          parameters?: Json | null
+          response_data?: Json | null
+        }
+        Relationships: []
+      }
+      inep_sync_log: {
+        Row: {
+          details: Json | null
+          id: string
+          school_id: string | null
+          status: string
+          sync_type: string
+          synced_at: string | null
+          synced_by: string | null
+        }
+        Insert: {
+          details?: Json | null
+          id?: string
+          school_id?: string | null
+          status: string
+          sync_type: string
+          synced_at?: string | null
+          synced_by?: string | null
+        }
+        Update: {
+          details?: Json | null
+          id?: string
+          school_id?: string | null
+          status?: string
+          sync_type?: string
+          synced_at?: string | null
+          synced_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inep_sync_log_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_applications: {
         Row: {
           cover_letter: string | null
@@ -1279,44 +1347,127 @@ export type Database = {
       school_classes: {
         Row: {
           class_name: string
+          codigo_inep_turma: string | null
           created_at: string
           created_by: string | null
+          dias_semana: Json | null
           grade_level: string
+          horario_final: string | null
+          horario_inicial: string | null
           id: string
           max_students: number | null
+          school_id: string | null
           school_name: string | null
           school_year: string
           shift: string | null
           status: string | null
           teacher_user_id: string | null
+          tipo_mediacao: string | null
           updated_at: string
         }
         Insert: {
           class_name: string
+          codigo_inep_turma?: string | null
           created_at?: string
           created_by?: string | null
+          dias_semana?: Json | null
           grade_level: string
+          horario_final?: string | null
+          horario_inicial?: string | null
           id?: string
           max_students?: number | null
+          school_id?: string | null
           school_name?: string | null
           school_year: string
           shift?: string | null
           status?: string | null
           teacher_user_id?: string | null
+          tipo_mediacao?: string | null
           updated_at?: string
         }
         Update: {
           class_name?: string
+          codigo_inep_turma?: string | null
           created_at?: string
           created_by?: string | null
+          dias_semana?: Json | null
           grade_level?: string
+          horario_final?: string | null
+          horario_inicial?: string | null
           id?: string
           max_students?: number | null
+          school_id?: string | null
           school_name?: string | null
           school_year?: string
           shift?: string | null
           status?: string | null
           teacher_user_id?: string | null
+          tipo_mediacao?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_classes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schools: {
+        Row: {
+          codigo_inep: string
+          codigo_municipio_inep: string | null
+          created_at: string
+          created_by: string | null
+          data_abertura: string | null
+          dependencia_administrativa: string | null
+          email: string | null
+          endereco_completo: string | null
+          id: string
+          localizacao: string | null
+          municipio: string | null
+          nome_escola: string
+          situacao_funcionamento: string | null
+          telefone: string | null
+          uf: string | null
+          updated_at: string
+        }
+        Insert: {
+          codigo_inep: string
+          codigo_municipio_inep?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_abertura?: string | null
+          dependencia_administrativa?: string | null
+          email?: string | null
+          endereco_completo?: string | null
+          id?: string
+          localizacao?: string | null
+          municipio?: string | null
+          nome_escola: string
+          situacao_funcionamento?: string | null
+          telefone?: string | null
+          uf?: string | null
+          updated_at?: string
+        }
+        Update: {
+          codigo_inep?: string
+          codigo_municipio_inep?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_abertura?: string | null
+          dependencia_administrativa?: string | null
+          email?: string | null
+          endereco_completo?: string | null
+          id?: string
+          localizacao?: string | null
+          municipio?: string | null
+          nome_escola?: string
+          situacao_funcionamento?: string | null
+          telefone?: string | null
+          uf?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1332,13 +1483,16 @@ export type Database = {
           birth_date: string | null
           cargo: string | null
           chefe_imediato: string | null
+          codigo_inep_docente: string | null
           cpf: string
           created_at: string
           created_by: string | null
           data_exercicio: string | null
           email: string | null
           equipamentos: Json | null
+          escolaridade: string | null
           facial_photos: Json | null
+          formacao_especifica: Json | null
           full_name: string
           funcao: string
           id: string
@@ -1350,6 +1504,7 @@ export type Database = {
           salario: number | null
           secretaria_slug: string
           situacao: string | null
+          situacao_curso_superior: string | null
           termo_lgpd_arquivo_url: string | null
           termo_lgpd_assinado: boolean | null
           termo_responsabilidade_arquivo_url: string | null
@@ -1367,13 +1522,16 @@ export type Database = {
           birth_date?: string | null
           cargo?: string | null
           chefe_imediato?: string | null
+          codigo_inep_docente?: string | null
           cpf: string
           created_at?: string
           created_by?: string | null
           data_exercicio?: string | null
           email?: string | null
           equipamentos?: Json | null
+          escolaridade?: string | null
           facial_photos?: Json | null
+          formacao_especifica?: Json | null
           full_name: string
           funcao: string
           id?: string
@@ -1385,6 +1543,7 @@ export type Database = {
           salario?: number | null
           secretaria_slug: string
           situacao?: string | null
+          situacao_curso_superior?: string | null
           termo_lgpd_arquivo_url?: string | null
           termo_lgpd_assinado?: boolean | null
           termo_responsabilidade_arquivo_url?: string | null
@@ -1402,13 +1561,16 @@ export type Database = {
           birth_date?: string | null
           cargo?: string | null
           chefe_imediato?: string | null
+          codigo_inep_docente?: string | null
           cpf?: string
           created_at?: string
           created_by?: string | null
           data_exercicio?: string | null
           email?: string | null
           equipamentos?: Json | null
+          escolaridade?: string | null
           facial_photos?: Json | null
+          formacao_especifica?: Json | null
           full_name?: string
           funcao?: string
           id?: string
@@ -1420,6 +1582,7 @@ export type Database = {
           salario?: number | null
           secretaria_slug?: string
           situacao?: string | null
+          situacao_curso_superior?: string | null
           termo_lgpd_arquivo_url?: string | null
           termo_lgpd_assinado?: boolean | null
           termo_responsabilidade_arquivo_url?: string | null
@@ -2006,11 +2169,13 @@ export type Database = {
           autorizacao_reconhecimento_facial: boolean | null
           autorizacao_uso_imagem: boolean | null
           birth_date: string
+          bolsa_familia: boolean | null
           cartao_sus: string | null
           certidao_nascimento: string | null
           cpf: string | null
           created_at: string
           created_by: string | null
+          deficiencias: Json | null
           doc_certidao_url: string | null
           doc_comprovante_residencia_url: string | null
           doc_cpf_url: string | null
@@ -2033,12 +2198,16 @@ export type Database = {
           necessidades_especiais: string | null
           nis: string | null
           old_profile_id: string | null
+          poder_publico_responsavel_transporte: string | null
           ponto_embarque: string | null
+          raca_cor: string | null
           restricoes_alimentares: string | null
           rg: string | null
           status: string | null
           telefone: string | null
           telefone_emergencia: string | null
+          tipo_transporte_escolar: string | null
+          tipo_veiculo_transporte: Json | null
           updated_at: string
           usa_transporte_escolar: boolean | null
         }
@@ -2048,11 +2217,13 @@ export type Database = {
           autorizacao_reconhecimento_facial?: boolean | null
           autorizacao_uso_imagem?: boolean | null
           birth_date: string
+          bolsa_familia?: boolean | null
           cartao_sus?: string | null
           certidao_nascimento?: string | null
           cpf?: string | null
           created_at?: string
           created_by?: string | null
+          deficiencias?: Json | null
           doc_certidao_url?: string | null
           doc_comprovante_residencia_url?: string | null
           doc_cpf_url?: string | null
@@ -2075,12 +2246,16 @@ export type Database = {
           necessidades_especiais?: string | null
           nis?: string | null
           old_profile_id?: string | null
+          poder_publico_responsavel_transporte?: string | null
           ponto_embarque?: string | null
+          raca_cor?: string | null
           restricoes_alimentares?: string | null
           rg?: string | null
           status?: string | null
           telefone?: string | null
           telefone_emergencia?: string | null
+          tipo_transporte_escolar?: string | null
+          tipo_veiculo_transporte?: Json | null
           updated_at?: string
           usa_transporte_escolar?: boolean | null
         }
@@ -2090,11 +2265,13 @@ export type Database = {
           autorizacao_reconhecimento_facial?: boolean | null
           autorizacao_uso_imagem?: boolean | null
           birth_date?: string
+          bolsa_familia?: boolean | null
           cartao_sus?: string | null
           certidao_nascimento?: string | null
           cpf?: string | null
           created_at?: string
           created_by?: string | null
+          deficiencias?: Json | null
           doc_certidao_url?: string | null
           doc_comprovante_residencia_url?: string | null
           doc_cpf_url?: string | null
@@ -2117,12 +2294,16 @@ export type Database = {
           necessidades_especiais?: string | null
           nis?: string | null
           old_profile_id?: string | null
+          poder_publico_responsavel_transporte?: string | null
           ponto_embarque?: string | null
+          raca_cor?: string | null
           restricoes_alimentares?: string | null
           rg?: string | null
           status?: string | null
           telefone?: string | null
           telefone_emergencia?: string | null
+          tipo_transporte_escolar?: string | null
+          tipo_veiculo_transporte?: Json | null
           updated_at?: string
           usa_transporte_escolar?: boolean | null
         }
