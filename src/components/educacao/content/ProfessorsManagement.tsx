@@ -13,6 +13,9 @@ import { toast } from "sonner";
 import { Plus, Pencil, Trash2, BookOpen, GraduationCap, UserPlus, Clock } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, Camera } from "lucide-react";
+import { TeacherFacialCapture } from "./TeacherFacialCapture";
 
 interface ProfessorsManagementProps {
   secretariaSlug: string;
@@ -25,6 +28,9 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
   const [classFormData, setClassFormData] = useState({ class_id: "", subject: "" });
+  const [cpfSearch, setCpfSearch] = useState("");
+  const [searchingCpf, setSearchingCpf] = useState(false);
+  const [activeTab, setActiveTab] = useState("dados");
   const [teacherFormData, setTeacherFormData] = useState({
     full_name: "",
     cpf: "",
@@ -351,6 +357,39 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
     saveTeacherMutation.mutate(teacherFormData);
   };
 
+  const handleSearchCpf = async () => {
+    if (!cpfSearch || cpfSearch.length < 11) {
+      toast.error("Digite um CPF válido");
+      return;
+    }
+
+    setSearchingCpf(true);
+    try {
+      const { data, error } = await supabase
+        .rpc("search_profile_by_cpf", { _cpf: cpfSearch });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const profile = data[0];
+        setTeacherFormData({
+          ...teacherFormData,
+          full_name: profile.full_name || "",
+          cpf: profile.cpf || "",
+          email: profile.email || "",
+          telefone: profile.telefone || "",
+        });
+        toast.success("Dados encontrados e preenchidos!");
+      } else {
+        toast.info("Nenhum cadastro encontrado com este CPF");
+      }
+    } catch (error: any) {
+      toast.error("Erro ao buscar CPF: " + error.message);
+    } finally {
+      setSearchingCpf(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -561,153 +600,286 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
       </Dialog>
 
       {/* Dialog for creating/editing teacher */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <Dialog open={editDialogOpen} onOpenChange={(open) => {
+        setEditDialogOpen(open);
+        if (!open) setActiveTab("dados");
+      }}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {selectedTeacher ? "Editar Professor" : "Adicionar Professor"}
             </DialogTitle>
             <DialogDescription>
-              Preencha os dados do professor
+              Gerencie os dados do professor, turmas e identificação facial
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="full_name">Nome Completo *</Label>
+          {/* CPF Search - only when creating new teacher */}
+          {!selectedTeacher && (
+            <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
+              <Label>Buscar por CPF (opcional)</Label>
+              <div className="flex gap-2">
                 <Input
-                  id="full_name"
-                  value={teacherFormData.full_name}
-                  onChange={(e) => setTeacherFormData({ ...teacherFormData, full_name: e.target.value })}
+                  placeholder="Digite o CPF para buscar cadastro existente"
+                  value={cpfSearch}
+                  onChange={(e) => setCpfSearch(e.target.value)}
+                  maxLength={14}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cpf">CPF</Label>
-                <Input
-                  id="cpf"
-                  value={teacherFormData.cpf}
-                  onChange={(e) => setTeacherFormData({ ...teacherFormData, cpf: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={teacherFormData.email}
-                  onChange={(e) => setTeacherFormData({ ...teacherFormData, email: e.target.value })}
-                  disabled={!!selectedTeacher}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="telefone">Telefone</Label>
-                <Input
-                  id="telefone"
-                  value={teacherFormData.telefone}
-                  onChange={(e) => setTeacherFormData({ ...teacherFormData, telefone: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="carga_horaria">Carga Horária Semanal</Label>
-                <Input
-                  id="carga_horaria"
-                  type="number"
-                  value={teacherFormData.carga_horaria_semanal}
-                  onChange={(e) => setTeacherFormData({ ...teacherFormData, carga_horaria_semanal: parseInt(e.target.value) || 0 })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="banco_horas">Banco de Horas</Label>
-                <Input
-                  id="banco_horas"
-                  type="number"
-                  value={teacherFormData.banco_horas}
-                  onChange={(e) => setTeacherFormData({ ...teacherFormData, banco_horas: parseInt(e.target.value) || 0 })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="situacao">Situação</Label>
-                <Select
-                  value={teacherFormData.situacao}
-                  onValueChange={(value) => setTeacherFormData({ ...teacherFormData, situacao: value })}
+                <Button 
+                  onClick={handleSearchCpf} 
+                  disabled={searchingCpf}
+                  variant="secondary"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ativo">Ativo</SelectItem>
-                    <SelectItem value="afastado">Afastado</SelectItem>
-                    <SelectItem value="licenca">Licença</SelectItem>
-                    <SelectItem value="inativo">Inativo</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <Search className="h-4 w-4 mr-2" />
+                  {searchingCpf ? "Buscando..." : "Buscar"}
+                </Button>
               </div>
             </div>
+          )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="especialidade">Especialidade</Label>
-                <Input
-                  id="especialidade"
-                  value={teacherFormData.especialidade}
-                  onChange={(e) => setTeacherFormData({ ...teacherFormData, especialidade: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="formacao">Formação</Label>
-                <Input
-                  id="formacao"
-                  value={teacherFormData.formacao}
-                  onChange={(e) => setTeacherFormData({ ...teacherFormData, formacao: e.target.value })}
-                />
-              </div>
-            </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="dados">Dados Pessoais</TabsTrigger>
+              <TabsTrigger value="turmas" disabled={!selectedTeacher}>
+                Turmas
+              </TabsTrigger>
+              <TabsTrigger value="facial" disabled={!selectedTeacher}>
+                Identificação Facial
+              </TabsTrigger>
+            </TabsList>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="registro">Registro Profissional</Label>
-                <Input
-                  id="registro"
-                  value={teacherFormData.registro_profissional}
-                  onChange={(e) => setTeacherFormData({ ...teacherFormData, registro_profissional: e.target.value })}
-                />
+            {/* Aba de Dados Pessoais */}
+            <TabsContent value="dados" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="full_name">Nome Completo *</Label>
+                  <Input
+                    id="full_name"
+                    value={teacherFormData.full_name}
+                    onChange={(e) => setTeacherFormData({ ...teacherFormData, full_name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cpf">CPF</Label>
+                  <Input
+                    id="cpf"
+                    value={teacherFormData.cpf}
+                    onChange={(e) => setTeacherFormData({ ...teacherFormData, cpf: e.target.value })}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="data_admissao">Data de Admissão</Label>
-                <Input
-                  id="data_admissao"
-                  type="date"
-                  value={teacherFormData.data_admissao}
-                  onChange={(e) => setTeacherFormData({ ...teacherFormData, data_admissao: e.target.value })}
-                />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="observacoes">Observações</Label>
-              <Textarea
-                id="observacoes"
-                rows={3}
-                value={teacherFormData.observacoes}
-                onChange={(e) => setTeacherFormData({ ...teacherFormData, observacoes: e.target.value })}
-              />
-            </div>
-          </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={teacherFormData.email}
+                    onChange={(e) => setTeacherFormData({ ...teacherFormData, email: e.target.value })}
+                    disabled={!!selectedTeacher}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="telefone">Telefone</Label>
+                  <Input
+                    id="telefone"
+                    value={teacherFormData.telefone}
+                    onChange={(e) => setTeacherFormData({ ...teacherFormData, telefone: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="carga_horaria">Carga Horária Semanal</Label>
+                  <Input
+                    id="carga_horaria"
+                    type="number"
+                    value={teacherFormData.carga_horaria_semanal}
+                    onChange={(e) => setTeacherFormData({ ...teacherFormData, carga_horaria_semanal: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="banco_horas">Banco de Horas</Label>
+                  <Input
+                    id="banco_horas"
+                    type="number"
+                    value={teacherFormData.banco_horas}
+                    onChange={(e) => setTeacherFormData({ ...teacherFormData, banco_horas: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="situacao">Situação</Label>
+                  <Select
+                    value={teacherFormData.situacao}
+                    onValueChange={(value) => setTeacherFormData({ ...teacherFormData, situacao: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ativo">Ativo</SelectItem>
+                      <SelectItem value="afastado">Afastado</SelectItem>
+                      <SelectItem value="licenca">Licença</SelectItem>
+                      <SelectItem value="inativo">Inativo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="especialidade">Especialidade</Label>
+                  <Input
+                    id="especialidade"
+                    value={teacherFormData.especialidade}
+                    onChange={(e) => setTeacherFormData({ ...teacherFormData, especialidade: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="formacao">Formação</Label>
+                  <Input
+                    id="formacao"
+                    value={teacherFormData.formacao}
+                    onChange={(e) => setTeacherFormData({ ...teacherFormData, formacao: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="registro">Registro Profissional</Label>
+                  <Input
+                    id="registro"
+                    value={teacherFormData.registro_profissional}
+                    onChange={(e) => setTeacherFormData({ ...teacherFormData, registro_profissional: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="data_admissao">Data de Admissão</Label>
+                  <Input
+                    id="data_admissao"
+                    type="date"
+                    value={teacherFormData.data_admissao}
+                    onChange={(e) => setTeacherFormData({ ...teacherFormData, data_admissao: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="observacoes">Observações</Label>
+                <Textarea
+                  id="observacoes"
+                  rows={3}
+                  value={teacherFormData.observacoes}
+                  onChange={(e) => setTeacherFormData({ ...teacherFormData, observacoes: e.target.value })}
+                />
+              </div>
+            </TabsContent>
+
+            {/* Aba de Turmas */}
+            <TabsContent value="turmas" className="space-y-4 mt-4">
+              {selectedTeacher && (
+                <>
+                  <div>
+                    <h3 className="font-semibold mb-3">Turmas Atuais</h3>
+                    {teacherClasses.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-4 text-center">
+                        Nenhuma turma atribuída
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {teacherClasses.map((assignment: any) => (
+                          <div
+                            key={assignment.id}
+                            className="flex items-center justify-between p-3 border rounded-lg"
+                          >
+                            <div>
+                              <p className="font-medium">
+                                {assignment.school_classes?.class_name} - {assignment.school_classes?.grade_level}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Disciplina: {assignment.subject}
+                              </p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeClassMutation.mutate(assignment.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <h3 className="font-semibold">Adicionar Nova Turma</h3>
+                    
+                    <div className="grid gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="class">Turma</Label>
+                        <Select
+                          value={classFormData.class_id}
+                          onValueChange={(value) =>
+                            setClassFormData({ ...classFormData, class_id: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma turma" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {classes.map((cls) => (
+                              <SelectItem key={cls.id} value={cls.id}>
+                                {cls.class_name} - {cls.grade_level} ({cls.school_year})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="subject">Disciplina</Label>
+                        <Input
+                          id="subject"
+                          placeholder="Ex: Matemática, Português, etc."
+                          value={classFormData.subject}
+                          onChange={(e) =>
+                            setClassFormData({ ...classFormData, subject: e.target.value })
+                          }
+                        />
+                      </div>
+
+                      <Button onClick={handleAddClass} disabled={addClassMutation.isPending}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Adicionar Turma
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </TabsContent>
+
+            {/* Aba de Identificação Facial */}
+            <TabsContent value="facial" className="mt-4">
+              {selectedTeacher && (
+                <TeacherFacialCapture teacherId={selectedTeacher.id} />
+              )}
+            </TabsContent>
+          </Tabs>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveTeacher} disabled={saveTeacherMutation.isPending}>
-              {saveTeacherMutation.isPending ? "Salvando..." : "Salvar"}
-            </Button>
+            {activeTab === "dados" && (
+              <Button onClick={handleSaveTeacher} disabled={saveTeacherMutation.isPending}>
+                {saveTeacherMutation.isPending ? "Salvando..." : "Salvar"}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
