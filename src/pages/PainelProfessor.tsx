@@ -2,7 +2,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, BookOpen, Calendar, FileText, Search } from "lucide-react";
+import { Users, BookOpen, Calendar, FileText, Search, CheckSquare, Edit3, ClipboardList } from "lucide-react";
 import { useState } from "react";
 import { ProfessorLayout } from "@/components/professor/ProfessorLayout";
 import { ProfessorProfile } from "@/components/professor/ProfessorProfile";
@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { InactivityTimer } from "@/components/InactivityTimer";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { format, startOfWeek, endOfWeek, addDays, isFuture, isToday } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const ProfessorContent = () => {
   const navigate = useNavigate();
@@ -73,6 +75,34 @@ const ProfessorContent = () => {
     enabled: !!user?.id,
   });
 
+  // Buscar próximas avaliações
+  const { data: upcomingExams } = useQuery({
+    queryKey: ["professor-upcoming-exams", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from("scheduled_assessments")
+        .select("*, school_classes(class_name)")
+        .eq("teacher_id", user.id)
+        .gte("scheduled_date", today)
+        .order("scheduled_date", { ascending: true })
+        .limit(5);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Dados mockados de frequência da semana (será implementado quando criar a tabela de frequência)
+  const weeklyAttendance = {
+    "segunda-feira": { present: 85, total: 100 },
+    "terça-feira": { present: 92, total: 100 },
+    "quarta-feira": { present: 88, total: 100 },
+    "quinta-feira": { present: 90, total: 100 },
+    "sexta-feira": { present: 87, total: 100 },
+  };
+
   const today = new Date().toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "2-digit",
@@ -108,6 +138,60 @@ const ProfessorContent = () => {
                 <Calendar className="h-4 w-4" />
                 <span className="capitalize">{today}</span>
               </div>
+            </div>
+
+            {/* Botões de Atalho */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Button 
+                size="lg" 
+                className="h-auto py-4 flex-col gap-2 shadow-md hover:shadow-lg transition-shadow"
+                onClick={() => setActiveTab("notas")}
+              >
+                <Edit3 className="h-6 w-6" />
+                <div className="text-center">
+                  <div className="font-bold">Lançar Notas</div>
+                  <div className="text-xs opacity-90">Por Turma</div>
+                </div>
+              </Button>
+
+              <Button 
+                size="lg" 
+                variant="secondary"
+                className="h-auto py-4 flex-col gap-2 shadow-md hover:shadow-lg transition-shadow"
+                onClick={() => setActiveTab("notas")}
+              >
+                <FileText className="h-6 w-6" />
+                <div className="text-center">
+                  <div className="font-bold">Lançar Nota</div>
+                  <div className="text-xs opacity-90">Individual</div>
+                </div>
+              </Button>
+
+              <Button 
+                size="lg" 
+                variant="default"
+                className="h-auto py-4 flex-col gap-2 bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg transition-shadow"
+                onClick={() => setActiveTab("presenca")}
+              >
+                <CheckSquare className="h-6 w-6" />
+                <div className="text-center">
+                  <div className="font-bold">Iniciar Chamada</div>
+                  <div className="text-xs opacity-90">Presença</div>
+                </div>
+              </Button>
+
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="h-auto py-4 flex-col gap-2 shadow-md hover:shadow-lg transition-shadow"
+                onClick={() => setActiveTab("aulas")}
+              >
+                <ClipboardList className="h-6 w-6" />
+                <div className="text-center">
+                  <div className="font-bold">Diário de Aulas</div>
+                  <div className="text-xs opacity-90">Registrar</div>
+                </div>
+              </Button>
             </div>
 
             {/* KPIs */}
@@ -150,8 +234,13 @@ const ProfessorContent = () => {
                     </div>
                     <div className="flex-1">
                       <div className="text-sm font-bold text-muted-foreground">Próximas Avaliações</div>
-                      <div className="text-3xl font-extrabold mt-1">0</div>
-                      <div className="text-xs font-bold mt-0.5 text-muted-foreground">—</div>
+                      <div className="text-3xl font-extrabold mt-1">{upcomingExams?.length || 0}</div>
+                      <div className="text-xs font-bold mt-0.5 text-muted-foreground">
+                        {upcomingExams && upcomingExams.length > 0 
+                          ? `Próxima: ${format(new Date(upcomingExams[0].scheduled_date), "dd/MM", { locale: ptBR })}`
+                          : "—"
+                        }
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -190,12 +279,26 @@ const ProfessorContent = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="h-[120px] flex items-end justify-between gap-2">
-                    {["Seg", "Ter", "Qua", "Qui", "Sex"].map((day) => (
-                      <div key={day} className="flex-1 flex flex-col items-center gap-2">
-                        <div className="w-full bg-muted/30 rounded-t-lg h-full"></div>
-                        <span className="text-xs text-muted-foreground font-medium">{day}</span>
-                      </div>
-                    ))}
+                    {["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira"].map((day, idx) => {
+                      const dayData = weeklyAttendance?.[day] || { present: 0, total: 0 };
+                      const percentage = dayData.total > 0 ? (dayData.present / dayData.total) * 100 : 0;
+                      const height = percentage > 0 ? `${percentage}%` : '8px';
+                      const dayShort = ["Seg", "Ter", "Qua", "Qui", "Sex"][idx];
+                      
+                      return (
+                        <div key={day} className="flex-1 flex flex-col items-center gap-2">
+                          <div 
+                            className="w-full bg-primary/80 rounded-t-lg transition-all hover:bg-primary" 
+                            style={{ height }}
+                            title={`${percentage.toFixed(0)}% de presença`}
+                          ></div>
+                          <span className="text-xs text-muted-foreground font-medium">{dayShort}</span>
+                          {percentage > 0 && (
+                            <span className="text-[10px] text-muted-foreground">{percentage.toFixed(0)}%</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
@@ -264,9 +367,58 @@ const ProfessorContent = () => {
                   <CardDescription>Agenda das próximas aulas</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="p-3 bg-muted/20 border border-border rounded-xl">
-                    <span className="text-sm text-muted-foreground">Sem aulas agendadas</span>
-                  </div>
+                  {upcomingExams && upcomingExams.length > 0 ? (
+                    <div className="space-y-2.5">
+                      {upcomingExams.slice(0, 4).map((exam: any) => {
+                        const examDate = new Date(exam.scheduled_date);
+                        const isUpcoming = isFuture(examDate) || isToday(examDate);
+                        
+                        return (
+                          <div
+                            key={exam.id}
+                            className="p-3 bg-muted/30 border border-border rounded-xl hover:bg-muted/40 transition-colors"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-bold text-sm truncate">{exam.title}</div>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  {exam.school_classes?.class_name} • {exam.subject}
+                                </div>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge variant={isToday(examDate) ? "default" : "secondary"} className="text-[10px]">
+                                    {format(examDate, "dd/MM/yyyy", { locale: ptBR })}
+                                  </Badge>
+                                  {exam.scheduled_time && (
+                                    <span className="text-xs text-muted-foreground">{exam.scheduled_time}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <Badge 
+                                variant={exam.assessment_type === "Prova" ? "destructive" : "outline"}
+                                className="text-[10px] shrink-0"
+                              >
+                                {exam.assessment_type}
+                              </Badge>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {upcomingExams.length > 4 && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="w-full text-xs"
+                          onClick={() => setActiveTab("calendario")}
+                        >
+                          Ver todas ({upcomingExams.length})
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-muted/20 border border-border rounded-xl">
+                      <span className="text-sm text-muted-foreground">Sem aulas agendadas</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
