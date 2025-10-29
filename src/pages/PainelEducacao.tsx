@@ -16,6 +16,7 @@ import ReportsManagement from "@/components/secretario/content/ReportsManagement
 import { ComprasManagement } from "@/components/educacao/content/ComprasManagement";
 import { FrotaManagement } from "@/components/educacao/content/FrotaManagement";
 import { SecretarioProfile } from "@/components/secretario/SecretarioProfile";
+import { ProfessorsManagement } from "@/components/educacao/content/ProfessorsManagement";
 
 const PainelEducacaoContent = () => {
   const [activeTab, setActiveTab] = useState("painel");
@@ -81,6 +82,8 @@ const PainelEducacaoContent = () => {
         );
       case "equipe":
         return <TeamManagement secretariaSlug={assignment.secretaria_slug} />;
+      case "professores":
+        return <ProfessorsManagement secretariaSlug={assignment.secretaria_slug} />;
       case "turmas":
         return <ClassesManagement secretariaSlug={assignment.secretaria_slug} />;
       case "matriculas":

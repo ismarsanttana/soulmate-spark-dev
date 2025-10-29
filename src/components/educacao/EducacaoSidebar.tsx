@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, Users, BookOpen, ClipboardList, User, Clock, ShoppingCart, Bus, BarChart2, Headset } from "lucide-react";
+import { Home, Users, BookOpen, ClipboardList, User, Clock, ShoppingCart, Bus, BarChart2, Headset, GraduationCap } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ interface EducacaoSidebarProps {
 const menuItems = [
   { value: "painel", title: "Painel", icon: Home },
   { value: "equipe", title: "Equipe", icon: Users },
+  { value: "professores", title: "Professores", icon: GraduationCap },
   { value: "turmas", title: "Gerenciar Turmas", icon: BookOpen },
   { value: "matriculas", title: "Matrículas", icon: ClipboardList },
   { value: "alunos", title: "Alunos", icon: User },
