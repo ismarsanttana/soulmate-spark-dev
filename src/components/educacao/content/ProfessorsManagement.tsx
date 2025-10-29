@@ -57,7 +57,7 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
 
       if (rolesError) throw rolesError;
 
-      const teacherIds = teacherRoles.map(r => r.user_id);
+      const teacherIds = teacherRoles?.map(r => r.user_id) || [];
 
       if (teacherIds.length === 0) return [];
 
@@ -68,18 +68,28 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
 
       if (profilesError) throw profilesError;
 
-      // Fetch teacher-specific data
-      const { data: teachersData, error: teachersError } = await supabase
+      // Fetch teacher-specific data (pode não existir para todos)
+      const { data: teachersData } = await supabase
         .from("teachers")
         .select("*")
         .in("user_id", teacherIds);
 
-      if (teachersError) throw teachersError;
-
-      // Merge profile and teacher data
+      // Merge profile and teacher data, retornando valores padrão se não houver teacher data
       return profiles?.map(profile => {
         const teacherData = teachersData?.find(t => t.user_id === profile.id);
-        return { ...profile, ...teacherData };
+        return { 
+          ...profile, 
+          // Valores padrão se não houver teacher data
+          carga_horaria_semanal: teacherData?.carga_horaria_semanal ?? 40,
+          banco_horas: teacherData?.banco_horas ?? 0,
+          especialidade: teacherData?.especialidade ?? "",
+          formacao: teacherData?.formacao ?? "",
+          registro_profissional: teacherData?.registro_profissional ?? "",
+          data_admissao: teacherData?.data_admissao ?? "",
+          situacao: teacherData?.situacao ?? "ativo",
+          observacoes: teacherData?.observacoes ?? "",
+          ...teacherData
+        };
       }) || [];
     },
   });
