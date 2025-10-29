@@ -478,30 +478,33 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
 
     setSearchingCpf(true);
     try {
-      // Primeiro, verifica se já existe um professor com este CPF
-      const { data: existingProf, error: profError } = await supabase
-        .from("user_roles")
-        .select("user_id, profiles!inner(id, full_name, cpf, email, telefone)")
-        .eq("role", "professor")
-        .eq("profiles.cpf", cpfSearch)
+      // Busca o perfil pelo CPF
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, full_name, cpf, email, telefone")
+        .eq("cpf", cpfSearch)
         .maybeSingle();
 
-      if (profError && profError.code !== "PGRST116") throw profError;
+      if (profileError) throw profileError;
 
-      if (existingProf) {
-        toast.error("Este CPF já está cadastrado como professor. Use a opção 'Editar' na lista.");
-        setCpfSearch("");
-        return;
-      }
+      if (profile) {
+        // Verifica se já é professor
+        const { data: roleData, error: roleError } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", profile.id)
+          .eq("role", "professor")
+          .maybeSingle();
 
-      // Se não existe como professor, busca no cadastro geral
-      const { data, error } = await supabase
-        .rpc("search_profile_by_cpf", { _cpf: cpfSearch });
+        if (roleError) throw roleError;
 
-      if (error) throw error;
+        if (roleData) {
+          toast.error("Este CPF já está cadastrado como professor. Use a opção 'Editar' na lista.");
+          setCpfSearch("");
+          return;
+        }
 
-      if (data && data.length > 0) {
-        const profile = data[0];
+        // Preenche o formulário com os dados encontrados
         setTeacherFormData({
           ...teacherFormData,
           full_name: profile.full_name || "",
@@ -509,9 +512,9 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
           email: profile.email || "",
           telefone: profile.telefone || "",
         });
-        toast.success("Dados encontrados! Complete as informações e salve.");
+        toast.success("Dados encontrados! Complete as informações e salve para adicionar como professor.");
       } else {
-        toast.info("Nenhum cadastro encontrado. Preencha todos os dados.");
+        toast.info("Nenhum cadastro encontrado. Preencha todos os dados para criar novo professor.");
       }
     } catch (error: any) {
       toast.error("Erro ao buscar CPF: " + error.message);
