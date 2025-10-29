@@ -2071,12 +2071,14 @@ export type Database = {
       }
       teachers: {
         Row: {
+          autorizacao_reconhecimento_facial: boolean | null
           banco_horas: number | null
           carga_horaria_semanal: number | null
           created_at: string
           created_by: string | null
           data_admissao: string | null
           especialidade: string | null
+          facial_photos: Json | null
           formacao: string | null
           id: string
           observacoes: string | null
@@ -2086,12 +2088,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          autorizacao_reconhecimento_facial?: boolean | null
           banco_horas?: number | null
           carga_horaria_semanal?: number | null
           created_at?: string
           created_by?: string | null
           data_admissao?: string | null
           especialidade?: string | null
+          facial_photos?: Json | null
           formacao?: string | null
           id?: string
           observacoes?: string | null
@@ -2101,12 +2105,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          autorizacao_reconhecimento_facial?: boolean | null
           banco_horas?: number | null
           carga_horaria_semanal?: number | null
           created_at?: string
           created_by?: string | null
           data_admissao?: string | null
           especialidade?: string | null
+          facial_photos?: Json | null
           formacao?: string | null
           id?: string
           observacoes?: string | null

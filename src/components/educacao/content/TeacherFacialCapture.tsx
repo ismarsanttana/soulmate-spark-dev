@@ -47,11 +47,11 @@ export function TeacherFacialCapture({ teacherId }: TeacherFacialCaptureProps) {
 
       if (error) throw error;
       
-      if (data?.autorizacao_reconhecimento_facial) {
+      if ((data as any)?.autorizacao_reconhecimento_facial) {
         setConsent(true);
       }
       
-      return data?.facial_photos || [];
+      return (data as any)?.facial_photos || [];
     },
   });
 
@@ -91,9 +91,9 @@ export function TeacherFacialCapture({ teacherId }: TeacherFacialCaptureProps) {
       const { error: updateError } = await supabase
         .from("teachers")
         .update({
-          facial_photos: validUrls,
+          facial_photos: validUrls as any,
           autorizacao_reconhecimento_facial: consent,
-        })
+        } as any)
         .eq("user_id", teacherId);
 
       if (updateError) throw updateError;
