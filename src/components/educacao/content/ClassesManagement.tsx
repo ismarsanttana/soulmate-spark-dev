@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Users } from "lucide-react";
+import { Plus, Edit, Trash2, Users, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface ClassesManagementProps {
@@ -18,7 +18,13 @@ interface ClassesManagementProps {
 
 export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [teacherDialogOpen, setTeacherDialogOpen] = useState(false);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [editingClass, setEditingClass] = useState<any>(null);
+  const [teacherFormData, setTeacherFormData] = useState({
+    teacher_user_id: "",
+    subject: "",
+  });
   const [formData, setFormData] = useState({
     class_name: "",
     grade_level: "",
@@ -26,7 +32,6 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
     school_name: "",
     shift: "matutino",
     max_students: 40,
-    teacher_user_id: "",
   });
 
   const queryClient = useQueryClient();
@@ -41,24 +46,19 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
         .order("grade_level", { ascending: true });
 
       if (error) throw error;
-      
-      // Buscar dados dos professores separadamente
-      const classesWithTeachers = await Promise.all(
-        (data || []).map(async (classItem) => {
-          if (classItem.teacher_user_id) {
-            const { data: teacher } = await supabase
-              .from("profiles")
-              .select("id, full_name")
-              .eq("id", classItem.teacher_user_id)
-              .single();
-            
-            return { ...classItem, teacher };
-          }
-          return classItem;
-        })
-      );
-      
-      return classesWithTeachers;
+      return data || [];
+    },
+  });
+
+  const { data: classTeachers = [] } = useQuery({
+    queryKey: ["class-teachers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("class_teachers")
+        .select("*, profiles:teacher_user_id(id, full_name)");
+
+      if (error) throw error;
+      return data || [];
     },
   });
 
@@ -113,12 +113,7 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      // Remove teacher_user_id se estiver vazio
       const insertData = { ...data, created_by: user?.id };
-      if (!insertData.teacher_user_id) {
-        delete insertData.teacher_user_id;
-      }
       
       const { error } = await supabase.from("school_classes").insert(insertData);
       if (error) throw error;
@@ -130,6 +125,47 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
     },
     onError: () => {
       toast({ title: "Erro ao criar turma", variant: "destructive" });
+    },
+  });
+
+  const addTeacherMutation = useMutation({
+    mutationFn: async (data: { class_id: string; teacher_user_id: string; subject: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase.from("class_teachers").insert({
+        ...data,
+        created_by: user?.id,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["class-teachers"] });
+      toast({ title: "Professor adicionado com sucesso!" });
+      handleCloseTeacherDialog();
+    },
+    onError: (error: any) => {
+      if (error.message?.includes("duplicate key")) {
+        toast({ title: "Este professor já está atribuído a esta disciplina nesta turma", variant: "destructive" });
+      } else {
+        toast({ title: "Erro ao adicionar professor", variant: "destructive" });
+      }
+    },
+  });
+
+  const removeTeacherMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("class_teachers")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["class-teachers"] });
+      toast({ title: "Professor removido com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao remover professor", variant: "destructive" });
     },
   });
 
@@ -186,7 +222,6 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
       school_name: classItem.school_name || "",
       shift: classItem.shift,
       max_students: classItem.max_students,
-      teacher_user_id: classItem.teacher_user_id || "",
     });
     setDialogOpen(true);
   };
@@ -201,8 +236,35 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
       school_name: "",
       shift: "matutino",
       max_students: 40,
-      teacher_user_id: "",
     });
+  };
+
+  const handleAddTeacher = (classId: string) => {
+    setSelectedClassId(classId);
+    setTeacherDialogOpen(true);
+  };
+
+  const handleCloseTeacherDialog = () => {
+    setTeacherDialogOpen(false);
+    setSelectedClassId(null);
+    setTeacherFormData({
+      teacher_user_id: "",
+      subject: "",
+    });
+  };
+
+  const handleSubmitTeacher = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedClassId) {
+      addTeacherMutation.mutate({
+        class_id: selectedClassId,
+        ...teacherFormData,
+      });
+    }
+  };
+
+  const getClassTeachers = (classId: string) => {
+    return classTeachers.filter((ct: any) => ct.class_id === classId);
   };
 
   const getShiftLabel = (shift: string) => {
@@ -268,9 +330,34 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
                         <Badge variant="outline">{getShiftLabel(classItem.shift)}</Badge>
                       </TableCell>
                       <TableCell>
-                        {classItem.teacher?.full_name || (
-                          <span className="text-muted-foreground text-sm">Sem professor</span>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          {getClassTeachers(classItem.id).length > 0 ? (
+                            getClassTeachers(classItem.id).map((ct: any) => (
+                              <div key={ct.id} className="flex items-center gap-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  {ct.profiles?.full_name} - {ct.subject}
+                                  <button
+                                    onClick={() => removeTeacherMutation.mutate(ct.id)}
+                                    className="ml-1 hover:bg-black/10 rounded-full"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </Badge>
+                              </div>
+                            ))
+                          ) : (
+                            <span className="text-muted-foreground text-sm">Sem professores</span>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleAddTeacher(classItem.id)}
+                            className="w-fit"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Adicionar Professor
+                          </Button>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -395,33 +482,6 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
                 />
               </div>
 
-              <div className="space-y-2 col-span-2">
-                <Label htmlFor="teacher">Professor Responsável</Label>
-                <Select
-                  value={formData.teacher_user_id}
-                  onValueChange={(value) => setFormData({ ...formData, teacher_user_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um professor (opcional)..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {professors.length === 0 ? (
-                      <div className="p-2 text-sm text-muted-foreground text-center">
-                        Nenhum professor cadastrado no sistema
-                      </div>
-                    ) : (
-                      professors.map((prof: any) => (
-                        <SelectItem key={prof.id} value={prof.id}>
-                          {prof.full_name} ({prof.email})
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Deixe em branco se ainda não houver professor atribuído
-                </p>
-              </div>
             </div>
 
             <DialogFooter>
@@ -430,6 +490,65 @@ export function ClassesManagement({ secretariaSlug }: ClassesManagementProps) {
               </Button>
               <Button type="submit">
                 {editingClass ? "Atualizar" : "Criar"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={teacherDialogOpen} onOpenChange={setTeacherDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Professor</DialogTitle>
+            <DialogDescription>
+              Atribua um professor e sua disciplina à turma
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmitTeacher} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="teacher">Professor *</Label>
+              <Select
+                value={teacherFormData.teacher_user_id}
+                onValueChange={(value) => setTeacherFormData({ ...teacherFormData, teacher_user_id: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um professor..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {professors.length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground text-center">
+                      Nenhum professor cadastrado no sistema
+                    </div>
+                  ) : (
+                    professors.map((prof: any) => (
+                      <SelectItem key={prof.id} value={prof.id}>
+                        {prof.full_name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="subject">Disciplina *</Label>
+              <Input
+                id="subject"
+                value={teacherFormData.subject}
+                onChange={(e) => setTeacherFormData({ ...teacherFormData, subject: e.target.value })}
+                placeholder="Ex: Matemática, Português, História..."
+                required
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleCloseTeacherDialog}>
+                Cancelar
+              </Button>
+              <Button type="submit">
+                Adicionar
               </Button>
             </DialogFooter>
           </form>
