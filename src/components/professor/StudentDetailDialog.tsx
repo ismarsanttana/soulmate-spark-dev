@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -144,6 +144,9 @@ export const StudentDetailDialog = ({ studentId, open, onOpenChange }: StudentDe
             <User className="h-5 w-5" />
             Detalhes do Aluno
           </DialogTitle>
+          <DialogDescription>
+            Visualize informações completas do aluno, incluindo presença, notas e responsáveis
+          </DialogDescription>
         </DialogHeader>
 
         {studentLoading ? (

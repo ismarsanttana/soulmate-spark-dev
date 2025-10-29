@@ -61,10 +61,9 @@ export const AttendanceRegistration = () => {
           id,
           student_id,
           matricula,
-          student:profiles(
+          student:students(
             id,
-            full_name,
-            avatar_url
+            full_name
           )
         `)
         .eq("class_id", selectedClass)
