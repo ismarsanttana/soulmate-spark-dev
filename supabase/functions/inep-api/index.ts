@@ -21,18 +21,24 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
+    // Use service role for admin operations (bypasses RLS)
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Verificar autenticação com anon key
+    const supabaseAuth = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Verificar autenticação
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       throw new Error('Não autenticado');
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(
       authHeader.replace('Bearer ', '')
     );
 
@@ -53,7 +59,7 @@ serve(async (req) => {
         }
 
         // Verificar cache primeiro
-        const { data: cached } = await supabase
+        const { data: cached } = await supabaseAdmin
           .from('api_cache')
           .select('*')
           .eq('api_source', 'inep')
@@ -93,7 +99,7 @@ serve(async (req) => {
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 24);
 
-        await supabase.from('api_cache').insert({
+        await supabaseAdmin.from('api_cache').insert({
           api_source: 'inep',
           endpoint: 'escola',
           parameters: { codigo_inep: codigoInep },
@@ -115,7 +121,7 @@ serve(async (req) => {
         }
 
         // Verificar cache
-        const { data: cached } = await supabase
+        const { data: cached } = await supabaseAdmin
           .from('api_cache')
           .select('*')
           .eq('api_source', 'inep')
@@ -150,7 +156,7 @@ serve(async (req) => {
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 24);
 
-        await supabase.from('api_cache').insert({
+        await supabaseAdmin.from('api_cache').insert({
           api_source: 'inep',
           endpoint: 'municipio',
           parameters: { codigo_municipio: codigoMunicipio },
@@ -175,7 +181,7 @@ serve(async (req) => {
         console.log('Importando escola:', { codigo_inep, nome_escola });
 
         // Verificar se a escola já existe
-        const { data: existing } = await supabase
+        const { data: existing } = await supabaseAdmin
           .from('schools')
           .select('id')
           .eq('codigo_inep', codigo_inep)
@@ -189,7 +195,7 @@ serve(async (req) => {
         }
 
         // Inserir escola
-        const { data: school, error } = await supabase
+        const { data: school, error } = await supabaseAdmin
           .from('schools')
           .insert({
             codigo_inep,
@@ -213,7 +219,7 @@ serve(async (req) => {
         console.log('Escola importada com sucesso:', school.id);
 
         // Registrar log de sincronização
-        await supabase.from('inep_sync_log').insert({
+        await supabaseAdmin.from('inep_sync_log').insert({
           school_id: school.id,
           sync_type: 'import',
           status: 'success',
