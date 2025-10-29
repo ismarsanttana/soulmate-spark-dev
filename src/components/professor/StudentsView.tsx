@@ -59,13 +59,11 @@ export const StudentsView = () => {
           matricula,
           class_id,
           class:school_classes(class_name),
-          student:profiles(
+          student:students(
             id,
             full_name,
-            avatar_url,
             birth_date,
-            telefone,
-            email
+            telefone
           )
         `)
         .in("class_id", classIds)
