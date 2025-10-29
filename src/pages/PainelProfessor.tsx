@@ -6,6 +6,7 @@ import { Users, BookOpen, Calendar, FileText, Search } from "lucide-react";
 import { useState } from "react";
 import { ProfessorLayout } from "@/components/professor/ProfessorLayout";
 import { ProfessorProfile } from "@/components/professor/ProfessorProfile";
+import { StudentBirthdays } from "@/components/professor/StudentBirthdays";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -342,6 +343,9 @@ const ProfessorContent = () => {
             </CardContent>
           </Card>
         );
+      
+      case "aniversarios":
+        return <StudentBirthdays />;
       
       case "relatorios":
         return (

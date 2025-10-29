@@ -15,7 +15,8 @@ import {
   LogOut,
   Building2,
   Moon,
-  Sun
+  Sun,
+  Cake
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ const menuItems = [
   { value: "notas", title: "Notas e Avaliações", icon: Award },
   { value: "aulas", title: "Diário de Aulas", icon: BookOpen },
   { value: "calendario", title: "Calendário de Provas", icon: CalendarClock },
+  { value: "aniversarios", title: "Aniversários", icon: Cake },
   { value: "relatorios", title: "Relatórios", icon: BarChart3 },
   { value: "chamados", title: "Chamados", icon: Headphones },
 ];
