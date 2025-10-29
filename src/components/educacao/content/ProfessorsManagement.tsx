@@ -203,32 +203,111 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
 
         if (teacherError) throw teacherError;
       } else {
-        // Check if user with this CPF or email already exists
+        // Check if user with this CPF already exists
+        let existingUserId: string | null = null;
+
         if (data.cpf) {
-          const { data: existingByCpf, error: cpfCheckError } = await supabase
+          const { data: existingProfile, error: cpfCheckError } = await supabase
             .from("profiles")
             .select("id")
             .eq("cpf", data.cpf)
             .maybeSingle();
 
           if (cpfCheckError) throw cpfCheckError;
-          if (existingByCpf) {
-            throw new Error("Já existe um usuário cadastrado com este CPF");
+          
+          if (existingProfile) {
+            existingUserId = existingProfile.id;
+            
+            // Check if this user is already a professor
+            const { data: existingRole, error: roleCheckError } = await supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", existingUserId)
+              .eq("role", "professor")
+              .maybeSingle();
+
+            if (roleCheckError) throw roleCheckError;
+            
+            if (existingRole) {
+              throw new Error("Este CPF já está cadastrado como professor. Use a opção 'Editar' na lista de professores.");
+            }
           }
         }
 
-        const { data: existingByEmail, error: emailCheckError } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("email", data.email)
-          .maybeSingle();
+        // Check email if no CPF match was found
+        if (!existingUserId) {
+          const { data: existingByEmail, error: emailCheckError } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("email", data.email)
+            .maybeSingle();
 
-        if (emailCheckError) throw emailCheckError;
-        if (existingByEmail) {
-          throw new Error("Já existe um usuário cadastrado com este email");
+          if (emailCheckError) throw emailCheckError;
+          
+          if (existingByEmail) {
+            existingUserId = existingByEmail.id;
+            
+            // Check if this user is already a professor
+            const { data: existingRole, error: roleCheckError } = await supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", existingUserId)
+              .eq("role", "professor")
+              .maybeSingle();
+
+            if (roleCheckError) throw roleCheckError;
+            
+            if (existingRole) {
+              throw new Error("Este email já está cadastrado como professor. Use a opção 'Editar' na lista de professores.");
+            }
+          }
         }
 
-        // Create new user and profile
+        // If user exists but is not a professor, add professor role
+        if (existingUserId) {
+          // Update profile with any missing data
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .update({
+              full_name: data.full_name,
+              cpf: data.cpf || undefined,
+              telefone: data.telefone || undefined,
+            })
+            .eq("id", existingUserId);
+
+          if (profileError) throw profileError;
+
+          // Add professor role
+          const { error: roleError } = await supabase
+            .from("user_roles")
+            .insert({
+              user_id: existingUserId,
+              role: "professor",
+            });
+
+          if (roleError) throw roleError;
+
+          // Insert teacher data
+          const { error: teacherError } = await supabase
+            .from("teachers")
+            .insert({
+              user_id: existingUserId,
+              carga_horaria_semanal: data.carga_horaria_semanal,
+              banco_horas: data.banco_horas,
+              especialidade: data.especialidade,
+              formacao: data.formacao,
+              registro_profissional: data.registro_profissional,
+              data_admissao: data.data_admissao || null,
+              situacao: data.situacao,
+              observacoes: data.observacoes,
+            });
+
+          if (teacherError) throw teacherError;
+
+          return existingUserId;
+        }
+
+        // Create new user if no existing user was found
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
           email: data.email,
           email_confirm: true,
@@ -283,19 +362,18 @@ export function ProfessorsManagement({ secretariaSlug }: ProfessorsManagementPro
         return authData.user.id;
       }
     },
-    onSuccess: (newUserId) => {
+    onSuccess: (userId) => {
       queryClient.invalidateQueries({ queryKey: ["professors-list"] });
-      toast.success(selectedTeacher ? "Professor atualizado!" : "Professor criado com sucesso!");
       
-      if (!selectedTeacher && newUserId) {
-        // Se criou um novo professor, recarregar a lista e fechar o dialog
-        setEditDialogOpen(false);
-        resetTeacherForm();
-      } else {
-        // Se editou, apenas invalidar queries
-        setEditDialogOpen(false);
-        resetTeacherForm();
-      }
+      const message = selectedTeacher 
+        ? "Professor atualizado com sucesso!" 
+        : userId 
+          ? "Professor cadastrado com sucesso!" 
+          : "Papel de professor adicionado ao usuário existente!";
+      
+      toast.success(message);
+      setEditDialogOpen(false);
+      resetTeacherForm();
     },
     onError: (error: any) => {
       toast.error("Erro ao salvar professor: " + error.message);
