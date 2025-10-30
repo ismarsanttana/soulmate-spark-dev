@@ -45,91 +45,93 @@ const Auth = () => {
         
         toast.success("Login realizado com sucesso!");
         
+        // Busca roles PRIMEIRO antes de qualquer redirecionamento
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", data.user.id);
+
+        console.log('[AUTH] User roles:', roles?.map(r => r.role));
+
         // Recupera o redirect do sessionStorage
         const savedRedirect = sessionStorage.getItem('auth_redirect');
-        console.log('[AUTH] Login successful. Saved redirect:', savedRedirect);
-        console.log('[AUTH] User ID:', data.user.id);
-        
-        // AGUARDA 500ms para garantir que o estado de auth está completamente pronto
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Limpa o sessionStorage
-        if (savedRedirect) {
-          sessionStorage.removeItem('auth_redirect');
+        console.log('[AUTH] Saved redirect:', savedRedirect);
+        sessionStorage.removeItem('auth_redirect');
+
+        // Se é professor e tem redirect para painel de professor, redireciona direto
+        if (roles?.some(r => r.role === "professor") && 
+            savedRedirect && savedRedirect.includes('/professor')) {
+          console.log('[AUTH] Professor login - redirecting to:', savedRedirect);
+          // Aguarda para garantir que o estado está pronto
+          await new Promise(resolve => setTimeout(resolve, 300));
+          navigate(savedRedirect, { replace: true });
+          return;
         }
-        
-        // PRIORIDADE 1: Se veio de uma página protegida específica, redireciona direto
+
+        // Se veio de uma página protegida genérica
         if (savedRedirect && savedRedirect !== "/auth") {
-          console.log('[AUTH] Redirecting to saved path:', savedRedirect);
+          console.log('[AUTH] Generic redirect to:', savedRedirect);
+          await new Promise(resolve => setTimeout(resolve, 300));
           navigate(savedRedirect, { replace: true });
           return;
         }
         
-        console.log('[AUTH] No saved redirect, checking roles...');
+        console.log('[AUTH] No saved redirect, using role-based routing...');
         
         // Caso contrário, verifica roles e redireciona para o painel apropriado
-        if (data.user) {
-          const { data: roles } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", data.user.id);
-
-          console.log('[AUTH] User roles:', roles?.map(r => r.role));
+        if (data.user && roles && roles.length > 0) {
+          // Verifica se é admin
+          if (roles.some(r => r.role === "admin")) {
+            console.log('[AUTH] Redirecting admin to /admin');
+            navigate("/admin", { replace: true });
+            return;
+          }
           
-          if (roles && roles.length > 0) {
-            // Verifica se é admin
-            if (roles.some(r => r.role === "admin")) {
-              console.log('[AUTH] Redirecting admin to /admin');
-              navigate("/admin", { replace: true });
-              return;
+          // Verifica se é prefeito
+          if (roles.some(r => r.role === "prefeito")) {
+            navigate("/painel-prefeito", { replace: true });
+            return;
+          }
+
+          // Verifica se é secretário e redireciona baseado na secretaria
+          if (roles.some(r => r.role === "secretario")) {
+            const { data: assignments } = await supabase
+              .from("secretary_assignments")
+              .select("secretaria_slug")
+              .eq("user_id", data.user.id);
+
+            // Se tem múltiplas atribuições, prioriza educação, depois comunicação
+            if (assignments && assignments.length > 0) {
+              const hasEducacao = assignments.some(a => a.secretaria_slug === "educacao");
+              const hasComunicacao = assignments.some(a => a.secretaria_slug === "comunicacao");
+              
+              if (hasEducacao) {
+                navigate("/edu", { replace: true });
+                return;
+              } else if (hasComunicacao) {
+                navigate("/ascom", { replace: true });
+                return;
+              }
             }
             
-            // Verifica se é prefeito
-            if (roles.some(r => r.role === "prefeito")) {
-              navigate("/painel-prefeito", { replace: true });
-              return;
-            }
+            // Fallback para painel genérico
+            navigate("/painel-secretario", { replace: true });
+            return;
+          }
 
-            // Verifica se é secretário e redireciona baseado na secretaria
-            if (roles.some(r => r.role === "secretario")) {
-              const { data: assignments } = await supabase
-                .from("secretary_assignments")
-                .select("secretaria_slug")
-                .eq("user_id", data.user.id);
-
-              // Se tem múltiplas atribuições, prioriza educação, depois comunicação
-              if (assignments && assignments.length > 0) {
-                const hasEducacao = assignments.some(a => a.secretaria_slug === "educacao");
-                const hasComunicacao = assignments.some(a => a.secretaria_slug === "comunicacao");
-                
-                if (hasEducacao) {
-                  navigate("/edu", { replace: true });
-                  return;
-                } else if (hasComunicacao) {
-                  navigate("/ascom", { replace: true });
-                  return;
-                }
-              }
-              
-              // Fallback para painel genérico
-              navigate("/painel-secretario", { replace: true });
-              return;
-            }
-
-            // Verifica outros roles
-            if (roles.some(r => r.role === "professor")) {
-              console.log('[AUTH] Redirecting professor to /edu/professor');
-              navigate("/edu/professor", { replace: true });
-              return;
-            }
-            if (roles.some(r => r.role === "aluno")) {
-              navigate("/painel-aluno", { replace: true });
-              return;
-            }
-            if (roles.some(r => r.role === "pai")) {
-              navigate("/painel-pais", { replace: true });
-              return;
-            }
+          // Verifica outros roles
+          if (roles.some(r => r.role === "professor")) {
+            console.log('[AUTH] Redirecting professor to /edu/professor');
+            navigate("/edu/professor", { replace: true });
+            return;
+          }
+          if (roles.some(r => r.role === "aluno")) {
+            navigate("/painel-aluno", { replace: true });
+            return;
+          }
+          if (roles.some(r => r.role === "pai")) {
+            navigate("/painel-pais", { replace: true });
+            return;
           }
         }
         
