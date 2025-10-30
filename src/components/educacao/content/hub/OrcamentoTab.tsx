@@ -32,10 +32,12 @@ export default function OrcamentoTab({ secretariaSlug }: OrcamentoTabProps) {
     },
   });
 
-  const { data: orcamento } = useQuery({
+  const { data: orcamento, isLoading: loadingOrcamento } = useQuery({
     queryKey: ["orcamento", selectedSchool?.codigo_inep],
     enabled: !!selectedSchool?.codigo_inep,
     queryFn: async () => {
+      // Buscar dados orçamentários relacionados ao município ou escola
+      // Por enquanto, busca todos até implementar filtro específico
       const { data, error } = await supabase
         .from("orcamento_educacao")
         .select("*")
@@ -43,7 +45,9 @@ export default function OrcamentoTab({ secretariaSlug }: OrcamentoTabProps) {
         .limit(50);
       
       if (error) throw error;
-      return data;
+      
+      // Retorna vazio se não houver dados - normal, pois ainda não foram sincronizados
+      return data || [];
     },
   });
 
@@ -121,7 +125,7 @@ export default function OrcamentoTab({ secretariaSlug }: OrcamentoTabProps) {
         </AlertDescription>
       </Alert>
 
-      {orcamento && orcamento.length > 0 && (
+      {orcamento && orcamento.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle>Dados Orçamentários</CardTitle>
@@ -164,7 +168,16 @@ export default function OrcamentoTab({ secretariaSlug }: OrcamentoTabProps) {
             </Table>
           </CardContent>
         </Card>
-      )}
+      ) : selectedSchoolId && !loadingOrcamento ? (
+        <Card>
+          <CardContent className="py-12">
+            <p className="text-center text-muted-foreground">
+              Nenhum dado orçamentário disponível para esta escola. 
+              Clique em "Sincronizar Orçamento" para buscar os dados.
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>
