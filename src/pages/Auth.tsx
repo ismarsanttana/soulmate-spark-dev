@@ -14,10 +14,19 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Captura a URL de origem via query params ou state
+  // Captura a URL de origem via query params ou sessionStorage
   const searchParams = new URLSearchParams(location.search);
   const redirectParam = searchParams.get('redirect');
-  const from = redirectParam || (location.state as any)?.from?.pathname || null;
+  
+  // Salva o redirect no sessionStorage se existir
+  useEffect(() => {
+    if (redirectParam) {
+      sessionStorage.setItem('auth_redirect', redirectParam);
+      console.log('[AUTH] Salvando redirect no sessionStorage:', redirectParam);
+    }
+  }, [redirectParam]);
+  
+  const from = redirectParam || sessionStorage.getItem('auth_redirect') || (location.state as any)?.from?.pathname || null;
   
   console.log('[AUTH] Redirect param:', redirectParam);
   console.log('[AUTH] From:', from);
@@ -36,12 +45,17 @@ const Auth = () => {
         
         toast.success("Login realizado com sucesso!");
         
-        console.log('[AUTH] Checking redirect. From:', from);
+        // Recupera o redirect do sessionStorage
+        const savedRedirect = sessionStorage.getItem('auth_redirect');
+        console.log('[AUTH] Checking redirect. From:', from, 'Saved:', savedRedirect);
+        
+        // Limpa o sessionStorage
+        sessionStorage.removeItem('auth_redirect');
         
         // Se veio de uma página protegida, redireciona de volta
-        if (from && from !== "/auth") {
-          console.log('[AUTH] Redirecting to:', from);
-          navigate(from, { replace: true });
+        if (savedRedirect && savedRedirect !== "/auth") {
+          console.log('[AUTH] Redirecting to saved path:', savedRedirect);
+          navigate(savedRedirect, { replace: true });
           return;
         }
         
