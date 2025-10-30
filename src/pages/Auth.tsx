@@ -47,15 +47,18 @@ const Auth = () => {
         
         // Recupera o redirect do sessionStorage
         const savedRedirect = sessionStorage.getItem('auth_redirect');
-        console.log('[AUTH] Checking redirect. From:', from, 'Saved:', savedRedirect);
+        console.log('[AUTH] Checking redirect. Saved:', savedRedirect);
         
         // Limpa o sessionStorage
         sessionStorage.removeItem('auth_redirect');
         
-        // Se veio de uma página protegida, redireciona de volta
+        // PRIORIDADE 1: Se veio de uma página protegida específica, redireciona direto
         if (savedRedirect && savedRedirect !== "/auth") {
           console.log('[AUTH] Redirecting to saved path:', savedRedirect);
-          navigate(savedRedirect, { replace: true });
+          // Usar setTimeout para garantir que o estado de auth está pronto
+          setTimeout(() => {
+            navigate(savedRedirect, { replace: true });
+          }, 100);
           return;
         }
         

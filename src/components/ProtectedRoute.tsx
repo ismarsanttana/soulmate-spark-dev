@@ -29,7 +29,10 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
         const hasAccess = allowedRoles.some(role => roleData.roles.includes(role));
         
         if (!hasAccess) {
+          console.log('[PROTECTED ROUTE] No access, redirecting to /');
           navigate("/", { replace: true });
+        } else {
+          console.log('[PROTECTED ROUTE] Access granted, roles:', roleData.roles);
         }
       }
     };
