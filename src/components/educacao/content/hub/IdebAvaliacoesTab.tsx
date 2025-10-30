@@ -6,48 +6,52 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import SchoolSelector from "./SchoolSelector";
 
 interface IdebAvaliacoesTabProps {
   secretariaSlug: string;
 }
 
 export default function IdebAvaliacoesTab({ secretariaSlug }: IdebAvaliacoesTabProps) {
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   
-  const { data: idebMunicipal, isLoading: loadingIdeb } = useQuery({
-    queryKey: ["ideb-municipal"],
+  const { data: selectedSchool } = useQuery({
+    queryKey: ["school", selectedSchoolId],
+    enabled: !!selectedSchoolId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("schools")
+        .select("*")
+        .eq("id", selectedSchoolId!)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: idebData, isLoading: loadingIdeb } = useQuery({
+    queryKey: ["ideb-school", selectedSchool?.codigo_inep],
+    enabled: !!selectedSchool?.codigo_inep,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ideb_data")
         .select("*")
+        .eq("codigo_inep", selectedSchool!.codigo_inep)
         .order("ano", { ascending: true });
       
       if (error) throw error;
       
-      // Agrupar por ano
-      const byYear = data.reduce((acc: any, item) => {
-        if (!acc[item.ano]) acc[item.ano] = [];
-        acc[item.ano].push(item);
-        return acc;
-      }, {});
-      
-      // Calcular médias por ano
-      const chartData = Object.keys(byYear).map(ano => {
-        const items = byYear[ano];
-        const calcAvg = (field: string) => {
-          const values = items.filter((i: any) => i[field]).map((i: any) => parseFloat(i[field]));
-          return values.length > 0 ? (values.reduce((a: number, b: number) => a + b, 0) / values.length).toFixed(1) : null;
-        };
-        
-        return {
-          ano: parseInt(ano),
-          anos_iniciais: calcAvg('nota_anos_iniciais'),
-          anos_finais: calcAvg('nota_anos_finais'),
-          ensino_medio: calcAvg('nota_ensino_medio')
-        };
-      });
+      // Preparar dados para gráfico
+      const chartData = data.map(item => ({
+        ano: item.ano,
+        anos_iniciais: item.nota_anos_iniciais ? parseFloat(item.nota_anos_iniciais.toString()) : null,
+        anos_finais: item.nota_anos_finais ? parseFloat(item.nota_anos_finais.toString()) : null,
+        ensino_medio: item.nota_ensino_medio ? parseFloat(item.nota_ensino_medio.toString()) : null
+      }));
       
       return { raw: data, chartData };
     },
@@ -55,20 +59,27 @@ export default function IdebAvaliacoesTab({ secretariaSlug }: IdebAvaliacoesTabP
 
   const syncMutation = useMutation({
     mutationFn: async () => {
+      if (!selectedSchool?.codigo_inep) {
+        throw new Error("Selecione uma escola primeiro");
+      }
+
       const { data, error } = await supabase.functions.invoke('ideb-api', {
         body: { 
-          action: 'get-ideb-municipality',
-          municipio_ibge: '2600807', // Afogados da Ingazeira
-          ano: 2023
+          action: 'get-ideb-school',
+          codigo_inep: selectedSchool.codigo_inep
         }
       });
       
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      toast.success("Dados IDEB sincronizados com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["ideb-municipal"] });
+    onSuccess: (data) => {
+      if (data.warning) {
+        toast.info(data.warning);
+      } else {
+        toast.success("Dados IDEB sincronizados com sucesso!");
+      }
+      queryClient.invalidateQueries({ queryKey: ["ideb-school"] });
     },
     onError: (error: any) => {
       toast.error("Erro ao sincronizar: " + error.message);
@@ -77,27 +88,55 @@ export default function IdebAvaliacoesTab({ secretariaSlug }: IdebAvaliacoesTabP
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-2xl font-bold">IDEB & Avaliações</h3>
-          <p className="text-sm text-muted-foreground">
-            Indicadores de Desenvolvimento da Educação Básica
-          </p>
-        </div>
-        <Button 
-          onClick={() => syncMutation.mutate()}
-          disabled={syncMutation.isPending}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-          Sincronizar
-        </Button>
+      <div>
+        <h3 className="text-2xl font-bold">IDEB & Avaliações</h3>
+        <p className="text-sm text-muted-foreground">
+          Indicadores de Desenvolvimento da Educação Básica
+        </p>
       </div>
 
-      {!idebMunicipal || idebMunicipal.raw.length === 0 ? (
+      <Card>
+        <CardHeader>
+          <CardTitle>Selecionar Escola</CardTitle>
+          <CardDescription>
+            Escolha a escola para sincronizar dados do IDEB
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <SchoolSelector
+            value={selectedSchoolId}
+            onValueChange={setSelectedSchoolId}
+            label="Escola"
+          />
+          
+          {selectedSchool && (
+            <div className="flex items-center gap-4">
+              <div>
+                <p className="text-sm font-medium">Escola Selecionada:</p>
+                <p className="text-sm text-muted-foreground">{selectedSchool.nome_escola}</p>
+                <p className="text-xs text-muted-foreground font-mono">INEP: {selectedSchool.codigo_inep}</p>
+              </div>
+              <Button 
+                onClick={() => syncMutation.mutate()}
+                disabled={syncMutation.isPending || !selectedSchoolId}
+                className="ml-auto"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
+                Sincronizar IDEB
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {!idebData || idebData.raw.length === 0 ? (
         <Card>
           <CardContent className="py-12">
             <p className="text-center text-muted-foreground">
-              Nenhum dado IDEB disponível. Sincronize para carregar os dados.
+              {selectedSchoolId 
+                ? "Nenhum dado IDEB disponível para esta escola. Sincronize para carregar os dados."
+                : "Selecione uma escola para visualizar os dados do IDEB."
+              }
             </p>
           </CardContent>
         </Card>
@@ -105,14 +144,14 @@ export default function IdebAvaliacoesTab({ secretariaSlug }: IdebAvaliacoesTabP
         <>
           <Card>
             <CardHeader>
-              <CardTitle>Evolução IDEB Municipal</CardTitle>
+              <CardTitle>Evolução IDEB da Escola</CardTitle>
               <CardDescription>
-                Médias das escolas do município ao longo dos anos
+                Histórico de notas ao longo dos anos
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={350}>
-                <LineChart data={idebMunicipal.chartData}>
+                <LineChart data={idebData.chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="ano" />
                   <YAxis domain={[0, 10]} />
@@ -132,7 +171,7 @@ export default function IdebAvaliacoesTab({ secretariaSlug }: IdebAvaliacoesTabP
                     strokeWidth={2}
                     name="Anos Finais"
                   />
-                  {idebMunicipal.chartData.some((d: any) => d.ensino_medio) && (
+                  {idebData.chartData.some((d: any) => d.ensino_medio) && (
                     <Line 
                       type="monotone" 
                       dataKey="ensino_medio" 
@@ -148,16 +187,15 @@ export default function IdebAvaliacoesTab({ secretariaSlug }: IdebAvaliacoesTabP
 
           <Card>
             <CardHeader>
-              <CardTitle>Dados por Escola</CardTitle>
+              <CardTitle>Histórico Completo</CardTitle>
               <CardDescription>
-                IDEB 2023 por escola cadastrada
+                Todas as avaliações IDEB registradas
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Código INEP</TableHead>
                     <TableHead>Ano</TableHead>
                     <TableHead className="text-center">Anos Iniciais</TableHead>
                     <TableHead className="text-center">Anos Finais</TableHead>
@@ -165,23 +203,22 @@ export default function IdebAvaliacoesTab({ secretariaSlug }: IdebAvaliacoesTabP
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {idebMunicipal.raw.slice(0, 20).map((item: any) => (
+                  {idebData.raw.map((item: any) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-mono">{item.codigo_inep}</TableCell>
-                      <TableCell>{item.ano}</TableCell>
+                      <TableCell className="font-medium">{item.ano}</TableCell>
                       <TableCell className="text-center">
                         {item.nota_anos_iniciais ? (
-                          <Badge variant="outline">{item.nota_anos_iniciais}</Badge>
+                          <Badge variant="outline">{parseFloat(item.nota_anos_iniciais).toFixed(1)}</Badge>
                         ) : '-'}
                       </TableCell>
                       <TableCell className="text-center">
                         {item.nota_anos_finais ? (
-                          <Badge variant="outline">{item.nota_anos_finais}</Badge>
+                          <Badge variant="outline">{parseFloat(item.nota_anos_finais).toFixed(1)}</Badge>
                         ) : '-'}
                       </TableCell>
                       <TableCell className="text-center">
                         {item.nota_ensino_medio ? (
-                          <Badge variant="outline">{item.nota_ensino_medio}</Badge>
+                          <Badge variant="outline">{parseFloat(item.nota_ensino_medio).toFixed(1)}</Badge>
                         ) : '-'}
                       </TableCell>
                     </TableRow>
