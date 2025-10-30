@@ -156,7 +156,6 @@ const ProfessorContent = () => {
 
               <Button 
                 size="lg" 
-                variant="secondary"
                 className="h-auto py-4 flex-col gap-2 shadow-md hover:shadow-lg transition-shadow"
                 onClick={() => setActiveTab("notas")}
               >
@@ -169,8 +168,7 @@ const ProfessorContent = () => {
 
               <Button 
                 size="lg" 
-                variant="default"
-                className="h-auto py-4 flex-col gap-2 bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg transition-shadow"
+                className="h-auto py-4 flex-col gap-2 shadow-md hover:shadow-lg transition-shadow"
                 onClick={() => setActiveTab("presenca")}
               >
                 <CheckSquare className="h-6 w-6" />
@@ -182,7 +180,6 @@ const ProfessorContent = () => {
 
               <Button 
                 size="lg" 
-                variant="outline"
                 className="h-auto py-4 flex-col gap-2 shadow-md hover:shadow-lg transition-shadow"
                 onClick={() => setActiveTab("aulas")}
               >
