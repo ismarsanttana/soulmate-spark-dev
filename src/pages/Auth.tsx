@@ -58,11 +58,31 @@ const Auth = () => {
         console.log('[AUTH] Saved redirect:', savedRedirect);
         sessionStorage.removeItem('auth_redirect');
 
+        // Se é prefeito e tem redirect para painel de prefeito, redireciona direto
+        if (roles?.some(r => r.role === "prefeito") && 
+            savedRedirect && savedRedirect.includes('/prefeito')) {
+          console.log('[AUTH] Prefeito login - redirecting to:', savedRedirect);
+          await new Promise(resolve => setTimeout(resolve, 300));
+          navigate(savedRedirect, { replace: true });
+          return;
+        }
+
+        // Se é secretário e tem redirect para painel de secretário, redireciona direto
+        if (roles?.some(r => r.role === "secretario") && savedRedirect) {
+          if (savedRedirect.includes('/edu') || 
+              savedRedirect.includes('/ascom') || 
+              savedRedirect.includes('/secretario')) {
+            console.log('[AUTH] Secretário login - redirecting to:', savedRedirect);
+            await new Promise(resolve => setTimeout(resolve, 300));
+            navigate(savedRedirect, { replace: true });
+            return;
+          }
+        }
+
         // Se é professor e tem redirect para painel de professor, redireciona direto
         if (roles?.some(r => r.role === "professor") && 
             savedRedirect && savedRedirect.includes('/professor')) {
           console.log('[AUTH] Professor login - redirecting to:', savedRedirect);
-          // Aguarda para garantir que o estado está pronto
           await new Promise(resolve => setTimeout(resolve, 300));
           navigate(savedRedirect, { replace: true });
           return;
