@@ -18,7 +18,8 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        navigate("/auth", { state: { from: location } });
+        // Redireciona para auth passando a página atual como parâmetro
+        navigate(`/auth?redirect=${encodeURIComponent(location.pathname)}`, { replace: true });
         return;
       }
 

@@ -14,8 +14,10 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Captura a URL de origem para redirecionar após login
-  const from = (location.state as any)?.from?.pathname || null;
+  // Captura a URL de origem via query params ou state
+  const searchParams = new URLSearchParams(location.search);
+  const redirectParam = searchParams.get('redirect');
+  const from = redirectParam || (location.state as any)?.from?.pathname || null;
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
