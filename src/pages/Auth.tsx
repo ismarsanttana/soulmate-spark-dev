@@ -47,22 +47,25 @@ const Auth = () => {
         
         // Recupera o redirect do sessionStorage
         const savedRedirect = sessionStorage.getItem('auth_redirect');
-        console.log('[AUTH] Checking redirect. Saved:', savedRedirect);
+        console.log('[AUTH] Login successful. Saved redirect:', savedRedirect);
+        console.log('[AUTH] User ID:', data.user.id);
+        
+        // AGUARDA 500ms para garantir que o estado de auth está completamente pronto
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Limpa o sessionStorage
-        sessionStorage.removeItem('auth_redirect');
+        if (savedRedirect) {
+          sessionStorage.removeItem('auth_redirect');
+        }
         
         // PRIORIDADE 1: Se veio de uma página protegida específica, redireciona direto
         if (savedRedirect && savedRedirect !== "/auth") {
           console.log('[AUTH] Redirecting to saved path:', savedRedirect);
-          // Usar setTimeout para garantir que o estado de auth está pronto
-          setTimeout(() => {
-            navigate(savedRedirect, { replace: true });
-          }, 100);
+          navigate(savedRedirect, { replace: true });
           return;
         }
         
-        console.log('[AUTH] No redirect found, checking roles...');
+        console.log('[AUTH] No saved redirect, checking roles...');
         
         // Caso contrário, verifica roles e redireciona para o painel apropriado
         if (data.user) {

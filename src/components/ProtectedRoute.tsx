@@ -15,6 +15,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
 
   useEffect(() => {
     const checkAuth = async () => {
+      console.log('[PROTECTED ROUTE] Checking auth...');
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -25,14 +26,17 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
         return;
       }
 
+      console.log('[PROTECTED ROUTE] User found:', user.id, 'Loading:', isLoading);
+
       if (!isLoading && roleData) {
+        console.log('[PROTECTED ROUTE] Role data:', roleData.roles);
         const hasAccess = allowedRoles.some(role => roleData.roles.includes(role));
         
         if (!hasAccess) {
           console.log('[PROTECTED ROUTE] No access, redirecting to /');
           navigate("/", { replace: true });
         } else {
-          console.log('[PROTECTED ROUTE] Access granted, roles:', roleData.roles);
+          console.log('[PROTECTED ROUTE] Access granted!');
         }
       }
     };
