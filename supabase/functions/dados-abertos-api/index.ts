@@ -71,15 +71,32 @@ Deno.serve(async (req) => {
 
         const response = await fetch(url, {
           headers: {
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (compatible; EducacaoPortal/1.0)'
           }
         });
 
         if (!response.ok) {
-          throw new Error(`Dados.gov.br API error: ${response.status}`);
+          console.error(`Dados.gov.br API HTTP error: ${response.status}`);
+          throw new Error(`Dados.gov.br API retornou erro ${response.status}`);
         }
 
-        const data = await response.json();
+        // Check if response is actually JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('Dados.gov.br returned non-JSON response:', contentType);
+          const text = await response.text();
+          console.error('Response preview:', text.substring(0, 200));
+          throw new Error('Dados.gov.br API está temporariamente indisponível. Tente novamente mais tarde.');
+        }
+
+        let data;
+        try {
+          data = await response.json();
+        } catch (parseError) {
+          console.error('Failed to parse JSON:', parseError);
+          throw new Error('Erro ao processar resposta da API Dados Abertos');
+        }
 
         if (!data.success) {
           throw new Error('CKAN API returned error');
@@ -119,15 +136,29 @@ Deno.serve(async (req) => {
 
         const response = await fetch(url, {
           headers: {
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (compatible; EducacaoPortal/1.0)'
           }
         });
 
         if (!response.ok) {
-          throw new Error(`Dados.gov.br API error: ${response.status}`);
+          console.error(`Dados.gov.br API HTTP error: ${response.status}`);
+          throw new Error(`Dados.gov.br API retornou erro ${response.status}`);
         }
 
-        const data = await response.json();
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('Dados.gov.br returned non-JSON response:', contentType);
+          throw new Error('Dados.gov.br API está temporariamente indisponível');
+        }
+
+        let data;
+        try {
+          data = await response.json();
+        } catch (parseError) {
+          console.error('Failed to parse JSON:', parseError);
+          throw new Error('Erro ao processar resposta da API');
+        }
 
         if (!data.success) {
           throw new Error('CKAN API returned error');
@@ -165,7 +196,22 @@ Deno.serve(async (req) => {
 
         console.log('Fetching INEP Datasets');
 
-        const response = await fetch(url);
+        const response = await fetch(url, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (compatible; EducacaoPortal/1.0)'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Dados.gov.br API retornou erro ${response.status}`);
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Dados.gov.br API está temporariamente indisponível');
+        }
+
         const data = await response.json();
 
         responseData = {
