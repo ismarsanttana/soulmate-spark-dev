@@ -85,7 +85,7 @@ const Auth = () => {
 
             // Verifica outros roles
             if (roles.some(r => r.role === "professor")) {
-              navigate("/painel-professor", { replace: true });
+              navigate("/edu/professor", { replace: true });
               return;
             }
             if (roles.some(r => r.role === "aluno")) {
