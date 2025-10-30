@@ -80,8 +80,18 @@ Deno.serve(async (req) => {
           .select('codigo_inep')
           .eq('codigo_municipio', municipio_ibge);
 
-        if (!schools) {
-          throw new Error('Nenhuma escola encontrada para este município');
+        if (!schools || schools.length === 0) {
+          // Retornar estrutura vazia ao invés de erro
+          responseData = {
+            ano: ano || 2023,
+            total_escolas: 0,
+            media_anos_iniciais: null,
+            media_anos_finais: null,
+            media_ensino_medio: null,
+            escolas: [],
+            warning: 'Nenhuma escola cadastrada para este município. Importe escolas primeiro usando a aba Consulta INEP.'
+          };
+          break;
         }
 
         const inepCodes = schools.map(s => s.codigo_inep);
@@ -105,7 +115,10 @@ Deno.serve(async (req) => {
           media_anos_iniciais: calculateAverage('nota_anos_iniciais'),
           media_anos_finais: calculateAverage('nota_anos_finais'),
           media_ensino_medio: calculateAverage('nota_ensino_medio'),
-          escolas: idebData || []
+          escolas: idebData || [],
+          ...((!idebData || idebData.length === 0) && {
+            warning: 'Dados IDEB não encontrados. Importe os dados do INEP primeiro.'
+          })
         };
         break;
       }
