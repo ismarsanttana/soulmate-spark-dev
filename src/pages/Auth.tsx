@@ -18,6 +18,9 @@ const Auth = () => {
   const searchParams = new URLSearchParams(location.search);
   const redirectParam = searchParams.get('redirect');
   const from = redirectParam || (location.state as any)?.from?.pathname || null;
+  
+  console.log('[AUTH] Redirect param:', redirectParam);
+  console.log('[AUTH] From:', from);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,11 +36,16 @@ const Auth = () => {
         
         toast.success("Login realizado com sucesso!");
         
+        console.log('[AUTH] Checking redirect. From:', from);
+        
         // Se veio de uma página protegida, redireciona de volta
         if (from && from !== "/auth") {
+          console.log('[AUTH] Redirecting to:', from);
           navigate(from, { replace: true });
           return;
         }
+        
+        console.log('[AUTH] No redirect found, checking roles...');
         
         // Caso contrário, verifica roles e redireciona para o painel apropriado
         if (data.user) {
@@ -46,9 +54,12 @@ const Auth = () => {
             .select("role")
             .eq("user_id", data.user.id);
 
+          console.log('[AUTH] User roles:', roles?.map(r => r.role));
+          
           if (roles && roles.length > 0) {
             // Verifica se é admin
             if (roles.some(r => r.role === "admin")) {
+              console.log('[AUTH] Redirecting admin to /admin');
               navigate("/admin", { replace: true });
               return;
             }
@@ -87,6 +98,7 @@ const Auth = () => {
 
             // Verifica outros roles
             if (roles.some(r => r.role === "professor")) {
+              console.log('[AUTH] Redirecting professor to /edu/professor');
               navigate("/edu/professor", { replace: true });
               return;
             }

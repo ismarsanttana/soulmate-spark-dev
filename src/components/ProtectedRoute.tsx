@@ -19,7 +19,9 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
       
       if (!user) {
         // Redireciona para auth passando a página atual como parâmetro
-        navigate(`/auth?redirect=${encodeURIComponent(location.pathname)}`, { replace: true });
+        const redirectUrl = `/auth?redirect=${encodeURIComponent(location.pathname)}`;
+        console.log('[PROTECTED ROUTE] No user, redirecting to:', redirectUrl);
+        navigate(redirectUrl, { replace: true });
         return;
       }
 
