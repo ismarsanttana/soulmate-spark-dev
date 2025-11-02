@@ -557,7 +557,7 @@ const Profile = () => {
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
-                  alt={`Foto de ${formState.fullName || "Perfil do cidadao"}`}
+                  alt={`Foto de ${formState.fullName || "Perfil do cidadão"}`}
                   className="h-12 w-12 rounded-xl object-cover border border-white/40 bg-white/10"
                 />
               ) : (
