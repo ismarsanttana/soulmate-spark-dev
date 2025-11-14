@@ -59,13 +59,24 @@ func main() {
         }
 
         // 2. Conexão com banco de controle
+        // Forçar IPv4 via GODEBUG (workaround para Replit)
+        os.Setenv("GODEBUG", "netdns=go+1")
+        
         controlDB, err := sql.Open("postgres", cfg.ControlDBURL)
         if err != nil {
                 log.Fatalf("Erro ao abrir conexão com CONTROL_DB_URL: %v", err)
         }
+        
+        // Configurar limites de conexão
+        controlDB.SetMaxOpenConns(10)
+        controlDB.SetMaxIdleConns(5)
+        controlDB.SetConnMaxLifetime(time.Hour)
+        
         if err := controlDB.Ping(); err != nil {
                 log.Fatalf("Erro ao conectar no banco de controle: %v", err)
         }
+        
+        log.Println("✅ Conectado ao banco de controle com sucesso!")
 
         app := &App{
                 cfg:       cfg,

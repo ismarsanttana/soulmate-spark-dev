@@ -42,13 +42,13 @@ outputType = "webview"
 name = "backend-go"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd backend && go run main.go"
-waitForPort = 8080
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash backend/run.sh"
+waitForPort = 8080
 
 [[ports]]
 localPort = 5000
