@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "lib": ["deno.window"],
-    "types": ["https://deno.land/x/types/global.d.ts"]
+    "allowJs": true,
+    "lib": ["deno.window", "dom"],
+    "types": []
   },
   "importMap": "./import_map.json"
 }
