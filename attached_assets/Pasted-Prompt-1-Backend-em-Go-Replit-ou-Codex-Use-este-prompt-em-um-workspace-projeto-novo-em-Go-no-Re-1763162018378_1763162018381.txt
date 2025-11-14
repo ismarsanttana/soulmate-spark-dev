@@ -1,0 +1,436 @@
+Prompt 1 – Backend em Go (Replit ou Codex)
+
+Use este prompt em um workspace/projeto novo em Go no Replit ou no VS Code/Codex:
+
+Você é um assistente de programação. Quero que você crie um backend em Go para gerenciar temas das cidades (logo + cores) usando um banco Postgres do Supabase como "Control Plane".
+
+### Objetivo
+
+- Eu já tenho uma tabela `public.cities` criada no meu banco Supabase, com a seguinte estrutura (já executei o SQL, NÃO precisa recriar):
+
+  - id (uuid, primary key)
+  - name (text)
+  - slug (text, unique)
+  - logo_url (text)
+  - primary_color (text)
+  - secondary_color (text)
+  - accent_color (text)
+  - db_url (text)
+  - is_active (boolean)
+  - created_at, updated_at
+
+- Preciso de um backend em Go que:
+  1. Conecte nesse banco de controle usando a variável de ambiente `CONTROL_DB_URL`.
+  2. Exponha um endpoint HTTP:
+     - `GET /api/cities/{slug}/theme`
+     - Ele deve buscar a cidade pela coluna `slug` na tabela `public.cities`
+     - E retornar um JSON com: `name`, `slug`, `logoUrl`, `primaryColor`, `secondaryColor`, `accentColor`.
+  3. Tenha também um endpoint simples de health check:
+     - `GET /healthz` → retorna "ok".
+
+### Requisitos técnicos
+
+1. Use Go modules. Execute (você pode simular isso para mim):
+   - `go mod init urbanbyte-platform-backend`
+2. Adicione as dependências:
+   - Router HTTP: `github.com/go-chi/chi/v5`
+   - Driver Postgres: `github.com/lib/pq`
+3. Crie um arquivo `main.go` com o seguinte conteúdo EXATO (pode ajustar apenas o nome do módulo se precisar):
+
+```go
+package main
+
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
+	_ "github.com/lib/pq"
+)
+
+type Config struct {
+	ControlDBURL string
+	Port         string
+}
+
+type City struct {
+	ID             string
+	Name           string
+	Slug           string
+	LogoURL        string
+	PrimaryColor   string
+	SecondaryColor string
+	AccentColor    string
+	DBURL          string
+	IsActive       bool
+}
+
+// Resposta para o front (login, app do cidadão, painéis)
+type CityThemeResponse struct {
+	Name           string `json:"name"`
+	Slug           string `json:"slug"`
+	LogoURL        string `json:"logoUrl"`
+	PrimaryColor   string `json:"primaryColor"`
+	SecondaryColor string `json:"secondaryColor"`
+	AccentColor    string `json:"accentColor"`
+}
+
+type App struct {
+	cfg       Config
+	controlDB *sql.DB
+}
+
+func main() {
+	// 1. Config
+	cfg := Config{
+		ControlDBURL: getEnv("CONTROL_DB_URL", ""),
+		Port:         getEnv("PORT", "8080"),
+	}
+
+	if cfg.ControlDBURL == "" {
+		log.Fatal("Env CONTROL_DB_URL é obrigatório (string de conexão do Postgres/Supabase do painel da empresa)")
+	}
+
+	// 2. Conexão com banco de controle
+	controlDB, err := sql.Open("postgres", cfg.ControlDBURL)
+	if err != nil {
+		log.Fatalf("Erro ao abrir conexão com CONTROL_DB_URL: %v", err)
+	}
+	if err := controlDB.Ping(); err != nil {
+		log.Fatalf("Erro ao conectar no banco de controle: %v", err)
+	}
+
+	app := &App{
+		cfg:       cfg,
+		controlDB: controlDB,
+	}
+
+	// 3. Router HTTP
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
+
+	// Endpoint para buscar tema da cidade (logo + cores)
+	r.Get("/api/cities/{slug}/theme", app.handleGetCityTheme)
+
+	addr := ":" + cfg.Port
+	log.Printf("Servidor rodando em %s", addr)
+	if err := http.ListenAndServe(addr, r); err != nil {
+		log.Fatalf("Erro ao subir servidor: %v", err)
+	}
+}
+
+// Handler: GET /api/cities/{slug}/theme
+func (a *App) handleGetCityTheme(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
+	if slug == "" {
+		http.Error(w, "slug é obrigatório", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	city, err := a.getCityBySlug(ctx, slug)
+	if err == sql.ErrNoRows {
+		http.Error(w, "cidade não encontrada", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		log.Printf("Erro ao buscar cidade por slug=%s: %v", slug, err)
+		http.Error(w, "erro interno", http.StatusInternalServerError)
+		return
+	}
+
+	if !city.IsActive {
+		http.Error(w, "cidade desativada", http.StatusForbidden)
+		return
+	}
+
+	resp := CityThemeResponse{
+		Name:           city.Name,
+		Slug:           city.Slug,
+		LogoURL:        city.LogoURL,
+		PrimaryColor:   city.PrimaryColor,
+		SecondaryColor: city.SecondaryColor,
+		AccentColor:    city.AccentColor,
+	}
+
+	writeJSON(w, http.StatusOK, resp)
+}
+
+// Busca cidade no banco de controle
+func (a *App) getCityBySlug(ctx context.Context, slug string) (*City, error) {
+	const q = `
+		select
+			id,
+			name,
+			slug,
+			coalesce(logo_url, '') as logo_url,
+			coalesce(primary_color, '') as primary_color,
+			coalesce(secondary_color, '') as secondary_color,
+			coalesce(accent_color, '') as accent_color,
+			coalesce(db_url, '') as db_url,
+			is_active
+		from public.cities
+		where slug = $1
+		limit 1;
+	`
+
+	var c City
+	err := a.controlDB.QueryRowContext(ctx, q, slug).Scan(
+		&c.ID,
+		&c.Name,
+		&c.Slug,
+		&c.LogoURL,
+		&c.PrimaryColor,
+		&c.SecondaryColor,
+		&c.AccentColor,
+		&c.DBURL,
+		&c.IsActive,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &c, nil
+}
+
+func writeJSON(w http.ResponseWriter, status int, v any) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		log.Printf("Erro ao serializar JSON: %v", err)
+	}
+}
+
+func getEnv(key, fallback string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return fallback
+}
+
+Como vou configurar depois (não precisa você executar, só deixar claro):
+
+
+Variáveis de ambiente:
+
+
+CONTROL_DB_URL → string de conexão do Postgres/Supabase onde está a tabela public.cities
+
+
+PORT → porta do servidor (ex: 8080)
+
+
+
+
+Quero que você:
+
+
+Crie o go.mod
+
+
+Baixe as dependências necessárias
+
+
+Crie o arquivo main.go com esse conteúdo
+
+
+Me deixe pronto para rodar go run main.go e acessar:
+
+
+GET /healthz
+
+
+GET /api/cities/afogados-da-ingazeira/theme
+
+
+
+
+
+---
+
+## ✅ Prompt 2 – Tela de login buscando logo/cores (React/Vite + TS)
+
+> Use este prompt no Codex/VS Code ou no Replit no projeto do front (`soulmate-spark-dev`), na pasta do React/Vite:
+
+```text
+Você é um assistente de programação trabalhando em um projeto React + TypeScript com Vite. Eu já tenho um backend em Go que expõe o endpoint:
+
+- `GET {API_BASE_URL}/api/cities/{slug}/theme`
+
+Esse endpoint retorna um JSON no formato:
+
+```json
+{
+  "name": "Afogados da Ingazeira",
+  "slug": "afogados-da-ingazeira",
+  "logoUrl": "https://url-da-logo.png",
+  "primaryColor": "#004AAD",
+  "secondaryColor": "#F5C842",
+  "accentColor": "#FFFFFF"
+}
+
+Quero que você crie ou atualize a página de login Auth.tsx (ou src/pages/Auth.tsx) para:
+
+
+Descobrir o slug da cidade (por enquanto pode ser fixo em "afogados-da-ingazeira").
+
+
+Buscar o tema da cidade nesse endpoint.
+
+
+Aplicar a logo e as cores na tela de login.
+
+
+Use o Vite env VITE_API_BASE_URL para base da API. Se não existir, usar http://localhost:8080 como fallback.
+Crie o arquivo src/pages/Auth.tsx com o seguinte conteúdo:
+import { useEffect, useState } from "react";
+
+type CityTheme = {
+  name: string;
+  slug: string;
+  logoUrl: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+};
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
+// Futuramente, podemos extrair o slug do subdomínio.
+// Por enquanto, vamos deixar fixo para Afogados da Ingazeira.
+function getCitySlug() {
+  return "afogados-da-ingazeira";
+}
+
+export function AuthPage() {
+  const [theme, setTheme] = useState<CityTheme | null>(null);
+  const [loadingTheme, setLoadingTheme] = useState(true);
+
+  useEffect(() => {
+    async function loadTheme() {
+      try {
+        const slug = getCitySlug();
+        const res = await fetch(`${API_BASE_URL}/api/cities/${slug}/theme`);
+        if (!res.ok) {
+          console.error("Erro ao carregar tema da cidade");
+          setLoadingTheme(false);
+          return;
+        }
+        const data = await res.json();
+        setTheme({
+          name: data.name,
+          slug: data.slug,
+          logoUrl: data.logoUrl,
+          primaryColor: data.primaryColor,
+          secondaryColor: data.secondaryColor,
+          accentColor: data.accentColor,
+        });
+      } catch (err) {
+        console.error("Erro ao buscar tema da cidade", err);
+      } finally {
+        setLoadingTheme(false);
+      }
+    }
+
+    loadTheme();
+  }, []);
+
+  if (loadingTheme) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Carregando...
+      </div>
+    );
+  }
+
+  const primary = theme?.primaryColor || "#004AAD";
+  const secondary = theme?.secondaryColor || "#F5C842";
+  const accent = theme?.accentColor || "#FFFFFF";
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{
+        background: `linear-gradient(135deg, ${primary}, ${secondary})`,
+      }}
+    >
+      <div
+        className="w-full max-w-md rounded-xl shadow-lg p-8 bg-white/95"
+        style={{ borderTop: `4px solid ${accent}` }}
+      >
+        <div className="flex flex-col items-center mb-6">
+          {theme?.logoUrl && (
+            <img
+              src={theme.logoUrl}
+              alt={theme.name}
+              className="h-16 mb-3 object-contain"
+            />
+          )}
+          <h1 className="text-xl font-semibold text-gray-800 text-center">
+            {theme?.name || "Portal da Cidade"}
+          </h1>
+          <p className="text-sm text-gray-500">
+            Acesse o painel da sua cidade
+          </p>
+        </div>
+
+        {/* Formulário de login (pode adaptar ao seu layout atual) */}
+        <form className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              E-mail
+            </label>
+            <input
+              type="email"
+              className="mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="seuemail@prefeitura.gov.br"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Senha
+            </label>
+            <input
+              type="password"
+              className="mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="mt-2 w-full rounded-md py-2 text-sm font-semibold text-white"
+            style={{ backgroundColor: primary }}
+          >
+            Entrar
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default AuthPage;
+
+Garanta também que esta página esteja registrada no sistema de rotas (se estiver usando React Router ou outro). Se já existir uma página de login, substitua o conteúdo dela por este novo componente.
+
+---
+
+Se quiser, depois que isso estiver funcionando (logo e cores mudando de acordo com a cidade), a gente dá o próximo passo: criar no backend em Go a conexão dinâmica com o **Neon** de cada cidade usando o `db_url` da tabela `cities`.

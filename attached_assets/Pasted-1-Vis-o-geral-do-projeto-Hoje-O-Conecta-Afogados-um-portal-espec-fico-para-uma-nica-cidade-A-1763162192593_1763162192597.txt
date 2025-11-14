@@ -1,0 +1,178 @@
+1. Visão geral do projeto
+
+Hoje:
+
+O Conecta Afogados é um portal específico para uma única cidade (Afogados da Ingazeira).
+
+Frontend em React + Vite.
+
+Conectado diretamente ao Supabase (Postgres + Auth).
+
+Cores e logo estão “fixos” no código do frontend.
+
+Mas a minha visão não é ficar só em Afogados.
+Eu quero transformar esse projeto em uma plataforma multi-tenant, onde:
+
+várias cidades usam a mesma base de código (frontend e backend),
+
+cada cidade tem:
+
+sua própria logo,
+
+seu tema de cores,
+
+suas configurações,
+
+e, no futuro, um banco de dados separado.
+
+Ou seja: o Conecta Afogados deve virar algo como um “Conecta Cidades / UrbanByte App”, e Afogados da Ingazeira é apenas o primeiro cliente (primeira cidade).
+
+2. Respondendo às tuas perguntas diretamente
+2.1. “Você quer transformar o Conecta Afogados em uma plataforma multi-tenant?”
+
+✅ Sim. Essa é exatamente a ideia.
+
+O Conecta Afogados é hoje o MVP da primeira cidade.
+
+A visão é que outras prefeituras possam usar a mesma plataforma:
+
+com sua marca,
+
+seus módulos habilitados (Educação, Saúde, Obras, etc.),
+
+seus dados totalmente separados das demais.
+
+Então, sim: multi-tenant, mas com uma pegada forte de white-label para prefeituras.
+
+2.2. “Você quer criar um novo projeto separado com backend Go, ou integrar dentro do projeto React atual?”
+
+👉 Quero criar um backend em Go separado, como um serviço da plataforma.
+
+Mais claro:
+
+O projeto React atual continua existindo como frontend da cidade (Conecta Afogados é o primeiro tenant).
+
+O backend em Go será um novo serviço, que vai funcionar como:
+
+“Control Plane” da plataforma → gerenciamento de cidades, temas, módulos, etc.
+
+API multi-tenant → o frontend não fala mais direto com o banco pra algumas coisas (como tema), e sim com essa API.
+
+Então, o fluxo ideal é:
+
+Frontend React (Conecta Afogados e futuramente outras cidades)
+⟶ chama API em Go para:
+
+saber o tema da cidade (logo + cores),
+
+mais tarde: buscar dados que venham do banco da cidade (Neon).
+
+API Go (novo projeto)
+⟶ fala com:
+
+um banco de controle (Supabase/Postgres) com a tabela cities,
+
+e, no futuro, com os bancos individuais de cada cidade (Neon).
+
+A ideia não é “enfiar Go dentro do projeto React”, e sim ter:
+
+um frontend (React/Vite),
+
+um backend separado em Go, consumido via HTTP.
+
+2.3. “O objetivo é permitir white-label (logo/cores) ou também bancos separados por cidade?”
+
+✅ Os dois. Mas em fases.
+
+Fase 1 – White-label + Control Plane simples (o que eu quero fazer agora)
+
+Criar um backend em Go que:
+
+usa uma tabela cities no Supabase com:
+
+name, slug, logo_url, primary_color, secondary_color, accent_color, db_url, is_active etc.
+
+expõe um endpoint:
+GET /api/cities/{slug}/theme
+
+esse endpoint retorna:
+
+name, slug, logoUrl, primaryColor, SecondaryColor, accentColor.
+
+O frontend React:
+
+em vez de ter a logo/cores fixas no código,
+
+chama essa API passando o slug da cidade (por enquanto afogados-da-ingazeira),
+
+e monta a tela de login e o app com as cores e logo que vierem do backend.
+
+➡️ Isso já me permite:
+
+ter Afogados hoje,
+
+amanhã cadastrar “Cidade B” na tabela cities,
+
+mudar logo/cores sem mexer no código do frontend,
+
+preparar o terreno pra ser realmente multi-tenant.
+
+Fase 2 – Bancos de dados separados por cidade (Neon)
+
+Cada cidade terá seu próprio banco no Neon:
+
+urbanbyte_afogados,
+
+urbanbyte_outra_cidade, etc.
+
+A mesma tabela cities no Supabase vai guardar o db_url de cada cidade.
+
+O backend em Go:
+
+usa o slug da cidade pra buscar os dados da cidade (no Supabase),
+
+lê o db_url,
+
+e abre uma conexão com o banco Neon daquela cidade para ler/gravar dados.
+
+Essa parte é mais sensível (migração, conexões, etc.), então quero fazer depois, com calma, quando o esqueleto do backend estiver pronto.
+
+3. O que eu preciso que você faça AGORA
+
+Neste primeiro momento, eu quero apenas esse passo inicial funcionando:
+
+Backend em Go:
+
+Usando a env CONTROL_DB_URL pra conectar no banco Supabase (onde já criei a tabela public.cities).
+
+Com um endpoint:
+
+GET /api/cities/{slug}/theme
+
+que faz SELECT em public.cities e retorna name, slug, logoUrl, primaryColor, secondaryColor, accentColor.
+
+Com um endpoint simples de health:
+
+GET /healthz → "ok".
+
+Frontend React:
+
+Na página de login (Auth), eu quero:
+
+pegar um slug fixo por enquanto (afogados-da-ingazeira),
+
+chamar a API GET /api/cities/afogados-da-ingazeira/theme,
+
+aplicar logoUrl e as cores retornadas no layout da tela de login.
+
+Mais pra frente, com isso estável, eu parto pra:
+
+extrair o slug do subdomínio dinamicamente,
+
+implementar a parte de Neon (bancos separados por cidade),
+
+migrar gradualmente as funcionalidades que hoje falam direto com o Supabase.
+
+4. Resumindo em uma frase
+
+Sim, eu quero transformar o Conecta Afogados numa plataforma multi-tenant, com um backend em Go separado, começando por um Control Plane simples (tabela cities no Supabase + endpoint de tema), e depois evoluindo para bancos separados por cidade no Neon.
