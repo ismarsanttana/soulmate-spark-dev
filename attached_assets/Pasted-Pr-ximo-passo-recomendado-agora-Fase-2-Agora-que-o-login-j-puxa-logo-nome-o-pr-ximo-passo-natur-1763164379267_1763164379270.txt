@@ -1,0 +1,73 @@
+Próximo passo recomendado agora (Fase 2)
+
+Agora que o login já puxa logo/nome, o próximo passo natural é:
+
+Aplicar as cores da cidade no app inteiro, não só na tela de login.
+
+Ou seja:
+
+Criar um ThemeProvider global ou CSS variables no :root com:
+
+--primary-color
+
+--secondary-color
+
+--accent-color
+
+Fazer o useCityTheme() ser usado num nível mais alto (ex: em App.tsx ou no layout principal), e:
+
+assim que carregar o tema da cidade,
+
+setar essas variáveis no document.documentElement,
+
+o resto do app só usa essas variáveis no CSS.
+
+Por que isso é importante?
+
+🔁 Você não precisa ficar passando theme de componente em componente.
+
+🎨 Qualquer página (Secretário, Prefeito, Cidadão) automaticamente respeita o tema da cidade.
+
+🌎 Quando outra cidade entrar (Zabelê, Soledade…), tudo muda de cor automaticamente, sem mexer no código.
+
+4. Prompt pronto para você mandar pro Replit (Fase 2)
+
+Se quiser que o Replit continue tocando a implementação, manda algo assim pra ele:
+
+Fase 2 – Quero aplicar as cores da cidade no app inteiro, não só na tela de login.
+
+Contexto:
+- Você já implementou:
+  - a rota /api/cities/:slug/theme
+  - o hook useCityTheme() com React Query
+  - a tela Auth.tsx mostrando logo e nome da cidade
+- Agora eu quero que o tema (primaryColor, secondaryColor, accentColor) seja aplicado globalmente no app, de forma que qualquer página use automaticamente as cores da cidade.
+
+Objetivo:
+1. Criar um mecanismo de Theme Global:
+   - Pode ser um ThemeProvider em React OU
+   - Configuração de CSS variables no :root (document.documentElement.style.setProperty).
+2. Esse Theme Global deve:
+   - Usar o hook useCityTheme() para obter o tema da cidade atual.
+   - Enquanto estiver carregando, pode mostrar um skeleton ou manter um estado de loading global.
+   - Após carregar, definir variáveis CSS, por exemplo:
+     --primary-color
+     --secondary-color
+     --accent-color
+3. Atualizar os componentes principais (layout, header, botões principais, etc.) para utilizar essas CSS variables em vez de cores fixas no código.
+   - Ex: background de botões, bordas, highlights, badges, etc.
+
+Regras:
+- Não vazar nenhuma credencial ou string de conexão para o frontend.
+- Não quebrar o design atual, apenas trocar as cores hardcoded para as variáveis globais.
+- Manter compatibilidade com o login dinâmico que você já implementou.
+
+No fim, quero:
+- Um ponto central do app (ex: App.tsx ou um Layout raiz) onde o tema da cidade é carregado
+- Variáveis CSS globais aplicadas
+- Exemplos de uso dessas variáveis em pelo menos:
+  - botões principais
+  - header/topbar
+  - links ou destaques
+
+Se achar necessário, atualize também a documentação .local/state/replit/agent/multi-tenant-architecture.md explicando como o tema global funciona.
