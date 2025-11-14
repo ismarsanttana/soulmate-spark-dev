@@ -1,10 +1,14 @@
-# Conecta Afogados - Portal do Cidadão
+# Conecta - Multi-Tenant Portal do Cidadão
 
 ## Overview
 
-Conecta Afogados is a comprehensive citizen portal for the municipality of Afogados da Ingazeira, Pernambuco, Brazil. It provides digital access to government services across multiple departments (secretarias), including health, education, social assistance, culture, public works, and more. The platform supports multiple user roles with a sophisticated multi-role architecture that allows users to hold multiple roles simultaneously (e.g., a user can be both a parent and a teacher).
+**Conecta** is a white-label multi-tenant citizen portal platform for Brazilian municipalities. Initially developed for Afogados da Ingazeira, Pernambuco, it is being transformed into a scalable platform that can serve multiple cities with customized branding (logos, colors, content).
+
+The application provides digital access to government services across multiple departments (secretarias), including health, education, social assistance, culture, public works, and more. The platform supports multiple user roles with a sophisticated multi-role architecture that allows users to hold multiple roles simultaneously (e.g., a user can be both a parent and a teacher).
 
 The application is built as a Progressive Web App (PWA) with mobile-first design, real-time notifications, and extensive administrative capabilities for managing content, users, and services.
+
+**Current Status**: Phase 1 complete - Dynamic logo and city name based on city slug.
 
 ## User Preferences
 
@@ -144,3 +148,57 @@ The system implements a sophisticated multi-role system where:
 - Git-based version control
 - Environment variables for sensitive configuration
 - Development and production build modes
+
+## Multi-Tenant Architecture (White Label Platform)
+
+### Phase 1: Dynamic Theming (COMPLETED ✅)
+
+**Implementation**:
+- **Control Database**: `cities` table in Supabase stores city configuration (name, slug, logo_url, colors)
+- **Theme API**: `/api/cities/:slug/theme` endpoint via Vite plugin (vite-api-plugin.ts)
+- **Frontend Hook**: `useCityTheme()` hook with React Query for caching
+- **UI Integration**: Dynamic logo and city name in Auth.tsx
+
+**Files**:
+- `vite-api-plugin.ts` - Vite middleware serving theme API
+- `src/hooks/useCityTheme.ts` - React hook for fetching city themes
+- `src/pages/Auth.tsx` - Updated with dynamic branding
+- `supabase/migrations/20251114231854_create_cities_table.sql` - Cities table migration
+
+**Current Tenant**: Afogados da Ingazeira (slug: `afogados-da-ingazeira`)
+
+**Testing**:
+```bash
+curl http://localhost:5000/api/cities/afogados-da-ingazeira/theme
+# Returns: {"name":"Afogados da Ingazeira","slug":"afogados-da-ingazeira","logo_url":"...","primary_color":"#004AAD","secondary_color":"#F5C842","accent_color":"#FFFFFF"}
+```
+
+### Future Phases
+
+**Phase 2: Dynamic Color System**
+- CSS variables injection based on city theme
+- ThemeProvider component
+- Dynamic PWA manifest colors
+- Button/accent color theming
+
+**Phase 3: Multi-Database (Neon)**
+- Separate PostgreSQL database per city
+- Central control plane for routing
+- Tenant isolation and data privacy
+- Database migration tools
+
+**Phase 4: Custom Domains**
+- Domain → city slug mapping
+- Automatic city detection from hostname
+- SSL certificate management per domain
+
+### Technical Notes
+
+**Backend Go (Non-Functional)**:
+- A Go backend (`backend/main.go`) was developed but cannot run on Replit due to IPv6 connectivity issues with lib/pq driver
+- Workaround: Vite plugin serves the theme API using Node.js (works perfectly)
+- Future: Consider deploying Go backend externally (Fly.io, Railway) or migrate to pgx driver
+
+**Architecture Documentation**:
+- Full details in `.local/state/replit/agent/multi-tenant-architecture.md`
+- Includes schema, API specs, security notes, and migration roadmap
