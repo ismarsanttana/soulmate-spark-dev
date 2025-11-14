@@ -8,7 +8,7 @@ The application provides digital access to government services across multiple d
 
 The application is built as a Progressive Web App (PWA) with mobile-first design, real-time notifications, and extensive administrative capabilities for managing content, users, and services.
 
-**Current Status**: Phase 1 complete - Dynamic logo and city name based on city slug.
+**Current Status**: Phase 1 & 2 complete - Dynamic logo, city name, and global color theming based on city slug.
 
 ## User Preferences
 
@@ -173,13 +173,41 @@ curl http://localhost:5000/api/cities/afogados-da-ingazeira/theme
 # Returns: {"name":"Afogados da Ingazeira","slug":"afogados-da-ingazeira","logo_url":"...","primary_color":"#004AAD","secondary_color":"#F5C842","accent_color":"#FFFFFF"}
 ```
 
+**Phase 2: Dynamic Color System (COMPLETED ✅)**
+
+**Implementation**:
+- **ThemeProvider**: `src/components/ThemeProvider.tsx` - Component that loads city theme and injects CSS variables globally
+- **Color Conversion**: `src/lib/colorUtils.ts` - Converts HEX colors (#004AAD) to HSL format (214 100% 34%)
+- **Global Variables**: `--primary`, `--secondary`, `--accent` CSS variables are dynamically set
+- **Automatic Styling**: All Tailwind classes (bg-primary, text-secondary, etc.) automatically use city colors
+
+**How It Works**:
+1. App.tsx wraps application with `<ThemeProvider>`
+2. ThemeProvider calls `useCityTheme()` to fetch city theme
+3. Colors are converted from HEX to HSL (Tailwind format)
+4. CSS variables are injected via `document.documentElement.style.setProperty()`
+5. Entire app respects city colors without prop drilling
+
+**Files**:
+- `src/components/ThemeProvider.tsx` - Global theme provider
+- `src/lib/colorUtils.ts` - HEX to HSL conversion
+- `src/App.tsx` - ThemeProvider integration
+
+**Testing**:
+```javascript
+// Console output shows:
+[ThemeProvider] Applied theme for Afogados da Ingazeira {
+  primary: #004AAD → 214 100% 34%,
+  secondary: #F5C842 → 45 90% 61%,
+  accent: #FFFFFF → 0 0% 100%
+}
+```
+
 ### Future Phases
 
-**Phase 2: Dynamic Color System**
-- CSS variables injection based on city theme
-- ThemeProvider component
-- Dynamic PWA manifest colors
-- Button/accent color theming
+**Phase 2.1: PWA Manifest Colors (TODO)**
+- Dynamic PWA manifest theme_color
+- Dynamic icons based on city colors
 
 **Phase 3: Multi-Database (Neon)**
 - Separate PostgreSQL database per city

@@ -46,14 +46,17 @@ export function apiPlugin(): Plugin {
               .single();
 
             if (error) {
+              console.error(`[API] Error fetching city '${citySlug}':`, error);
               if (error.code === 'PGRST116') {
                 res.statusCode = 404;
                 res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify({ error: 'City not found' }));
+                res.end(JSON.stringify({ error: 'City not found', slug: citySlug }));
                 return;
               }
               throw error;
             }
+            
+            console.log(`[API] Successfully fetched city '${citySlug}':`, data);
 
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
