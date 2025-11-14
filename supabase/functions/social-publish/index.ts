@@ -20,7 +20,7 @@ serve(async (req) => {
     const { postIds } = await req.json();
     console.log(`Publishing ${postIds.length} posts`);
 
-    const results = [];
+    const results: Array<{ postId: string; success?: boolean; postUrl?: string; error?: string }> = [];
 
     for (const postId of postIds) {
       try {
