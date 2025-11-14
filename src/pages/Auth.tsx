@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useCityTheme } from "@/hooks/useCityTheme";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,6 +14,8 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  
+  const { data: cityTheme } = useCityTheme();
   
   // Captura a URL de origem via query params ou sessionStorage
   const searchParams = new URLSearchParams(location.search);
@@ -183,12 +186,17 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="bg-card rounded-2xl p-6 shadow-lg">
           <div className="text-center mb-6">
-            <img
-              src="https://afogadosdaingazeira.pe.gov.br/img/logo_afogados.png"
-              alt="Prefeitura de Afogados da Ingazeira"
-              className="h-16 w-auto mx-auto mb-4 bg-white p-2 rounded-lg"
-            />
-            <h1 className="text-2xl font-bold">Conecta Afogados</h1>
+            {cityTheme?.logo_url && (
+              <img
+                src={cityTheme.logo_url}
+                alt={`Prefeitura de ${cityTheme.name}`}
+                className="h-16 w-auto mx-auto mb-4 bg-white p-2 rounded-lg"
+                data-testid="img-city-logo"
+              />
+            )}
+            <h1 className="text-2xl font-bold" data-testid="text-city-name">
+              Conecta {cityTheme?.name || "Afogados"}
+            </h1>
             <p className="text-sm text-muted-foreground mt-1">
               {isLogin ? "Entre na sua conta" : "Crie sua conta"}
             </p>
