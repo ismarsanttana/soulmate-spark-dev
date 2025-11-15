@@ -7,13 +7,6 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('Missing Supabase environment variables');
-}
-
 // Memoized client instances
 let citizenClient: SupabaseClient | null = null;
 let masterClient: SupabaseClient | null = null;
@@ -21,11 +14,30 @@ let collaboratorClient: SupabaseClient | null = null;
 let partnerClient: SupabaseClient | null = null;
 
 /**
+ * Validate Supabase environment variables
+ * Only throws when client is actually needed
+ */
+function validateSupabaseEnv(): void {
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error(
+      'Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.'
+    );
+  }
+}
+
+/**
  * Get or create Citizen portal client (default)
  * Storage key: sb-{project}-auth-token
  */
 export function getCitizenClient(): SupabaseClient {
   if (!citizenClient) {
+    validateSupabaseEnv();
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL!;
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+    
     console.log('[Supabase] Initializing CITIZEN client');
     citizenClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
@@ -44,6 +56,10 @@ export function getCitizenClient(): SupabaseClient {
  */
 export function getMasterClient(): SupabaseClient {
   if (!masterClient) {
+    validateSupabaseEnv();
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL!;
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+    
     console.log('[Supabase] Initializing MASTER client');
     masterClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
@@ -63,6 +79,10 @@ export function getMasterClient(): SupabaseClient {
  */
 export function getCollaboratorClient(): SupabaseClient {
   if (!collaboratorClient) {
+    validateSupabaseEnv();
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL!;
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+    
     console.log('[Supabase] Initializing COLLABORATOR client');
     collaboratorClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
@@ -82,6 +102,10 @@ export function getCollaboratorClient(): SupabaseClient {
  */
 export function getPartnerClient(): SupabaseClient {
   if (!partnerClient) {
+    validateSupabaseEnv();
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL!;
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+    
     console.log('[Supabase] Initializing PARTNER client');
     partnerClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
