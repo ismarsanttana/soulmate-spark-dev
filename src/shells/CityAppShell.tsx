@@ -7,7 +7,7 @@
  * Access: All users within the city's domain
  */
 
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -193,19 +193,10 @@ const CityNotFound = ({ subdomain }: { subdomain: string }) => (
 );
 
 /**
- * CityAppShell Component
- * 
- * Main app shell for city-specific subdomains.
- * Fetches city data, applies theme, and renders all Conecta routes.
- * 
- * @param subdomain - City subdomain (e.g., "afogados-da-ingazeira")
- * 
- * @example
- * ```tsx
- * <CityAppShell subdomain="afogados-da-ingazeira" />
- * ```
+ * Inner component that uses hooks requiring QueryClient
+ * This must be wrapped by QueryClientProvider
  */
-export function CityAppShell({ subdomain }: { subdomain: string }) {
+function CityAppContent({ subdomain }: { subdomain: string }) {
   // Fetch city data by subdomain
   const { data: city, isLoading, error } = useCityBySubdomain(subdomain);
 
@@ -221,18 +212,36 @@ export function CityAppShell({ subdomain }: { subdomain: string }) {
 
   // Success - render app with city theme and routes
   return (
+    <ThemeProvider citySlug={city.slug}>
+      <TooltipProvider>
+        <DomainGuard>
+          <AnimatedRoutes />
+        </DomainGuard>
+        <Toaster />
+        <Sonner />
+      </TooltipProvider>
+    </ThemeProvider>
+  );
+}
+
+/**
+ * CityAppShell Component
+ * 
+ * Main app shell for city-specific subdomains.
+ * Fetches city data, applies theme, and renders all Conecta routes.
+ * 
+ * @param subdomain - City subdomain (e.g., "afogados-da-ingazeira")
+ * 
+ * @example
+ * ```tsx
+ * <CityAppShell subdomain="afogados-da-ingazeira" />
+ * ```
+ */
+export function CityAppShell({ subdomain }: { subdomain: string }) {
+  // Note: BrowserRouter is provided by main.tsx (single router for entire app)
+  return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider citySlug={city.slug}>
-        <TooltipProvider>
-          <DomainGuard>
-            <BrowserRouter>
-              <AnimatedRoutes />
-            </BrowserRouter>
-          </DomainGuard>
-          <Toaster />
-          <Sonner />
-        </TooltipProvider>
-      </ThemeProvider>
+      <CityAppContent subdomain={subdomain} />
     </QueryClientProvider>
   );
 }

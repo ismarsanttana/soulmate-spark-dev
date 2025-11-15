@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import { Bootstrap } from "./core/Bootstrap";
 import "./index.css";
 import { ThemeProvider } from "./components/theme-provider";
@@ -6,6 +7,7 @@ import { ThemeProvider } from "./components/theme-provider";
 /**
  * Main Entry Point
  * 
+ * Single BrowserRouter for entire application.
  * Bootstrap component detects domain context and renders appropriate AppShell:
  * - urbanbyte.com.br → RootShell (marketing site)
  * - dash.urbanbyte.com.br → MasterAppShell (UrbanByte Control Center)
@@ -18,7 +20,9 @@ import { ThemeProvider } from "./components/theme-provider";
  * - ?mode=city&subdomain=afogados → City portal
  */
 createRoot(document.getElementById("root")!).render(
-  <ThemeProvider>
-    <Bootstrap />
-  </ThemeProvider>,
+  <BrowserRouter>
+    <ThemeProvider>
+      <Bootstrap />
+    </ThemeProvider>
+  </BrowserRouter>,
 );

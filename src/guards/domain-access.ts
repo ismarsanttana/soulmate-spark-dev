@@ -5,7 +5,8 @@
  * Prevents unauthorized access to platform domains (dash, colaborador, parceiro).
  */
 
-import { DomainType, PlatformRole, type DomainContext, type DomainAccessResult } from '@/core/domain-types';
+import { DomainType, type DomainContext, type DomainAccessResult } from '@/core/domain-types';
+import type { PlatformRole } from '@/hooks/usePlatformUser';
 
 /**
  * Check if a user can access a specific domain
@@ -34,7 +35,7 @@ export function canAccessDomain(
   if (domainType === DomainType.CITY) {
     // Platform users (MASTER, TEAM, PARTNER) should not access city domains
     // They have their own dedicated panels
-    if (userRole && [PlatformRole.MASTER, PlatformRole.TEAM, PlatformRole.PARTNER].includes(userRole)) {
+    if (userRole && ["MASTER", "TEAM", "PARTNER"].includes(userRole)) {
       return {
         allowed: false,
         reason: 'Platform users should use their dedicated panels',
@@ -48,7 +49,7 @@ export function canAccessDomain(
 
   // MASTER domain (dash.urbanbyte.com.br) - only MASTER role
   if (domainType === DomainType.MASTER) {
-    if (userRole === PlatformRole.MASTER) {
+    if (userRole === "MASTER") {
       return { allowed: true };
     }
     return {
@@ -60,7 +61,7 @@ export function canAccessDomain(
 
   // COLLABORATOR domain (colaborador.urbanbyte.com.br) - TEAM or MASTER
   if (domainType === DomainType.COLLABORATOR) {
-    if (userRole === PlatformRole.TEAM || userRole === PlatformRole.MASTER) {
+    if (userRole === "TEAM" || userRole === "MASTER") {
       return { allowed: true };
     }
     return {
@@ -72,7 +73,7 @@ export function canAccessDomain(
 
   // PARTNER domain (parceiro.urbanbyte.com.br) - PARTNER or MASTER
   if (domainType === DomainType.PARTNER) {
-    if (userRole === PlatformRole.PARTNER || userRole === PlatformRole.MASTER) {
+    if (userRole === "PARTNER" || userRole === "MASTER") {
       return { allowed: true };
     }
     return {
@@ -95,11 +96,11 @@ export function canAccessDomain(
  */
 function getPlatformDashboardUrl(role: PlatformRole): string {
   switch (role) {
-    case PlatformRole.MASTER:
+    case "MASTER":
       return getDashboardUrl(DomainType.MASTER);
-    case PlatformRole.TEAM:
+    case "TEAM":
       return getDashboardUrl(DomainType.COLLABORATOR);
-    case PlatformRole.PARTNER:
+    case "PARTNER":
       return getDashboardUrl(DomainType.PARTNER);
     default:
       return '/auth';
@@ -164,14 +165,14 @@ export function validateDomainAccess(
  * Check if user is a platform user (MASTER, TEAM, or PARTNER)
  */
 export function isPlatformUser(userRole: PlatformRole | null): boolean {
-  return userRole !== null && [PlatformRole.MASTER, PlatformRole.TEAM, PlatformRole.PARTNER].includes(userRole);
+  return userRole !== null && ["MASTER", "TEAM", "PARTNER"].includes(userRole);
 }
 
 /**
  * Check if user has master privileges
  */
 export function isMasterUser(userRole: PlatformRole | null): boolean {
-  return userRole === PlatformRole.MASTER;
+  return userRole === "MASTER";
 }
 
 /**

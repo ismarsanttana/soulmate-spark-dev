@@ -48,7 +48,7 @@ export function DomainGuard({
   accessDeniedComponent 
 }: DomainGuardProps) {
   const context = useDomainContext();
-  const { data: platformUser, isLoading } = usePlatformUser({ enabled: true });
+  const { data: platformUser, isLoading } = usePlatformUser(true);
   const [accessResult, setAccessResult] = useState<ReturnType<typeof validateDomainAccess> | null>(null);
 
   useEffect(() => {
@@ -73,10 +73,9 @@ export function DomainGuard({
 
   // Access denied
   if (!accessResult.allowed) {
-    // If redirectTo is provided, redirect
+    // If redirectTo is provided, redirect using React Router
     if (accessResult.redirectTo) {
-      window.location.href = accessResult.redirectTo;
-      return null;
+      return <Navigate to={accessResult.redirectTo} replace />;
     }
 
     // Otherwise show access denied UI
@@ -100,19 +99,7 @@ export function DomainGuard({
             <p className="text-sm text-muted-foreground">
               {accessResult.reason || 'Você não tem permissão para acessar esta área.'}
             </p>
-            <div className="flex gap-2">
-              <Button onClick={() => window.location.href = '/auth'} className="flex-1">
-                <LogIn className="h-4 w-4 mr-2" />
-                Fazer Login
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => window.history.back()}
-                className="flex-1"
-              >
-                Voltar
-              </Button>
-            </div>
+            <Navigate to="/auth" replace />
           </CardContent>
         </Card>
       </div>
@@ -128,7 +115,7 @@ export function DomainGuard({
  */
 export function useDomainAccess() {
   const context = useDomainContext();
-  const { data: platformUser, isLoading } = usePlatformUser({ enabled: true });
+  const { data: platformUser, isLoading } = usePlatformUser(true);
 
   if (isLoading) {
     return { allowed: null, isLoading: true };

@@ -1,0 +1,84 @@
+Pode continuar corrigindo esses problemas agora, sim. Quero que você faça a refatoração completa desses três pontos que o architect sinalizou, seguindo esta linha:
+
+1) CityAppShell – remover o BrowserRouter duplicado
+
+- Quero que haja **apenas um BrowserRouter na aplicação inteira**, no entry point (main.tsx).
+- O CityAppShell NÃO deve criar um novo BrowserRouter.
+- Em vez disso:
+  - Use o BrowserRouter que já está em torno do Bootstrap.
+  - O CityAppShell pode:
+    - Ou simplesmente renderizar o conteúdo (layouts, páginas) assumindo que já está dentro de um Router.
+    - Ou usar `<Routes>` + `<Route>` internamente, mas SEM criar outro BrowserRouter, só consumindo o Router pai.
+- A ideia é:
+  - `main.tsx` → `<BrowserRouter><Bootstrap /></BrowserRouter>`
+  - `Bootstrap` decide qual AppShell renderizar (Root/Master/City/Colaborador/Parceiro).
+  - Cada AppShell só define suas rotas internas com `<Routes>`/`<Route>`/`<Outlet>`, sem BrowserRouter próprio.
+
+2) DomainGuard – não usar window.location para redirecionar
+
+- Quero que o DomainGuard use a **navegação do React Router**, e não `window.location.href`.
+- Em vez de `window.location.href = '/auth'` ou algo assim, use:
+  - `<Navigate to="/auth" replace />`
+  - ou `useNavigate()` dentro de um effect, se fizer sentido.
+- Isso é importante pra:
+  - não quebrar o SPA,
+  - evitar loops estranhos,
+  - manter histórico consistente.
+- Pode deixar o DomainGuard mais ou menos assim (conceitualmente):
+  - Se NÃO tem sessão → `<Navigate to="/auth" replace />`
+  - Se tem sessão mas role não bate com o domínio atual → `<Navigate to="/auth" replace />` ou página de acesso negado.
+  - Se está tudo certo → renderiza `<Outlet />` ou `children`.
+
+3) Bootstrap – remover fallback hardcoded para "afogados"
+
+- Não quero fallback hardcoded para 'afogados' em produção.
+- Comportamento desejado:
+
+  a) Em **produção**:
+  - Se o subdomínio NÃO for:
+    - `dash`, `colaborador`, `parceiro` e
+    - não existir na tabela `cities.subdomain` no Supabase,
+  - então:
+    - mostrar uma **página de erro amigável** do tipo:
+      - "Cidade não encontrada ou não configurada. Entre em contato com o suporte."
+    - e NÃO forçar nenhum fallback para Afogados.
+  - Nada de `afogados` como default silencioso em produção.
+
+  b) Em **desenvolvimento (localhost / replit)**:
+  - Tudo bem ter uma lógica de fallback pra facilitar:
+    - por exemplo, aceitar query params `?mode=city&subdomain=afogados`
+    - OU usar um subdomínio default tipo 'afogados' **apenas em dev**.
+  - Mas essa lógica de query param/dev deve ser ignorada automaticamente em produção:
+    - só funciona se hostname for localhost, 127.0.0.1, ou replit/env de dev.
+  - Assim, em dev fica fácil testar:
+    - `?mode=dash`
+    - `?mode=city&subdomain=afogados`
+  - e em produção a lógica é sempre: hostname → subdomínio → lookup em `cities.subdomain`.
+
+- Em resumo:
+  - Em prod: hostname é a fonte da verdade. Se não encontrar cidade → 404/erro amigável.
+  - Em dev: podemos usar query param pra simular modos, mas nunca em prod.
+
+4) Alinhamento com os domínios planejados
+
+Além dessas correções, quero que você mantenha em mente o mapa final:
+
+- `urbanbyte.com.br` → site institucional (RootShell).
+- `dash.urbanbyte.com.br` → MasterAppShell (Control Center, role MASTER).
+- `colaborador.urbanbyte.com.br` → CollaboratorAppShell (role TEAM).
+- `parceiro.urbanbyte.com.br` → PartnerAppShell (role PARTNER).
+- `{city}.urbanbyte.com.br` → CityAppShell (ecossistema da cidade: /login, /edu, /saude, etc.).
+
+Subdomínios reservados:
+- `dash`, `colaborador`, `parceiro` → NUNCA tratados como cidade.
+
+Todos os outros subdomínios:
+- devem ser resolvidos via `cities.subdomain` no Supabase.
+- Se não achar, aplica a regra do item 3 (erro, nada de fallback para Afogados em prod).
+
+Pode seguir com essa refatoração agora:
+- remover BrowserRouter duplicado do CityAppShell,
+- ajustar DomainGuard para usar `<Navigate>`/React Router,
+- e corrigir o fallback do Bootstrap (prod vs dev) seguindo o comportamento que descrevi.
+
+Depois disso, eu testo como MASTER no “dash” e, mais pra frente, seguimos para os apps de Colaborador e Parceiro.

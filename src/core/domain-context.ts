@@ -237,22 +237,31 @@ function createProductionContext(hostname: string): DomainContext {
     }
   }
 
-  // Fallback to CITY mode
-  console.warn(`Unexpected hostname format: ${hostname}. Defaulting to CITY mode.`);
+  // Fallback - unexpected hostname format
+  // In production, this should never happen with valid domains
+  // Return CITY with a placeholder - CityAppShell will show "not found" error
+  console.error(`Unexpected hostname format in production: ${hostname}`);
   return {
     type: DomainType.CITY,
-    subdomain: getDefaultDevSubdomain(),
+    subdomain: 'unknown',
     hostname,
-    isProduction: false,
+    isProduction: true,
   };
 }
 
 /**
  * Get default subdomain for development
+ * ONLY used in development environments (localhost, replit)
  * Can be overridden by environment variable
  */
 function getDefaultDevSubdomain(): string {
-  return import.meta.env.VITE_DEFAULT_CITY_SUBDOMAIN || 'afogados';
+  const defaultSubdomain = import.meta.env.VITE_DEFAULT_CITY_SUBDOMAIN || 'afogados';
+  
+  if (import.meta.env.DEV) {
+    console.log(`[DEV] Using default subdomain: ${defaultSubdomain}`);
+  }
+  
+  return defaultSubdomain;
 }
 
 /**
