@@ -67,8 +67,13 @@ export const usePlatformUser = (enabled: boolean = false) => {
     },
     // Only enable query when explicitly allowed (after auth check)
     enabled,
-    // Refresh every 5 minutes to catch role changes
-    staleTime: 5 * 60 * 1000,
+    // SECURITY: No cache (staleTime: 0) to ensure immediate role revocation
+    // Role changes must take effect immediately to prevent unauthorized access
+    staleTime: 0,
+    // Refetch on window focus to catch role changes when user returns to tab
+    refetchOnWindowFocus: true,
+    // Refetch on reconnect to catch role changes after network interruption
+    refetchOnReconnect: true,
     // Prevent retry on auth errors
     retry: false,
   });
