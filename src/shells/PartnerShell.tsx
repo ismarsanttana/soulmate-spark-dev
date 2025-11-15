@@ -7,7 +7,7 @@
  * Access: PARTNER role users (and optionally MASTER)
  */
 
-import { Route, Switch } from 'wouter';
+import { Routes, Route } from 'react-router-dom';
 import { DomainGuard } from '@/guards/DomainGuard';
 import AuthPartner from '@/pages/auth/AuthPartner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -96,11 +96,11 @@ export function PartnerShell() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <DomainGuard>
-          <Switch>
-            <Route path="/auth" component={AuthPartner} />
-            <Route path="/dashboard" component={PartnerDashboard} />
-            <Route path="/" component={PartnerDashboard} />
-          </Switch>
+          <Routes>
+            <Route path="/auth" element={<AuthPartner />} />
+            <Route path="/dashboard" element={<PartnerDashboard />} />
+            <Route path="/" element={<PartnerDashboard />} />
+          </Routes>
         </DomainGuard>
         <Toaster />
         <Sonner />

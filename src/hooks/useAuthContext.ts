@@ -9,7 +9,7 @@
  * - CITY ({city}.urbanbyte.com.br) → supabaseCitizen
  */
 import { useMemo } from 'react';
-import { useLocation } from 'wouter';
+import { useLocation } from 'react-router-dom';
 import { getDomainContext } from '@/core/domain-context';
 import { DomainType } from '@/core/domain-types';
 import { supabaseCitizen } from '@/integrations/supabase/citizen';
@@ -23,7 +23,7 @@ export function useAuthContext() {
   // Detect domain context (reactive to query params in dev)
   const context = useMemo(() => {
     return getDomainContext();
-  }, [location.search]);
+  }, [location]);
 
   // Return appropriate Supabase client
   switch (context.type) {

@@ -1,0 +1,229 @@
+Preciso alinhar contigo a ARQUITETURA GERAL do meu ecossistema UrbanByte, porque hoje o login do painel MASTER está misturado dentro do app do cidadão, e isso não é o que eu quero.
+
+Quero que você **ajuste a arquitetura** para refletir isso:
+
+---
+
+## 1. Conceito chave: vários apps, não um app só
+
+Meu sistema não é um único app com várias telas. Ele é um ECOSSISTEMA com vários "apps" rodando em domínios diferentes, compartilhando a mesma base (Supabase/Neon), mas com:
+
+- rotas de login separadas,
+- UX separada,
+- perfis de usuário diferentes,
+- escopos de dados bem definidos.
+
+A visão é:
+
+1. Marketing / site institucional
+2. Painéis de gestão da UrbanByte
+3. Ecossistema de cada cidade
+
+Cada um é um contexto diferente.
+
+---
+
+## 2. Mapa de domínios e logins (muito importante)
+
+### 2.1. Site institucional (sem login)
+
+- `urbanbyte.com.br`
+  - Site público mostrando os produtos.
+  - NÃO tem login.
+  - É só marketing.
+
+### 2.2. Painéis da UrbanByte (Control Plane + trabalho interno)
+
+Aqui quero **apps separados**, cada um com SEU próprio `/auth`:
+
+1. **MASTER – UrbanByte Control Center**
+
+   - Domínio: `dash.urbanbyte.com.br`
+   - Painel do Superadmin/Owner (Control Plane).
+   - Login em: `https://dash.urbanbyte.com.br/auth`
+   - Apenas `role = 'MASTER'` (na `platform_users`) acessa esse painel.
+   - Aqui roda o painel que você já implementou como CompanyDashboard, protegido pelo `ProtectedMasterRoute`.
+
+2. **Colaboradores (suporte, onboarding, técnico)**
+
+   - Domínio: `colaborador.urbanbyte.com.br`
+   - Painel da equipe interna da UrbanByte (não é cidadão nem prefeitura).
+   - Login em: `https://colaborador.urbanbyte.com.br/auth`
+   - Apenas `role = 'TEAM'` (na `platform_users`) acessa.
+   - Futuramente aqui terá:
+     - filas de tickets,
+     - implantações,
+     - ferramentas internas.
+
+3. **Parceiros (revenda)**
+
+   - Domínio: `parceiro.urbanbyte.com.br`
+   - Painel do programa de parcerias e revendas.
+   - Login em: `https://parceiro.urbanbyte.com.br/auth`
+   - Apenas `role = 'PARTNER'` (na `platform_users`) acessa.
+
+> Ponto MUITO importante:  
+> **O login de dash/colaborador/parceiro NÃO é o mesmo login do app do cidadão.**  
+> Podem até compartilhar a mesma infraestrutura de Supabase (auth), mas a UX, rotas e guardas são outras.
+
+### 2.3. Cidades – Cada cidade é um ecossistema completo
+
+Cada cidade tem seu próprio subdomínio e é um TENANT independente:
+
+- `afogados.urbanbyte.com.br`
+- `zabele.urbanbyte.com.br`
+- `soledade.urbanbyte.com.br`
+- etc.
+
+Dentro de **cada** cidade:
+
+- `afogados.urbanbyte.com.br/login`
+  - Login de TODOS os usuários da cidade:
+    - cidadão,
+    - servidor,
+    - secretário,
+    - prefeito.
+  - Login personalizado com tema e informações da cidade.
+
+- `afogados.urbanbyte.com.br/edu`
+  - Ecossistema da EDUCAÇÃO dessa cidade (pais, alunos, escolas...).
+
+- `afogados.urbanbyte.com.br/saude`
+  - Ecossistema da SAÚDE dessa cidade.
+
+E assim sucessivamente:
+- `/cultura`
+- `/obras`
+- `/ouvidoria`
+- etc.
+
+**Cada cidade é um app completo** para aquele município, nunca aparecendo telas de dash/colaborador/parceiro nesse domínio.
+
+> Ou seja:
+> - login do MASTER → `dash.urbanbyte.com.br/auth`
+> - login da equipe interna → `colaborador.urbanbyte.com.br/auth`
+> - login de parceiros → `parceiro.urbanbyte.com.br/auth`
+> - login da cidade Afogados → `afogados.urbanbyte.com.br/login`
+> - login da cidade Zabelê → `zabele.urbanbyte.com.br/login`
+>  
+> Não existe “um /auth global” dentro do app do cidadão.
+
+---
+
+## 3. O que preciso que você corrija / reorganize
+
+Hoje, pelo que entendi, você colocou o fluxo de login do MASTER dentro do mesmo app onde estão as telas do cidadão. Isso precisa ser separado.
+
+### 3.1. Separar claramente os AppShells e suas rotas de login
+
+Já temos a estrutura de AppShells (RootShell, MasterAppShell, CityAppShell, etc). O que eu quero agora:
+
+1. **MasterAppShell (dash.urbanbyte.com.br)**
+
+   - Deve ter seu próprio fluxo de auth:
+     - Rota: `/auth` (no contexto do dash).
+     - Ex.: `https://dash.urbanbyte.com.br/auth`
+   - Essa tela de login NÃO deve ser usada em nenhum lugar de cidade.
+   - Após login MASTER:
+     - redirecionar para o dashboard MASTER (CompanyDashboard).
+
+2. **CollaboratorAppShell (colaborador.urbanbyte.com.br)**
+
+   - Deve ter rota de login própria:
+     - `/auth` (ex.: `https://colaborador.urbanbyte.com.br/auth`)
+   - Apenas `role = 'TEAM'` acessa o painel interno.
+   - Mesmo conceito de guard que você já fez pro MASTER, mas para TEAM.
+
+3. **PartnerAppShell (parceiro.urbanbyte.com.br)**
+
+   - Também com `/auth` próprio:
+     - `https://parceiro.urbanbyte.com.br/auth`
+   - Apenas `role = 'PARTNER'` acessa.
+
+4. **CityAppShell ({city}.urbanbyte.com.br)**
+
+   - Login **próprio da cidade** em:
+     - `https://afogados.urbanbyte.com.br/login`
+   - Essa tela:
+     - usa o tema da cidade (logo, cores),
+     - trata apenas usuários daquela cidade,
+     - depois do login leva para o módulo apropriado (dashboard do cidadão, painel do secretário, etc.).
+   - Essa tela NÃO deve herdar layout/UX do painel MASTER ou do painel de colaborador/parceiro.
+
+### 3.2. Integração com a detecção de domínio/contexto que você já construiu
+
+Use a lógica de hostname que você já criou (`useDomainContext`, `Bootstrap` etc.), mas aplique assim:
+
+- `dash.urbanbyte.com.br` → `MasterAppShell`
+  - define rotas internas:
+    - `/auth` → Login MASTER
+    - `/` → dashboard (CompanyDashboard, protegido).
+
+- `colaborador.urbanbyte.com.br` → `CollaboratorAppShell`
+  - rotas internas:
+    - `/auth` → Login TEAM
+    - `/` → painel do colaborador (por enquanto pode ser um placeholder).
+
+- `parceiro.urbanbyte.com.br` → `PartnerAppShell`
+  - rotas internas:
+    - `/auth` → Login PARTNER
+    - `/` → painel do parceiro (placeholder ok).
+
+- `{city}.urbanbyte.com.br` → `CityAppShell`
+  - resolve a cidade via `cities.subdomain`.
+  - aplica theme.
+  - rotas internas:
+    - `/login` → Login da cidade
+    - `/edu` → Educação
+    - `/saude` → Saúde
+    - etc.
+
+### 3.3. Reuso de componentes de login
+
+Você pode REAPROVEITAR componentes de UI (inputs, botões, layout base) entre esses logins, mas:
+
+- o fluxo/roteamento de login do MASTER deve ficar **dentro do contexto dash**,
+- o fluxo de login da cidade deve ficar **dentro do contexto CityAppShell**,
+- nunca renderizar `Login MASTER` em domínio de cidade, nem `Login Cidadão` em `dash.` ou `colaborador.`.
+
+---
+
+## 4. Supabase, roles e separação lógica
+
+É totalmente aceitável que:
+
+- Supabase Auth seja o mesmo projeto,
+- `platform_users` controle os papéis (MASTER, TEAM, PARTNER),
+- outra(s) tabela(s) controlem usuários das cidades (citizens, employees etc.)
+
+Mas a camada de UI e rotas tem que respeitar o contexto do domínio:
+
+- `dash.*` → apenas papéis globais de plataforma (MASTER).
+- `colaborador.*` → apenas TEAM (e possivelmente MASTER).
+- `parceiro.*` → apenas PARTNER (e possivelmente MASTER).
+- `{city}.*` → usuários da cidade (cidadão, servidor, secretário, prefeito, etc.), nunca papéis MASTER/TEAM/PARTNER.
+
+---
+
+## 5. O que eu quero que você faça agora
+
+1. **Refatorar a parte de auth/rotas** para que:
+   - O login do painel MASTER esteja apenas em `dash.urbanbyte.com.br/auth`.
+   - O login do colaborador esteja apenas em `colaborador.urbanbyte.com.br/auth`.
+   - O login de parceiro esteja apenas em `parceiro.urbanbyte.com.br/auth`.
+   - O login da cidade esteja apenas em `{city}.urbanbyte.com.br/login`.
+
+2. Garantir que o CityAppShell não esteja herdando ou usando o fluxo de auth do MASTER.
+
+3. Documentar (em `replit.md` ou similar):
+   - Como o sistema decide qual AppShell renderizar (por hostname).
+   - Quais são as rotas de login de cada contexto.
+   - Quais roles podem acessar cada domínio.
+
+Depois dessa reorganização, aí sim eu vou testar:
+
+- logando como MASTER em `dash.urbanbyte.com.br/auth`,
+- logando depois como usuário da cidade em `afogados.urbanbyte.com.br/login`,
+- e verificando se os mundos estão realmente separados, mas integrados via Supabase/Neon.
+
+Pode seguir com essa refatoração agora com base nessa visão.

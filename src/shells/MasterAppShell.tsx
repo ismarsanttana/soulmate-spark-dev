@@ -7,7 +7,7 @@
  * Access: Only MASTER role users
  */
 
-import { Route, Switch } from 'wouter';
+import { Routes, Route } from 'react-router-dom';
 import { DomainGuard } from '@/guards/DomainGuard';
 import CompanyDashboard from '@/pages/CompanyDashboard';
 import AuthMaster from '@/pages/auth/AuthMaster';
@@ -28,11 +28,11 @@ export function MasterAppShell() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <DomainGuard>
-          <Switch>
-            <Route path="/auth" component={AuthMaster} />
-            <Route path="/dashboard" component={CompanyDashboard} />
-            <Route path="/" component={CompanyDashboard} />
-          </Switch>
+          <Routes>
+            <Route path="/auth" element={<AuthMaster />} />
+            <Route path="/dashboard" element={<CompanyDashboard />} />
+            <Route path="/" element={<CompanyDashboard />} />
+          </Routes>
         </DomainGuard>
         <Toaster />
         <Sonner />

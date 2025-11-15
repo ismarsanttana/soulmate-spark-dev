@@ -7,7 +7,7 @@
  * Access: TEAM role users (and optionally MASTER)
  */
 
-import { Route, Switch } from 'wouter';
+import { Routes, Route } from 'react-router-dom';
 import { DomainGuard } from '@/guards/DomainGuard';
 import AuthCollaborator from '@/pages/auth/AuthCollaborator';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -96,11 +96,11 @@ export function CollaboratorShell() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <DomainGuard>
-          <Switch>
-            <Route path="/auth" component={AuthCollaborator} />
-            <Route path="/dashboard" component={CollaboratorDashboard} />
-            <Route path="/" component={CollaboratorDashboard} />
-          </Switch>
+          <Routes>
+            <Route path="/auth" element={<AuthCollaborator />} />
+            <Route path="/dashboard" element={<CollaboratorDashboard />} />
+            <Route path="/" element={<CollaboratorDashboard />} />
+          </Routes>
         </DomainGuard>
         <Toaster />
         <Sonner />

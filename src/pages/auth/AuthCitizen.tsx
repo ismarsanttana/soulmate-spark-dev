@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "wouter";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabaseCitizen } from "@/integrations/supabase/citizen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,8 +19,8 @@ export default function AuthCitizen() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [, navigate] = useNavigate();
-  const [location] = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   
   const { data: cityTheme } = useCityTheme();
   
