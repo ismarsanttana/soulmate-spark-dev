@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>UrbanByte Control Center – Dashboard</title>
+  <style>
+    :root {
+      /* Dark theme (default) */
+      --bg-body: #020617;
+      --bg: #020617;
+      --bg-soft: #02081f;
+      --bg-card: #020617;
+      --border: #1f2937;
+      --border-soft: #111827;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.12);
+      --danger-soft: rgba(248, 113, 113, 0.12);
+      --warning-soft: rgba(250, 204, 21, 0.12);
+      --info-soft: rgba(56, 189, 248, 0.12);
+      --chart-bg: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), #020617);
+    }
+
+    body[data-theme="light"] {
+      --bg-body: #f3f4f6;
+      --bg: #ffffff;
+      --bg-soft: #f9fafb;
+      --bg-card: #ffffff;
+      --border: #d1d5db;
+      --border-soft: #e5e7eb;
+      --text-main: #0f172a;
+      --text-muted: #6b7280;
+      --accent: #059669;
+      --accent-soft: rgba(16, 185, 129, 0.1);
+      --danger-soft: rgba(248, 113, 113, 0.1);
+      --warning-soft: rgba(245, 158, 11, 0.12);
+      --info-soft: rgba(59, 130, 246, 0.12);
+      --chart-bg: radial-gradient(circle at top, #e5e7eb, #f9fafb);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg-body);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1200px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98));
+      overflow: hidden;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+      transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    body[data-theme="light"] .app {
+      background: #ffffff;
+      box-shadow: 0 18px 35px rgba(15, 23, 42, 0.15);
+    }
+
+    /* HEADER */
+
+    .header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    body[data-theme="light"] .header {
+      background: #f9fafb;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-img {
+      height: 26px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.4));
+    }
+
+    .logo-fallback {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.35), rgba(15, 23, 42, 0.9));
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--accent);
+    }
+
+    .title-block h1 {
+      font-size: 15px;
+      margin: 0;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .title-block p {
+      margin: 2px 0 0;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-env {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      background: rgba(22, 163, 74, 0.08);
+      font-size: 11px;
+      color: #bbf7d0;
+      white-space: nowrap;
+    }
+
+    body[data-theme="light"] .badge-env {
+      background: rgba(16, 185, 129, 0.08);
+      color: #047857;
+    }
+
+    .theme-toggle {
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    body[data-theme="light"] .theme-toggle {
+      background: #ffffff;
+    }
+
+    .user-block {
+      text-align: right;
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    .user-block span:first-child {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .user-block span:last-child {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    /* MAIN */
+
+    .main {
+      padding: 16px 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* CONTEXT BAR */
+
+    .context-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .role-section {
+      max-width: 580px;
+    }
+
+    .role-label {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .role-chips {
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border);
+    }
+
+    body[data-theme="light"] .role-chips {
+      background: #f9fafb;
+    }
+
+    .role-chip {
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: default;
+    }
+
+    .role-chip.active {
+      background: var(--accent);
+      color: #020617;
+      font-weight: 600;
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.6);
+    }
+
+    .role-desc {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .role-desc span {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .search-block {
+      max-width: 260px;
+      width: 100%;
+    }
+
+    .search-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .search-input {
+      position: relative;
+    }
+
+    .search-input input {
+      width: 100%;
+      padding: 7px 26px 7px 10px;
+      font-size: 11px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+      outline: none;
+    }
+
+    body[data-theme="light"] .search-input input {
+      background: #ffffff;
+    }
+
+    .search-input input::placeholder {
+      color: #64748b;
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    /* SUMMARY CARDS */
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px;
+    }
+
+    .summary-card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 10px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    body[data-theme="light"] .summary-card {
+      background: #ffffff;
+    }
+
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .summary-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .summary-badge {
+      font-size: 9px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #020617;
+      color: #6b7280;
+      border: 1px solid #111827;
+    }
+
+    body[data-theme="light"] .summary-badge {
+      background: #f1f5f9;
+      border-color: #e5e7eb;
+      color: #6b7280;
+    }
+
+    .summary-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .summary-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* ROWS */
+
+    .row-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
+    }
+
+    .row-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .rt-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 12px;
+    }
+
+    body[data-theme="light"] .card {
+      background: #ffffff;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .card-title-block h2 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .card-title-block p {
+      margin: 2px 0 0;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .pill-small {
+      font-size: 9px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: #020617;
+      color: var(--text-muted);
+      border: 1px solid var(--border-soft);
+    }
+
+    body[data-theme="light"] .pill-small {
+      background: #f9fafb;
+      border-color: #e5e7eb;
+    }
+
+    .btn-ghost {
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    body[data-theme="light"] .btn-ghost {
+      background: #ffffff;
+    }
+
+    .btn-add {
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(34, 197, 94, 0.6);
+      background: var(--accent-soft);
+      color: #bbf7d0;
+      cursor: pointer;
+    }
+
+    body[data-theme="light"] .btn-add {
+      color: #047857;
+    }
+
+    /* REAL-TIME MONITORS */
+
+    .rt-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .rt-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .rt-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .rt-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .rt-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.9);
+    }
+
+    .rt-values {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 4px;
+    }
+
+    .rt-main-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .rt-unit {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-left: 2px;
+    }
+
+    .rt-meta {
+      text-align: right;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .rt-meta strong {
+      color: var(--text-main);
+    }
+
+    .rt-footnote {
+      margin-top: 4px;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    /* TABLE */
+
+    .table-wrapper {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--chart-bg);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    thead {
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-muted);
+    }
+
+    body[data-theme="light"] thead {
+      background: #f1f5f9;
+    }
+
+    th,
+    td {
+      padding: 7px 9px;
+      text-align: left;
+    }
+
+    tbody tr {
+      border-top: 1px solid rgba(31, 41, 55, 0.7);
+    }
+
+    body[data-theme="light"] tbody tr {
+      border-color: #e5e7eb;
+    }
+
+    tbody tr:hover {
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    body[data-theme="light"] tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .city-name {
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .city-modules {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      font-size: 9px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    .status-operando {
+      background: var(--accent-soft);
+      color: #a7f3d0;
+    }
+
+    .status-implantacao {
+      background: var(--warning-soft);
+      color: #facc15;
+    }
+
+    .status-teste {
+      background: var(--info-soft);
+      color: #7dd3fc;
+    }
+
+    .status-risco {
+      background: var(--danger-soft);
+      color: #fecaca;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .text-muted {
+      color: var(--text-muted);
+    }
+
+    /* JOBS LIST */
+
+    .jobs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .job-card {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #020617;
+      padding: 7px 9px;
+    }
+
+    body[data-theme="light"] .job-card {
+      background: #f9fafb;
+    }
+
+    .job-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .job-title {
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .job-city {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .job-status-pill {
+      font-size: 9px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+
+    .job-status-ok {
+      background: var(--accent-soft);
+      color: #a7f3d0;
+    }
+
+    .job-status-running {
+      background: var(--info-soft);
+      color: #7dd3fc;
+    }
+
+    .job-status-queue {
+      background: var(--warning-soft);
+      color: #facc15;
+    }
+
+    .job-time {
+      margin-top: 3px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* ROW 3: TEAM & PARTNERS */
+
+    .metric-row {
+      display: flex;
+      gap: 18px;
+      margin-bottom: 8px;
+    }
+
+    .metric-block p {
+      margin: 0;
+    }
+
+    .metric-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .metric-value {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .team-list,
+    .partner-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .team-item,
+    .partner-item {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #020617;
+      padding: 7px 9px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    body[data-theme="light"] .team-item,
+    body[data-theme="light"] .partner-item {
+      background: #f9fafb;
+    }
+
+    .team-main p,
+    .partner-main p {
+      margin: 0;
+    }
+
+    .team-name,
+    .partner-name {
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .team-action,
+    .partner-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .time-badge {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .partner-status-pill {
+      font-size: 9px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+
+    .partner-status-active {
+      background: var(--accent-soft);
+      color: #a7f3d0;
+    }
+
+    .partner-status-negotiating {
+      background: var(--warning-soft);
+      color: #facc15;
+    }
+
+    /* CHART */
+
+    .chart-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .chart-filter {
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    body[data-theme="light"] .chart-filter {
+      background: #ffffff;
+    }
+
+    .chart-filter.active {
+      background: var(--accent);
+      color: #020617;
+      border-color: rgba(34, 197, 94, 0.7);
+      font-weight: 600;
+    }
+
+    .chart-wrapper {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--chart-bg);
+      padding: 10px 10px 8px;
+    }
+
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      height: 150px;
+    }
+
+    .chart-bar {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chart-bar-inner {
+      width: 100%;
+      border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(to top, var(--accent), #4ade80);
+      height: 40%;
+      transition: height 0.25s ease;
+    }
+
+    .chart-bar-label {
+      font-size: 9px;
+      color: var(--text-muted);
+      text-align: center;
+      max-width: 60px;
+    }
+
+    .chart-legend {
+      margin-top: 6px;
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .chart-legend span strong {
+      color: var(--text-main);
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 960px) {
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .row-grid,
+      .row-grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .header-right {
+        align-self: stretch;
+        justify-content: flex-end;
+      }
+      body {
+        padding: 12px;
+      }
+      .app {
+        border-radius: 10px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+      .metric-row {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .header-right {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <!-- Troque o src abaixo pelo caminho do seu logo UrbanByte -->
+        <img src="urbanbyte-logo.png" alt="UrbanByte" class="logo-img"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="logo-fallback" style="display:none;">UB</div>
+        <div class="title-block">
+          <h1>UrbanByte Control Center</h1>
+          <p>Painel mestre de cidades inteligentes</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="badge-env">Ambiente: Produção</div>
+        <button id="themeToggle" class="theme-toggle" type="button">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Tema claro</span>
+        </button>
+        <div class="user-block">
+          <span>Isma Santana</span><br />
+          <span>Superadmin / Owner</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="main">
+      <!-- CONTEXT BAR -->
+      <section class="context-bar">
+        <div class="role-section">
+          <div class="role-label">Visão atual</div>
+          <div class="role-chips">
+            <button class="role-chip active">Superadmin</button>
+            <button class="role-chip">Equipe interna</button>
+            <button class="role-chip">Parceiros</button>
+          </div>
+          <p class="role-desc">
+            Você está visualizando o painel como
+            <span>Superadmin / Owner</span>. No futuro, essa seleção poderá
+            filtrar dados e permissões por perfil.
+          </p>
+        </div>
+        <div class="search-block">
+          <div class="search-label">Buscar cidade</div>
+          <div class="search-input">
+            <input
+              type="text"
+              placeholder="Zabelê, Afogados, Soledade..."
+              disabled
+            />
+            <span class="search-icon">⌕</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SUMMARY CARDS -->
+      <section class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-header">
+            <span class="summary-title">Cidades ativas</span>
+            <span class="summary-badge">Global</span>
+          </div>
+          <div class="summary-value">12</div>
+          <div class="summary-sub">3 em implantação</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-header">
+            <span class="summary-title">Usuários totais</span>
+            <span class="summary-badge">Cidadãos + internos</span>
+          </div>
+          <div class="summary-value">24.780</div>
+          <div class="summary-sub">Contas cadastradas no ecossistema</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-header">
+            <span class="summary-title">Solicitações hoje</span>
+            <span class="summary-badge">Fluxo diário</span>
+          </div>
+          <div class="summary-value" id="cardRequestsToday">1.248</div>
+          <div class="summary-sub" id="cardRequestsTodaySub">
+            Canais do cidadão em todas as cidades
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-header">
+            <span class="summary-title">Solicitações / min</span>
+            <span class="summary-badge">Tempo real</span>
+          </div>
+          <div class="summary-value" id="cardReqPerMin">3,4</div>
+          <div class="summary-sub" id="cardReqPerMinSub">
+            Média nas últimas 2 horas
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-header">
+            <span class="summary-title">Jobs / Migrações</span>
+            <span class="summary-badge">Infraestrutura</span>
+          </div>
+          <div class="summary-value">7</div>
+          <div class="summary-sub">Execuções nas últimas 24 horas</div>
+        </div>
+      </section>
+
+      <!-- REAL-TIME MONITORS -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-block">
+            <h2>Monitores em tempo real</h2>
+            <p>Tráfego, banco de dados e picos de acesso</p>
+          </div>
+          <span class="pill-small">Atualização a cada poucos segundos</span>
+        </div>
+
+        <div class="rt-grid">
+          <!-- Monitor 1 -->
+          <div class="card" style="padding:10px;">
+            <div class="rt-card-header">
+              <div>
+                <div class="rt-title">Tráfego de requisições</div>
+                <div class="rt-sub">Volume geral do sistema</div>
+              </div>
+              <div class="rt-indicator">
+                <span class="rt-dot"></span>
+                Online
+              </div>
+            </div>
+            <div class="rt-values">
+              <div>
+                <span class="rt-main-value" id="rtReqCurrent">0,0</span>
+                <span class="rt-unit">req/s</span>
+              </div>
+              <div class="rt-meta">
+                Pico 5 min: <strong id="rtReqPeak">0,0</strong> req/s
+              </div>
+            </div>
+            <div class="rt-footnote">
+              Média suavizada em janelas de 10 segundos.
+            </div>
+          </div>
+
+          <!-- Monitor 2 -->
+          <div class="card" style="padding:10px;">
+            <div class="rt-card-header">
+              <div>
+                <div class="rt-title">Banco de dados</div>
+                <div class="rt-sub">Leituras e gravações</div>
+              </div>
+              <div class="rt-indicator">
+                <span class="rt-dot"></span>
+                I/O estável
+              </div>
+            </div>
+            <div class="rt-values">
+              <div>
+                <span class="rt-main-value" id="rtDbReads">0</span>
+                <span class="rt-unit">leit./s</span>
+              </div>
+              <div class="rt-meta">
+                Gravações: <strong id="rtDbWrites">0</strong> ops/s
+              </div>
+            </div>
+            <div class="rt-footnote">
+              Inclui operações distribuídas em todos os bancos neon.
+            </div>
+          </div>
+
+          <!-- Monitor 3 -->
+          <div class="card" style="padding:10px;">
+            <div class="rt-card-header">
+              <div>
+                <div class="rt-title">Sessões ativas</div>
+                <div class="rt-sub">Picos de acessos dos cidadãos</div>
+              </div>
+              <div class="rt-indicator">
+                <span class="rt-dot"></span>
+                Tracking
+              </div>
+            </div>
+            <div class="rt-values">
+              <div>
+                <span class="rt-main-value" id="rtSessionsCurrent">0</span>
+                <span class="rt-unit">sessões</span>
+              </div>
+              <div class="rt-meta">
+                Pico última hora: <strong id="rtSessionsPeak">0</strong>
+              </div>
+            </div>
+            <div class="rt-footnote">
+              Considera apps do cidadão + painéis internos.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CHART ROW: SOLICITAÇÕES POR SECRETARIA -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-block">
+            <h2>Solicitações por secretaria</h2>
+            <p>Volume de atendimento por período</p>
+          </div>
+        </div>
+
+        <div class="chart-toolbar">
+          <button class="chart-filter active" data-period="today">Hoje</button>
+          <button class="chart-filter" data-period="yesterday">Ontem</button>
+          <button class="chart-filter" data-period="week">Últimos 7 dias</button>
+          <button class="chart-filter" data-period="month">Últimos 30 dias</button>
+          <button class="chart-filter" data-period="custom">Período personalizado</button>
+        </div>
+
+        <div class="chart-wrapper">
+          <div class="chart-bars">
+            <div class="chart-bar" data-secretaria="Educação">
+              <div class="chart-bar-inner"></div>
+              <div class="chart-bar-label">Educação</div>
+            </div>
+            <div class="chart-bar" data-secretaria="Saúde">
+              <div class="chart-bar-inner"></div>
+              <div class="chart-bar-label">Saúde</div>
+            </div>
+            <div class="chart-bar" data-secretaria="Obras">
+              <div class="chart-bar-inner"></div>
+              <div class="chart-bar-label">Obras</div>
+            </div>
+            <div class="chart-bar" data-secretaria="Cultura">
+              <div class="chart-bar-inner"></div>
+              <div class="chart-bar-label">Cultura</div>
+            </div>
+            <div class="chart-bar" data-secretaria="Ouvidoria">
+              <div class="chart-bar-inner"></div>
+              <div class="chart-bar-label">Ouvidoria</div>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <span>
+              Total no período: <strong id="chartTotal">0</strong> solicitações
+            </span>
+            <span>Simulação visual de distribuição por secretaria (protótipo).</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ROW 2: CITIES + JOBS -->
+      <section class="row-grid">
+        <!-- CITIES -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-block">
+              <h2>Visão geral das cidades</h2>
+              <p>Atividade consolidada por município</p>
+            </div>
+            <span class="pill-small">Top 5 por atividade</span>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Cidade</th>
+                  <th>Módulos</th>
+                  <th>Usuários ativos</th>
+                  <th>Status</th>
+                  <th class="text-right">Última atividade</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="city-name">Afogados da Ingazeira</div>
+                    <div class="city-modules">
+                      Educação, Saúde, Ouvidoria
+                    </div>
+                  </td>
+                  <td>3 módulos</td>
+                  <td>5.230</td>
+                  <td>
+                    <span class="status-pill status-operando">Operando</span>
+                  </td>
+                  <td class="text-right text-muted">Há 2 min</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="city-name">Zabelê</div>
+                    <div class="city-modules">Educação, Cultura</div>
+                  </td>
+                  <td>2 módulos</td>
+                  <td>1.120</td>
+                  <td>
+                    <span class="status-pill status-implantacao"
+                      >Implantação</span
+                    >
+                  </td>
+                  <td class="text-right text-muted">Há 15 min</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="city-name">Soledade</div>
+                    <div class="city-modules">Saúde, Ouvidoria</div>
+                  </td>
+                  <td>2 módulos</td>
+                  <td>2.890</td>
+                  <td>
+                    <span class="status-pill status-operando">Operando</span>
+                  </td>
+                  <td class="text-right text-muted">Há 8 min</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="city-name">Monteiro</div>
+                    <div class="city-modules">Educação</div>
+                  </td>
+                  <td>1 módulo</td>
+                  <td>980</td>
+                  <td>
+                    <span class="status-pill status-risco">Risco baixo</span>
+                  </td>
+                  <td class="text-right text-muted">Há 1 h</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="city-name">Camalaú</div>
+                    <div class="city-modules">Cultura, Eventos</div>
+                  </td>
+                  <td>2 módulos</td>
+                  <td>430</td>
+                  <td>
+                    <span class="status-pill status-teste">Teste</span>
+                  </td>
+                  <td class="text-right text-muted">Ontem</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- JOBS -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-block">
+              <h2>Jobs & Migrações</h2>
+              <p>Execuções recentes do orquestrador</p>
+            </div>
+            <button class="btn-ghost">Ver todos</button>
+          </div>
+          <div class="jobs-list">
+            <div class="job-card">
+              <div class="job-top">
+                <div>
+                  <div class="job-title">Migração inicial para Neon</div>
+                  <div class="job-city">Cidade: Afogados</div>
+                </div>
+                <span class="job-status-pill job-status-ok">Concluído</span>
+              </div>
+              <div class="job-time">Há 5 min</div>
+            </div>
+
+            <div class="job-card">
+              <div class="job-top">
+                <div>
+                  <div class="job-title">Provisionar banco + Educação</div>
+                  <div class="job-city">Cidade: Zabelê</div>
+                </div>
+                <span class="job-status-pill job-status-running"
+                  >Em andamento</span
+                >
+              </div>
+              <div class="job-time">Há 2 min</div>
+            </div>
+
+            <div class="job-card">
+              <div class="job-top">
+                <div>
+                  <div class="job-title">Habilitar módulo Saúde</div>
+                  <div class="job-city">Cidade: Soledade</div>
+                </div>
+                <span class="job-status-pill job-status-queue">Na fila</span>
+              </div>
+              <div class="job-time">Aguardando</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ROW 3: TEAM & PARTNERS -->
+      <section class="row-grid-2">
+        <!-- TEAM -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-block">
+              <h2>Equipe interna</h2>
+              <p>Suporte, onboarding e operação</p>
+            </div>
+            <span class="pill-small">Visão global</span>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-block">
+              <p class="metric-label">Analistas ativos</p>
+              <p class="metric-value">6</p>
+            </div>
+            <div class="metric-block">
+              <p class="metric-label">Tickets hoje</p>
+              <p class="metric-value">24</p>
+            </div>
+            <div class="metric-block">
+              <p class="metric-label">SLA médio</p>
+              <p class="metric-value">18 min</p>
+            </div>
+          </div>
+
+          <div class="team-list">
+            <div class="team-item">
+              <div class="team-main">
+                <p class="team-name">Ana (Suporte)</p>
+                <p class="team-action">
+                  Ajudou Zabelê a configurar Educação
+                </p>
+              </div>
+              <span class="time-badge">Há 12 min</span>
+            </div>
+
+            <div class="team-item">
+              <div class="team-main">
+                <p class="team-name">Carlos (Onboarding)</p>
+                <p class="team-action">Kickoff com Soledade</p>
+              </div>
+              <span class="time-badge">Há 45 min</span>
+            </div>
+
+            <div class="team-item">
+              <div class="team-main">
+                <p class="team-name">Bruna (Suporte)</p>
+                <p class="team-action">
+                  Resolveu erro de migração em Afogados
+                </p>
+              </div>
+              <span class="time-badge">Há 1 h</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PARTNERS -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-block">
+              <h2>Parceiros comerciais</h2>
+              <p>Empresas que revendem a plataforma</p>
+            </div>
+            <button class="btn-add">+ Adicionar parceiro</button>
+          </div>
+
+          <div class="partner-list">
+            <div class="partner-item">
+              <div class="partner-main">
+                <p class="partner-name">Agência Cariri Digital</p>
+                <p class="partner-sub">4 cidades gerenciadas</p>
+              </div>
+              <span class="partner-status-pill partner-status-active"
+                >Ativo</span
+              >
+            </div>
+
+            <div class="partner-item">
+              <div class="partner-main">
+                <p class="partner-name">Integra Nordeste</p>
+                <p class="partner-sub">2 cidades gerenciadas</p>
+              </div>
+              <span class="partner-status-pill partner-status-negotiating"
+                >Em negociação</span
+              >
+            </div>
+
+            <div class="partner-item">
+              <div class="partner-main">
+                <p class="partner-name">TechGov Solutions</p>
+                <p class="partner-sub">1 cidade gerenciada</p>
+              </div>
+              <span class="partner-status-pill partner-status-active"
+                >Ativo</span
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // THEME TOGGLE
+    (function () {
+      const toggleBtn = document.getElementById("themeToggle");
+      const icon = document.getElementById("themeIcon");
+      const label = document.getElementById("themeLabel");
+
+      function applyTheme(mode) {
+        document.body.setAttribute("data-theme", mode);
+        if (mode === "dark") {
+          icon.textContent = "🌙";
+          label.textContent = "Tema claro";
+        } else {
+          icon.textContent = "☀️";
+          label.textContent = "Tema escuro";
+        }
+      }
+
+      const saved = window.localStorage.getItem("ub-theme") || "dark";
+      applyTheme(saved);
+
+      toggleBtn.addEventListener("click", () => {
+        const current = document.body.getAttribute("data-theme") || "dark";
+        const next = current === "dark" ? "light" : "dark";
+        applyTheme(next);
+        window.localStorage.setItem("ub-theme", next);
+      });
+    })();
+
+    // CHART SIMULATION
+    (function () {
+      const datasets = {
+        today: [62, 85, 34, 28, 52],
+        yesterday: [48, 72, 40, 22, 39],
+        week: [310, 460, 210, 180, 270],
+        month: [1220, 1890, 840, 690, 1030],
+        custom: [180, 230, 150, 120, 200],
+      };
+
+      const filters = document.querySelectorAll(".chart-filter");
+      const bars = document.querySelectorAll(".chart-bar-inner");
+      const totalSpan = document.getElementById("chartTotal");
+
+      function render(period) {
+        const values = datasets[period] || datasets.today;
+        const max = Math.max(...values);
+        let total = 0;
+        bars.forEach((bar, i) => {
+          const v = values[i] || 0;
+          total += v;
+          const h = max ? Math.max(8, (v / max) * 100) : 10;
+          bar.style.height = h + "%";
+        });
+        totalSpan.textContent = total.toLocaleString("pt-BR");
+      }
+
+      filters.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          filters.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          const period = btn.getAttribute("data-period");
+          render(period);
+        });
+      });
+
+      // inicial
+      render("today");
+    })();
+
+    // REAL-TIME MONITORS (SIMULAÇÃO)
+    (function () {
+      // Elementos
+      const elReqCurrent = document.getElementById("rtReqCurrent");
+      const elReqPeak = document.getElementById("rtReqPeak");
+      const elDbReads = document.getElementById("rtDbReads");
+      const elDbWrites = document.getElementById("rtDbWrites");
+      const elSessCurrent = document.getElementById("rtSessionsCurrent");
+      const elSessPeak = document.getElementById("rtSessionsPeak");
+      const cardReqToday = document.getElementById("cardRequestsToday");
+      const cardReqPerMin = document.getElementById("cardReqPerMin");
+
+      let reqPerSec = 3.4;
+      let reqPeak = 5.2;
+      let dbReads = 120;
+      let dbWrites = 45;
+      let sessionsCurrent = 430;
+      let sessionsPeak = 620;
+      let totalRequestsToday = 1248;
+
+      function randVariation(value, factor) {
+        const variation = (Math.random() - 0.5) * factor;
+        return Math.max(0, value + variation);
+      }
+
+      function tick() {
+        // Atualiza requisições/s
+        reqPerSec = randVariation(reqPerSec, 1.2);
+        if (reqPerSec > reqPeak) reqPeak = reqPerSec;
+
+        // Atualiza leituras/gravações DB
+        dbReads = randVariation(dbReads, 20);
+        dbWrites = randVariation(dbWrites, 10);
+
+        // Sessões
+        sessionsCurrent = randVariation(sessionsCurrent, 40);
+        if (sessionsCurrent > sessionsPeak) sessionsPeak = sessionsCurrent;
+
+        // Total de solicitações no dia cresce com o tempo
+        totalRequestsToday += Math.max(0, Math.round(reqPerSec * (0.5 + Math.random())));
+
+        // Pinta na tela
+        elReqCurrent.textContent = reqPerSec.toFixed(1).replace(".", ",");
+        elReqPeak.textContent = reqPeak.toFixed(1).replace(".", ",");
+
+        elDbReads.textContent = Math.round(dbReads).toLocaleString("pt-BR");
+        elDbWrites.textContent = Math.round(dbWrites).toLocaleString("pt-BR");
+
+        elSessCurrent.textContent = Math.round(sessionsCurrent).toLocaleString("pt-BR");
+        elSessPeak.textContent = Math.round(sessionsPeak).toLocaleString("pt-BR");
+
+        cardReqToday.textContent = totalRequestsToday.toLocaleString("pt-BR");
+        cardReqPerMin.textContent = reqPerSec.toFixed(1).replace(".", ",");
+      }
+
+      tick();
+      setInterval(tick, 2500);
+    })();
+  </script>
+</body>
+</html>

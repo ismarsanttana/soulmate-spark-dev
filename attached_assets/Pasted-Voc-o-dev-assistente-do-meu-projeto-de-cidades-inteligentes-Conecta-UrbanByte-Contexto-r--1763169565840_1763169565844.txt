@@ -1,0 +1,132 @@
+Você é o dev assistente do meu projeto de cidades inteligentes (Conecta / UrbanByte).
+
+Contexto rápido:
+- Frontend em React + Vite (TypeScript).
+- Já existe um fluxo multi-tenant por cidade (tema dinâmico por cidade, Supabase como Control Plane, Neon planejado para Data Plane).
+- Agora quero um PAINEL DA EMPRESA (UrbanByte Control Center) para Superadmin / equipe interna / parceiros.
+
+Objetivo desta tarefa
+Quero que você:
+
+1) Converta o protótipo HTML abaixo em uma página React/TypeScript do meu projeto.
+2) Aumente todos os tamanhos de fonte em ~1–2px para melhorar a legibilidade (nada abaixo de 11–12px).
+3) Mantenha o visual o mais fiel possível ao HTML (design futurista, cards, gráficos, monitores em tempo real, tema claro/escuro).
+4) Crie uma rota protegida para esse painel (ex: `/admin/urbanbyte` ou conforme melhor se encaixar na estrutura de rotas atual).
+5) Implemente controle de acesso: apenas um USUÁRIO MASTER (Superadmin) pode acessar esse painel.
+6) Criar infraestrutura mínima para o USUÁRIO MASTER baseado em Supabase.
+
+### Sobre o usuário MASTER (Superadmin)
+
+Use Supabase (Auth + tabela de controle) para isso:
+
+- Tenha uma tabela de controle, por exemplo `platform_users` (no Supabase, Control Plane), com campos:
+  - `id` UUID
+  - `email` TEXT (unique)
+  - `role` TEXT (ex: 'MASTER', 'TEAM', 'PARTNER')
+  - `created_at` TIMESTAMPTZ default now()
+
+- Use o Auth do Supabase como base (usuários logam normalmente), e vincule o usuário autenticado à tabela `platform_users` via `email`.
+
+- Configure uma ENV:
+  - `MASTER_ADMIN_EMAIL` → email do superadmin (vou preencher depois no Replit/Supabase, pode deixar como variável de ambiente).
+
+- Na inicialização (ou via script utilitário), se não existir nenhum registro com `role = 'MASTER'` na tabela `platform_users`, crie um registro com:
+  - `email = MASTER_ADMIN_EMAIL`
+  - `role = 'MASTER'`.
+
+- Proteja a rota do painel:
+  - Apenas usuários autenticados no Supabase AND com `role = 'MASTER'` em `platform_users` podem acessar a página do dashboard.
+  - Se o usuário não for MASTER, redirecione (por enquanto, pode redirecionar para a home ou exibir mensagem de acesso negado).
+
+### Sobre a página do Dashboard (UI/UX)
+
+Quero uma página React, algo como `src/pages/CompanyDashboard.tsx` (ou no padrão de rotas que você já criou).
+
+A página deve conter:
+
+- Topbar com:
+  - Logo UrbanByte.
+  - Título: "UrbanByte Control Center".
+  - Sub: "Painel mestre de cidades inteligentes".
+  - Badge de ambiente: "Ambiente: Produção".
+  - Botão de alternância de tema (claro/escuro) gravando preferência em `localStorage`.
+  - Bloco com nome do usuário logado (no protótipo: "Isma Santana – Superadmin / Owner").
+
+- Barra de contexto:
+  - Chips: "Superadmin", "Equipe interna", "Parceiros" (por enquanto só mudam estado visual).
+  - Campo de busca de cidade (apenas visual por enquanto).
+
+- Linha de cards resumo (tamanhos de fonte MAIORES que no HTML):
+  - Cidades ativas (ex: 12, "3 em implantação").
+  - Usuários totais (ex: 24.780).
+  - Solicitações hoje (ex: 1.248).
+  - Solicitações/minuto (ex: 3,4).
+  - Jobs/migrações (ex: 7 nas últimas 24h).
+
+- Seção "Monitores em tempo real":
+  - 3 mini-cards:
+    1. Tráfego de requisições (req/s + pico 5min).
+    2. Banco de dados (leituras/s, gravações/s).
+    3. Sessões ativas (atuais + pico última hora).
+  - Os valores podem ser simulações em tempo real (como no HTML, usando `setInterval`).
+  - Depois vamos plugar isso em métricas reais (Prometheus/Grafana/Hórus etc.), então mantenha uma estrutura de código fácil de trocar a fonte de dados.
+
+- Gráfico de barras: "Solicitações por secretaria"
+  - Botões de filtro (Hoje, Ontem, Últimos 7 dias, Últimos 30 dias, Período personalizado).
+  - Barras para: Educação, Saúde, Obras, Cultura, Ouvidoria.
+  - Hoje é apenas visual/simulado; mais tarde ligamos em dados reais.
+
+- Tabela "Visão geral das cidades" (Top 5):
+  - Colunas: Cidade, Módulos, Usuários ativos, Status, Última atividade.
+  - Status com pills coloridos (Operando, Implantação, Teste, Risco etc.).
+
+- Card "Jobs & Migrações":
+  - Lista de jobs recentes: Migração para Neon, Provisionar banco, Habilitar módulo, etc., com status (Concluído, Em andamento, Na fila).
+
+- Card "Equipe interna":
+  - KPIs: Analistas ativos, Tickets hoje, SLA médio.
+  - Lista de atividades recentes da equipe (ex: Ana – suporte Zabelê; Carlos – onboarding Soledade).
+
+- Card "Parceiros comerciais":
+  - Botão "+ Adicionar parceiro" (por enquanto só estético).
+  - Lista de parceiros: nome, nº de cidades, status (Ativo / Em negociação).
+
+### Tipografia e responsividade
+
+- Muito importante: os textos estavam pequenos. Ao converter o HTML:
+  - Aumente toda tipografia em 1–2px (ex.: onde era 10px/11px, use 12px/13px).
+  - Nenhum texto funcional deve ficar abaixo de ~11px.
+  - Mantenha boa hierarquia visual entre título, subtítulo e números.
+
+- Design deve ser totalmente responsivo:
+  - Desktop: layout 3 linhas como no protótipo.
+  - Tablet: 2 colunas onde fizer sentido.
+  - Mobile: cards empilhados, tabelas roláveis horizontalmente se preciso.
+
+### Tecnologias e organização
+
+- Reutilize o máximo possível do sistema já existente:
+  - Se o projeto usa Tailwind, converta o CSS em classes Tailwind.
+  - Se usa CSS Modules ou um `global.css`, pode colocar o estilo em um módulo próprio (ex.: `CompanyDashboard.css`) e importar na página.
+
+- Tema claro/escuro:
+  - Pode aproveitar o mesmo mecanismo que você já usa em outras telas ou seguir o do HTML (body[data-theme]).
+  - Armazene a escolha em `localStorage` (`ub-theme`) e aplique no carregamento.
+
+### Protótipo HTML/CSS/JS (base visual)
+
+Abaixo está o protótipo completo. Use como referência fiel de layout, mas converta para React/TS e ajustando tipografia para maior legibilidade.
+
+(COLEI O HTML COMPLETO APÓS ESSA DESCRIÇÃO)
+
+Fique à vontade para:
+- refatorar em componentes menores (SummaryCard, RealTimeMonitor, ChartSection, etc.),
+- ajustar ligeiramente espaçamentos e fontes para ficar mais bonito,
+- mas mantenha o espírito do design.
+
+Quando terminar:
+- deixe a página integrada às rotas existentes,
+- com proteção de acesso para o usuário MASTER,
+- e com o tema claro/escuro funcionando.
+
+Agora segue o HTML base:
