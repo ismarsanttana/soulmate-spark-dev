@@ -53,6 +53,50 @@ The system uses a sophisticated domain detection mechanism that supports both pr
 - Cities table definition in `src/integrations/supabase/types.ts`
 - All CRUD operations are type-safe via TypeScript
 
+### Multi-Context Authentication Architecture
+
+The platform implements **isolated authentication systems** for each domain context to prevent privilege escalation and session leakage. Each context uses a dedicated Supabase client with unique storage keys.
+
+**Authentication Clients:**
+- `src/integrations/supabase/citizen.ts` - City portal authentication (default)
+- `src/integrations/supabase/master.ts` - MASTER admin panel authentication
+- `src/integrations/supabase/collaborator.ts` - Team panel authentication
+- `src/integrations/supabase/partner.ts` - Partner panel authentication
+
+**Key Security Features:**
+1. **Isolated Session Storage** - Each client uses unique localStorage keys:
+   - Citizen: `sb-hqhjbelcouanvcrqudbj-auth-token`
+   - Master: `sb-hqhjbelcouanvcrqudbj-auth-token-master`
+   - Collaborator: `sb-hqhjbelcouanvcrqudbj-auth-token-collaborator`
+   - Partner: `sb-hqhjbelcouanvcrqudbj-auth-token-partner`
+
+2. **Dedicated Auth Routes** - Each context has its own login page:
+   - `dash.urbanbyte.com.br/auth` → `AuthMaster.tsx`
+   - `colaborador.urbanbyte.com.br/auth` → `AuthCollaborator.tsx`
+   - `parceiro.urbanbyte.com.br/auth` → `AuthPartner.tsx`
+   - `{city}.urbanbyte.com.br/auth` → `AuthCitizen.tsx`
+
+3. **Context-Aware Hook** - `useAuthContext()` automatically selects correct client:
+   ```typescript
+   const client = useAuthContext(); // Returns correct client based on domain
+   ```
+
+4. **Shell-Level Routing** - Each AppShell has independent routing:
+   - `MasterAppShell.tsx` - Routes for MASTER panel
+   - `CollaboratorShell.tsx` - Routes for COLLABORATOR panel
+   - `PartnerShell.tsx` - Routes for PARTNER panel
+   - `CityAppShell.tsx` - Routes for city portals
+
+**Session Isolation Benefits:**
+- User logged into `dash.urbanbyte.com.br` cannot access city portals with same session
+- Admin tokens stored separately from citizen tokens
+- Prevents cross-domain privilege escalation attacks
+- Enables concurrent logins across different contexts (e.g., admin + citizen)
+
+**Backward Compatibility:**
+- `src/integrations/supabase/client.ts` - Barrel file exports all clients
+- Legacy code continues to work via `supabase` export (aliases `supabaseCitizen`)
+
 ## External Dependencies
 
 ### Primary Services
