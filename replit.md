@@ -20,7 +20,38 @@ Supabase serves as the backend-as-a-service, providing a PostgreSQL database wit
 
 ### Multi-Tenant Architecture (White Label Platform)
 
-The platform supports multi-tenancy through dynamic theming and content. City configurations (name, slug, logo, colors) are stored in a `cities` table in Supabase. A custom Vite plugin exposes a theme API, and a React hook (`useCityTheme`) fetches this data. A `ThemeProvider` component then converts HEX colors to HSL and injects them as global CSS variables, enabling automatic styling throughout the application. Future phases include dynamic PWA manifest colors, separate PostgreSQL databases per city (e.g., via Neon), and custom domain support.
+The platform supports multi-tenancy through dynamic theming and content. City configurations (name, slug, logo, colors) are stored in a `cities` table in Supabase Control Plane. A custom Vite plugin exposes a theme API, and a React hook (`useCityTheme`) fetches this data. A `ThemeProvider` component then converts HEX colors to HSL and injects them as global CSS variables, enabling automatic styling throughout the application.
+
+#### Multi-Domain Context Detection
+
+The system uses a sophisticated domain detection mechanism that supports both production domains and development query parameters:
+
+**Core Files:**
+- `src/core/domain-context.ts` - Detects current application context from hostname/query params
+- `src/core/Bootstrap.tsx` - Root component that renders appropriate AppShell based on context
+- `src/hooks/useCityBySubdomain.ts` - Fetches city data with graceful slug fallback
+
+**Domain Contexts:**
+1. **ROOT** (`urbanbyte.com.br`) - Marketing/institutional website
+2. **MASTER** (`dash.urbanbyte.com.br` or `?mode=dash`) - UrbanByte Control Center
+3. **COLLABORATOR** (`colaborador.urbanbyte.com.br` or `?mode=colaborador`) - Team panel
+4. **PARTNER** (`parceiro.urbanbyte.com.br` or `?mode=parceiro`) - Partner panel
+5. **CITY** (`{city}.urbanbyte.com.br` or `?mode=city&subdomain={city}`) - City portals
+
+**Development Mode:**
+- Query params (`?mode=dash`, `?mode=city`) override hostname detection
+- Only works in dev environments (localhost, *.replit.dev) for security
+- DEV test button available in city portal to switch between modes
+- Bootstrap uses `useLocation()` + `useMemo()` to react to query param changes
+
+**City Resolution:**
+- Primary: Uses `subdomain` column from cities table
+- Fallback: Maps slug to full subdomain (e.g., "afogados" → "afogados-da-ingazeira")
+- Graceful degradation during schema transition period
+
+**Type Safety:**
+- Cities table definition in `src/integrations/supabase/types.ts`
+- All CRUD operations are type-safe via TypeScript
 
 ## External Dependencies
 
