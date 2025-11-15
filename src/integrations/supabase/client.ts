@@ -1,12 +1,16 @@
 /**
  * Supabase Client Barrel Export
  * 
- * Re-exports all lazy-loaded Supabase clients.
- * For backward compatibility, exports getter functions that return memoized instances.
+ * Re-exports all context-specific Supabase clients.
  * 
- * NOTE: Clients are now lazy-loaded to prevent "Multiple GoTrueClient instances" warning.
- * Legacy code can still use these exports, but new code should use lazy-clients directly.
+ * ARCHITECTURE NOTE:
+ * - Legacy code imports clients as objects (supabase, supabaseCitizen, etc)
+ * - New auth code uses lazy getters (getCitizenClient, getMasterClient, etc)
+ * - This prevents "Multiple GoTrueClient instances" warning by only loading
+ *   the client for the current context.
  */
+
+// Lazy getters (used by useAuthContext and auth pages)
 export {
   getCitizenClient,
   getMasterClient,
@@ -15,9 +19,8 @@ export {
   resetAllClients,
 } from './lazy-clients';
 
-// Backward compatibility: Default export
-export const supabase = getCitizenClient;
-export const supabaseCitizen = getCitizenClient;
-export const supabaseMaster = getMasterClient;
-export const supabaseCollaborator = getCollaboratorClient;
-export const supabasePartner = getPartnerClient;
+// Direct clients (backward compatibility for legacy code)
+export { supabase, supabaseCitizen } from './citizen';
+export { supabaseMaster } from './master';
+export { supabaseCollaborator } from './collaborator';
+export { supabasePartner } from './partner';
