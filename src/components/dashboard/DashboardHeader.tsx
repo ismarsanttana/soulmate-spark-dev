@@ -4,9 +4,18 @@ import { Settings, LogOut, Moon, Sun } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { User } from "lucide-react";
 
 export function DashboardHeader() {
-  const { data: platformData } = usePlatformUser();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+  }, []);
+
+  const { data: platformData } = usePlatformUser(isAuthenticated);
   const navigate = useNavigate();
   const [theme, setTheme] = useState<"light" | "dark">("light");
 

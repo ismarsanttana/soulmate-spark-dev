@@ -11,13 +11,14 @@ export interface PlatformUser {
   created_at: string;
 }
 
-export const usePlatformUser = () => {
+export const usePlatformUser = (enabled: boolean = false) => {
   return useQuery({
     queryKey: ["platform-user"],
     queryFn: async () => {
       // Get currently authenticated user
       const { data: { user } } = await supabase.auth.getUser();
       
+      // Return unauthorized state if not authenticated (safe for public pages)
       if (!user?.email) {
         return {
           platformUser: null,
@@ -36,6 +37,7 @@ export const usePlatformUser = () => {
         .eq("email", user.email)
         .single();
 
+      // If user is not in platform_users table, return unauthorized state
       if (error || !data) {
         return {
           platformUser: null,
@@ -58,7 +60,11 @@ export const usePlatformUser = () => {
         isPlatformUser: true,
       };
     },
+    // Only enable query when explicitly allowed (after auth check)
+    enabled,
     // Refresh every 5 minutes to catch role changes
     staleTime: 5 * 60 * 1000,
+    // Prevent retry on auth errors
+    retry: false,
   });
 };

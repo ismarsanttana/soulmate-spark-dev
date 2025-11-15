@@ -19,6 +19,18 @@ CREATE INDEX IF NOT EXISTS idx_platform_users_role ON platform_users(role);
 -- Enable RLS (Row Level Security)
 ALTER TABLE platform_users ENABLE ROW LEVEL SECURITY;
 
+-- Helper function to check if current user is MASTER (SECURITY DEFINER)
+CREATE OR REPLACE FUNCTION is_platform_master()
+RETURNS BOOLEAN
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE SQL AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM platform_users 
+    WHERE email = auth.email() AND role = 'MASTER'
+  );
+$$;
+
 -- Policy: Users can read their own platform_users record
 CREATE POLICY "Users can read own platform_users record" 
 ON platform_users FOR SELECT 
@@ -27,22 +39,23 @@ USING (auth.email() = email);
 -- Policy: MASTER users can read all platform_users
 CREATE POLICY "MASTER users can read all platform_users" 
 ON platform_users FOR SELECT 
-USING (
-  EXISTS (
-    SELECT 1 FROM platform_users 
-    WHERE email = auth.email() AND role = 'MASTER'
-  )
-);
+USING (is_platform_master());
 
--- Policy: MASTER users can insert/update/delete platform_users
-CREATE POLICY "MASTER users can manage platform_users" 
-ON platform_users FOR ALL 
-USING (
-  EXISTS (
-    SELECT 1 FROM platform_users 
-    WHERE email = auth.email() AND role = 'MASTER'
-  )
-);
+-- Policy: MASTER users can INSERT new platform_users
+CREATE POLICY "MASTER users can insert platform_users" 
+ON platform_users FOR INSERT 
+WITH CHECK (is_platform_master());
+
+-- Policy: MASTER users can UPDATE platform_users
+CREATE POLICY "MASTER users can update platform_users" 
+ON platform_users FOR UPDATE 
+USING (is_platform_master())
+WITH CHECK (is_platform_master());
+
+-- Policy: MASTER users can DELETE platform_users
+CREATE POLICY "MASTER users can delete platform_users" 
+ON platform_users FOR DELETE 
+USING (is_platform_master());
 
 -- Function to auto-update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_platform_users_updated_at()

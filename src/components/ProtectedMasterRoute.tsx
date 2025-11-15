@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePlatformUser } from "@/hooks/usePlatformUser";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,19 +12,26 @@ interface ProtectedMasterRouteProps {
 
 export function ProtectedMasterRoute({ children }: ProtectedMasterRouteProps) {
   const navigate = useNavigate();
-  const { data: platformData, isLoading } = usePlatformUser();
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // CRITICAL: Check auth BEFORE loading platform user data
   useEffect(() => {
-    // Check if user is authenticated
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         navigate("/auth", { replace: true });
+      } else {
+        setIsAuthenticated(true);
       }
+      setIsAuthChecked(true);
     });
   }, [navigate]);
 
-  // Loading state
-  if (isLoading) {
+  // Only query platform_users AFTER auth is confirmed
+  const { data: platformData, isLoading: isPlatformLoading, error } = usePlatformUser(isAuthenticated);
+
+  // Loading state - checking auth first, then platform access
+  if (!isAuthChecked || (isAuthenticated && isPlatformLoading)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -37,8 +44,13 @@ export function ProtectedMasterRoute({ children }: ProtectedMasterRouteProps) {
     );
   }
 
-  // Not authorized - show access denied
-  if (!platformData?.isMaster) {
+  // Not authenticated (should redirect, but show fallback)
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Not authorized or error - show access denied
+  if (!platformData?.isMaster || error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background p-6">
         <Card className="max-w-md w-full">
