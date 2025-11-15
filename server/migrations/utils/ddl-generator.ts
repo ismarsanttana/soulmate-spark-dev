@@ -1,0 +1,280 @@
+/**
+ * DDL Generator
+ * 
+ * Generates PostgreSQL DDL (CREATE TABLE, ALTER TABLE, CREATE INDEX)
+ * compatible with Neon based on schema read from Supabase.
+ */
+
+import { TableSchema, ColumnDefinition } from './schema-reader';
+
+/**
+ * Generated DDL statements for a table
+ */
+export interface GeneratedDDL {
+  createTable: string;
+  alterStatements: string[];
+  createIndexes: string[];
+  allStatements: string[];
+}
+
+/**
+ * Generate complete DDL for a table
+ */
+export function generateTableDDL(schema: TableSchema): GeneratedDDL {
+  const createTable = generateCreateTable(schema);
+  const alterStatements = generateAlterStatements(schema);
+  const createIndexes = generateCreateIndexes(schema);
+
+  return {
+    createTable,
+    alterStatements,
+    createIndexes,
+    allStatements: [createTable, ...alterStatements, ...createIndexes],
+  };
+}
+
+/**
+ * Generate CREATE TABLE statement
+ */
+function generateCreateTable(schema: TableSchema): string {
+  const { schemaName, tableName, columns, primaryKey } = schema;
+
+  const columnDefs = columns.map((col) => generateColumnDefinition(col));
+
+  // Add PRIMARY KEY inline if exists
+  if (primaryKey) {
+    const pkCols = primaryKey.columns.join(', ');
+    columnDefs.push(`CONSTRAINT ${primaryKey.constraintName} PRIMARY KEY (${pkCols})`);
+  }
+
+  const columnsPart = columnDefs.map((def) => `  ${def}`).join(',\n');
+
+  return `CREATE TABLE IF NOT EXISTS "${schemaName}"."${tableName}" (\n${columnsPart}\n);`;
+}
+
+/**
+ * Generate column definition
+ */
+function generateColumnDefinition(col: ColumnDefinition): string {
+  const { columnName, dataType, isNullable, columnDefault } = col;
+
+  let def = `"${columnName}" ${mapDataType(col)}`;
+
+  // Add NOT NULL constraint
+  if (!isNullable) {
+    def += ' NOT NULL';
+  }
+
+  // Add DEFAULT value
+  if (columnDefault) {
+    def += ` DEFAULT ${cleanDefault(columnDefault)}`;
+  }
+
+  return def;
+}
+
+/**
+ * Map Postgres data types
+ * Handles special types and converts to Neon-compatible format
+ */
+function mapDataType(col: ColumnDefinition): string {
+  const { dataType, udtName, characterMaximumLength, numericPrecision, numericScale } = col;
+
+  // Handle common types
+  switch (udtName.toLowerCase()) {
+    case 'uuid':
+      return 'uuid';
+    case 'int4':
+    case 'int2':
+    case 'int8':
+      return udtName.replace('int', 'integer').replace('2', ' smallint').replace('4', '').replace('8', ' bigint');
+    case 'bool':
+      return 'boolean';
+    case 'text':
+      return 'text';
+    case 'varchar':
+    case 'bpchar':
+      if (characterMaximumLength) {
+        return `varchar(${characterMaximumLength})`;
+      }
+      return 'text';
+    case 'timestamp':
+    case 'timestamptz':
+      return udtName === 'timestamptz' ? 'timestamp with time zone' : 'timestamp without time zone';
+    case 'date':
+      return 'date';
+    case 'time':
+    case 'timetz':
+      return udtName === 'timetz' ? 'time with time zone' : 'time without time zone';
+    case 'numeric':
+    case 'decimal':
+      if (numericPrecision && numericScale) {
+        return `numeric(${numericPrecision}, ${numericScale})`;
+      } else if (numericPrecision) {
+        return `numeric(${numericPrecision})`;
+      }
+      return 'numeric';
+    case 'float4':
+      return 'real';
+    case 'float8':
+      return 'double precision';
+    case 'jsonb':
+      return 'jsonb';
+    case 'json':
+      return 'json';
+    case 'bytea':
+      return 'bytea';
+    case '_text':
+      return 'text[]';
+    case '_varchar':
+      return 'varchar[]';
+    case '_int4':
+      return 'integer[]';
+    case '_uuid':
+      return 'uuid[]';
+    default:
+      // If it starts with underscore, it's an array type
+      if (udtName.startsWith('_')) {
+        const baseType = udtName.substring(1);
+        return `${baseType}[]`;
+      }
+      // Fallback to original data type
+      return dataType;
+  }
+}
+
+/**
+ * Clean default value for SQL statement
+ * Removes casting and schema prefixes added by Postgres
+ */
+function cleanDefault(defaultValue: string): string {
+  // Remove explicit casts like ::type
+  let cleaned = defaultValue.replace(/::[a-zA-Z_]+(\[\])?/g, '');
+
+  // Remove schema prefixes from functions
+  cleaned = cleaned.replace(/public\./g, '');
+
+  // Handle common patterns
+  cleaned = cleaned.trim();
+
+  return cleaned;
+}
+
+/**
+ * Generate ALTER TABLE statements for constraints
+ */
+function generateAlterStatements(schema: TableSchema): string[] {
+  const { schemaName, tableName, foreignKeys, uniqueConstraints, checkConstraints } = schema;
+  const statements: string[] = [];
+
+  // Add foreign keys
+  for (const fk of foreignKeys) {
+    const cols = fk.columns.join(', ');
+    const foreignCols = fk.foreignColumns.join(', ');
+    
+    let stmt = `ALTER TABLE "${schemaName}"."${tableName}"\n`;
+    stmt += `  ADD CONSTRAINT ${fk.constraintName}\n`;
+    stmt += `  FOREIGN KEY (${cols})\n`;
+    stmt += `  REFERENCES "${schemaName}"."${fk.foreignTable}" (${foreignCols})`;
+
+    if (fk.onDelete !== 'NO ACTION') {
+      stmt += `\n  ON DELETE ${fk.onDelete}`;
+    }
+    if (fk.onUpdate !== 'NO ACTION') {
+      stmt += `\n  ON UPDATE ${fk.onUpdate}`;
+    }
+
+    stmt += ';';
+    statements.push(stmt);
+  }
+
+  // Add unique constraints
+  for (const unique of uniqueConstraints) {
+    const cols = unique.columns.join(', ');
+    const stmt = `ALTER TABLE "${schemaName}"."${tableName}"\n  ADD CONSTRAINT ${unique.constraintName} UNIQUE (${cols});`;
+    statements.push(stmt);
+  }
+
+  // Add check constraints
+  for (const check of checkConstraints) {
+    const stmt = `ALTER TABLE "${schemaName}"."${tableName}"\n  ADD CONSTRAINT ${check.constraintName} CHECK ${check.checkClause};`;
+    statements.push(stmt);
+  }
+
+  return statements;
+}
+
+/**
+ * Generate CREATE INDEX statements
+ */
+function generateCreateIndexes(schema: TableSchema): string[] {
+  const { schemaName, tableName, indexes } = schema;
+  const statements: string[] = [];
+
+  for (const index of indexes) {
+    // Skip primary key indexes (already handled)
+    if (index.indexName.endsWith('_pkey')) {
+      continue;
+    }
+
+    const cols = index.columns.join(', ');
+    const uniqueKeyword = index.isUnique ? 'UNIQUE ' : '';
+    
+    let stmt = `CREATE ${uniqueKeyword}INDEX IF NOT EXISTS ${index.indexName}\n`;
+    stmt += `  ON "${schemaName}"."${tableName}"`;
+
+    // Use index type if not default btree
+    if (index.indexType !== 'btree') {
+      stmt += ` USING ${index.indexType}`;
+    }
+
+    stmt += ` (${cols});`;
+    statements.push(stmt);
+  }
+
+  return statements;
+}
+
+/**
+ * Generate DDL for multiple tables
+ * Orders tables to handle foreign key dependencies
+ */
+export function generateMultiTableDDL(schemas: TableSchema[]): GeneratedDDL {
+  const allStatements: string[] = [];
+  const createIndexes: string[] = [];
+  const alterStatements: string[] = [];
+
+  // First pass: CREATE TABLE statements (without foreign keys)
+  for (const schema of schemas) {
+    const ddl = generateTableDDL(schema);
+    allStatements.push(ddl.createTable);
+  }
+
+  // Second pass: ALTER TABLE for constraints (after all tables exist)
+  for (const schema of schemas) {
+    const ddl = generateTableDDL(schema);
+    alterStatements.push(...ddl.alterStatements);
+    allStatements.push(...ddl.alterStatements);
+  }
+
+  // Third pass: CREATE INDEX statements
+  for (const schema of schemas) {
+    const ddl = generateTableDDL(schema);
+    createIndexes.push(...ddl.createIndexes);
+    allStatements.push(...ddl.createIndexes);
+  }
+
+  return {
+    createTable: '', // Not applicable for multi-table
+    alterStatements,
+    createIndexes,
+    allStatements,
+  };
+}
+
+/**
+ * Format DDL for human readability
+ */
+export function formatDDL(ddl: GeneratedDDL): string {
+  return ddl.allStatements.join('\n\n');
+}
