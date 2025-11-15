@@ -1,0 +1,128 @@
+Quero que você estruture a ARQUITETURA DE DOMÍNIOS e o roteamento geral do meu ecossistema UrbanByte.
+
+## 1. Contexto atual do projeto
+
+- Stack principal:
+  - Frontend: React + Vite (TypeScript).
+  - Supabase: Control Plane (cities, platform_users, etc.).
+  - Neon: planejado como Data Plane (um DB por cidade).
+- Já existem:
+  - Tabela `cities` no Supabase, com tema por cidade.
+  - Tabela `platform_users` com `role` (MASTER, TEAM, PARTNER).
+  - Hook `usePlatformUser()` com opt-in `enabled`.
+  - Rota protegida `/admin/urbanbyte` com `ProtectedMasterRoute` apenas para `role = 'MASTER'`.
+  - Dashboard MASTER (UrbanByte Control Center) já pronto e protegido (CompanyDashboard).
+
+Agora quero organizar a ARQUITETURA DE DOMÍNIOS completa:
+
+## 2. Domínios que vão existir
+
+Quero trabalhar em cima do domínio raiz `urbanbyte.com.br`, com os seguintes subdomínios:
+
+### 2.1. Domínio principal – Marketing
+
+- `urbanbyte.com.br`
+  - Site institucional / marketing.
+  - Apresenta produtos, soluções, cases, blog, contato.
+  - Não é painel, nem app.
+
+### 2.2. Painéis da UrbanByte (Control Plane + Trabalho interno)
+
+- `dash.urbanbyte.com.br`
+  - **Painel MASTER** – UrbanByte Control Center.
+  - Aqui roda o dashboard que você já implementou na rota `/admin/urbanbyte`.
+  - É a visão de Superadmin/Owner: vê todas as cidades, módulos, jobs de migração, monitores em tempo real, etc.
+  - Apenas `role = 'MASTER'` acessa.
+
+- `colaborador.urbanbyte.com.br`
+  - Painel da **equipe interna** (SUPORTE / ONBOARDING / TÉCNICO).
+  - Foco: tickets de suporte, acompanhamento de implantações, atendimento às cidades.
+  - Apenas usuários com `role = 'TEAM'` (na `platform_users`) acessam.
+
+- `parceiro.urbanbyte.com.br`
+  - Painel do **programa de parcerias e revenda**.
+  - Foco: empresas parceiras que revendem o sistema para várias cidades.
+  - Mostra as cidades do parceiro, performance, status da base dele etc.
+  - Apenas `role = 'PARTNER'` acessa.
+
+### 2.3. Subdomínios das cidades – Ecossistema do cidadão
+
+Para cada cidade teremos:
+
+- `{city}.urbanbyte.com.br`
+
+Exemplos:
+
+- `afogados.urbanbyte.com.br`
+  - Portal da cidade de Afogados da Ingazeira.
+- `zabele.urbanbyte.com.br`
+  - Portal da cidade de Zabelê.
+- etc.
+
+Dentro de cada cidade, teremos rotas tipo:
+
+- `afogados.urbanbyte.com.br/login`
+  - login de todos os usuários da cidade (cidadão + interno local).
+- `afogados.urbanbyte.com.br/edu`
+  - ecossistema da **Educação** (pais, alunos, escolas, secretário de Educação).
+- `afogados.urbanbyte.com.br/saude`
+  - ecossistema da **Saúde**.
+- e assim sucessivamente:
+  - `/cultura`
+  - `/obras`
+  - `/assistencia`
+  - `/ouvidoria`
+  - etc.
+
+Essa mesma lógica vale pra `zabele.urbanbyte.com.br`, `soledade.urbanbyte.com.br` etc.
+
+---
+
+## 3. O que eu quero que você implemente
+
+### 3.1. Detecção de contexto por hostname
+
+Quero que o frontend (React/Vite) seja capaz de entender EM QUE “modo” ele está, com base no `window.location.hostname`.
+
+Regras:
+
+1. Quando for `urbanbyte.com.br`:
+   - Renderizar o **site institucional**.
+   - Pode ser um app separado ou uma rota/entry diferente, mas quero a arquitetura pronta.
+
+2. Quando for `dash.urbanbyte.com.br`:
+   - Renderizar o **Painel MASTER** (UrbanByte Control Center).
+   - A rota principal pode ser `/` ou `/dashboard`, tanto faz, mas o importante é:
+     - esse app é o Control Plane MASTER.
+     - apenas `role = 'MASTER'` acessa.
+
+3. Quando for `colaborador.urbanbyte.com.br`:
+   - Renderizar o **Painel Colaborador** (ainda que simples por enquanto).
+   - Apenas `role = 'TEAM'` acessa.
+
+4. Quando for `parceiro.urbanbyte.com.br`:
+   - Renderizar o **Painel Parceiro**.
+   - Apenas `role = 'PARTNER'` acessa.
+
+5. Quando for `{subdomain}.urbanbyte.com.br` e o subdomínio NÃO for `dash`, `colaborador`, `parceiro`, nem o root:
+   - Tratar como **subdomínio de cidade**.
+   - Exemplo: `afogados.urbanbyte.com.br` → subdomínio `afogados`.
+   - Consultar Supabase (tabela `cities`) para resolver qual cidade é:
+     - usar um campo `subdomain` na tabela `cities` (se não existir, criar e popular).
+       - ex: city: "Afogados da Ingazeira" → subdomain: "afogados"
+   - A partir daí:
+     - aplicar tema da cidade (logo, cores),
+     - saber quais módulos estão habilitados (educação, saúde etc.),
+     - renderizar as páginas baseadas nas rotas (`/login`, `/edu`, `/saude` etc.).
+
+### 3.2. Organização do código (monorepo ou app único)
+
+Quero tudo isso rodando em cima do MESMO projeto (monorepo/app único com Vite), com lógica condicional por hostname.
+
+Sugestão de abordagem (pode adaptar):
+
+- No entry point (ex.: `main.tsx` ou equivalente), detectar o modo:
+
+  ```ts
+  const hostname = window.location.hostname; // afogados.urbanbyte.com.br, dash.urbanbyte.com.br, etc.
+  const [subdomain] = hostname.split(".");
