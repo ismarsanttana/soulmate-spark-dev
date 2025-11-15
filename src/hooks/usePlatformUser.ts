@@ -1,25 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuthContext } from "./useAuthContext";
 
-export type PlatformRole = "MASTER" | "TEAM" | "PARTNER" | null;
+// Use lowercase to match database schema
+export type PlatformRole = "master" | "team" | "partner" | null;
 
 export interface PlatformUser {
   id: string;
-  email: string;
+  user_id: string;
   role: PlatformRole;
-  full_name: string | null;
+  is_active: boolean;
   created_at: string;
 }
 
 export const usePlatformUser = (enabled: boolean = false) => {
+  const client = useAuthContext();
+  
   return useQuery({
     queryKey: ["platform-user"],
     queryFn: async () => {
       // Get currently authenticated user
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await client.auth.getUser();
       
       // Return unauthorized state if not authenticated (safe for public pages)
-      if (!user?.email) {
+      if (!user?.id) {
         return {
           platformUser: null,
           role: null,
@@ -30,15 +33,17 @@ export const usePlatformUser = (enabled: boolean = false) => {
         };
       }
 
-      // Query platform_users table
-      const { data, error } = await supabase
+      // Query platform_users table using user_id (not email)
+      const { data, error } = await client
         .from("platform_users")
         .select("*")
-        .eq("email", user.email)
+        .eq("user_id", user.id)
+        .eq("is_active", true)
         .single();
 
-      // If user is not in platform_users table, return unauthorized state
+      // If user is not in platform_users table or not active, return unauthorized state
       if (error || !data) {
+        console.log('[usePlatformUser] User not found in platform_users or not active');
         return {
           platformUser: null,
           role: null,
@@ -54,9 +59,9 @@ export const usePlatformUser = (enabled: boolean = false) => {
       return {
         platformUser,
         role: platformUser.role,
-        isMaster: platformUser.role === "MASTER",
-        isTeam: platformUser.role === "TEAM",
-        isPartner: platformUser.role === "PARTNER",
+        isMaster: platformUser.role === "master",
+        isTeam: platformUser.role === "team",
+        isPartner: platformUser.role === "partner",
         isPlatformUser: true,
       };
     },

@@ -9,10 +9,12 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useDomainContext } from '@/hooks/useDomainContext';
 import { usePlatformUser } from '@/hooks/usePlatformUser';
+import { useAuthContext } from '@/hooks/useAuthContext';
 import { validateDomainAccess, getAccessDenialMessage } from './domain-access';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, LogIn } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface DomainGuardProps {
   children: React.ReactNode;
@@ -48,15 +50,32 @@ export function DomainGuard({
   accessDeniedComponent 
 }: DomainGuardProps) {
   const context = useDomainContext();
+  const client = useAuthContext();
   const { data: platformUser, isLoading } = usePlatformUser(true);
   const [accessResult, setAccessResult] = useState<ReturnType<typeof validateDomainAccess> | null>(null);
+  const [hasSignedOut, setHasSignedOut] = useState(false);
 
   useEffect(() => {
     if (!isLoading) {
       const result = validateDomainAccess(context, platformUser?.role || null);
       setAccessResult(result);
+      
+      // If access is denied and user has a session, sign them out
+      if (!result.allowed && !hasSignedOut) {
+        client.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            console.log('[DomainGuard] Signing out user with invalid role for', context.type);
+            client.auth.signOut().then(() => {
+              setHasSignedOut(true);
+              toast.error('Acesso negado', {
+                description: result.reason || 'Você não tem permissão para acessar esta área.'
+              });
+            });
+          }
+        });
+      }
     }
-  }, [context, platformUser, isLoading]);
+  }, [context, platformUser, isLoading, client, hasSignedOut]);
 
   // Loading state
   if (isLoading || !accessResult) {
