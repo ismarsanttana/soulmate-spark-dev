@@ -35,6 +35,7 @@ program
   .description('Migrate Afogados da Ingazeira from Supabase to Neon (ONE-TIME migration)')
   .option('-m, --modules <modules>', 'Comma-separated list of modules (default: all)')
   .option('--batch-size <size>', 'Data migration batch size', '1000')
+  .option('--truncate', 'TRUNCATE tables before inserting (for safe re-runs after partial failures)', false)
   .action(async (options) => {
     try {
       const modulesToProvision = options.modules
@@ -50,6 +51,7 @@ program
       const result = await provisionAfogados({
         modulesToProvision,
         batchSize,
+        truncateBeforeInsert: options.truncate,
       });
 
       console.log('\n' + '='.repeat(80));

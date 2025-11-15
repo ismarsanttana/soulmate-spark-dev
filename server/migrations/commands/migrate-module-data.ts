@@ -23,6 +23,7 @@ export interface MigrateModuleDataOptions {
   targetPool: Pool;
   batchSize?: number;
   skipIfNotEmpty?: boolean;
+  truncateBeforeInsert?: boolean;
 }
 
 /**
@@ -49,6 +50,7 @@ export async function migrateModuleData(
     targetPool,
     batchSize = 1000,
     skipIfNotEmpty = true,
+    truncateBeforeInsert = false,
   } = options;
 
   logger.moduleStart(citySlug, moduleKey);
@@ -66,6 +68,7 @@ export async function migrateModuleData(
         cityIdFilter,
         batchSize,
         skipIfNotEmpty,
+        truncateBeforeInsert,
       });
 
       tableResults.push(result);
@@ -103,7 +106,8 @@ export async function migrateMultipleModules(
   targetPool: Pool,
   cityIdFilter?: string | null,
   batchSize?: number,
-  skipIfNotEmpty?: boolean
+  skipIfNotEmpty?: boolean,
+  truncateBeforeInsert?: boolean
 ): Promise<MigrateModuleDataResult[]> {
   const results: MigrateModuleDataResult[] = [];
 
@@ -115,6 +119,7 @@ export async function migrateMultipleModules(
       targetPool,
       batchSize,
       skipIfNotEmpty,
+      truncateBeforeInsert,
     });
     results.push(result);
   }

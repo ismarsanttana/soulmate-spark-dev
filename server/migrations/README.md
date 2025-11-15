@@ -114,7 +114,17 @@ npm run migrate:provision -- --modules educacao,saude,conteudo
 
 # Custom batch size for data migration
 npm run migrate:provision -- --batch-size 5000
+
+# Safe re-run after partial failure (TRUNCATE tables first)
+npm run migrate:provision -- --truncate
 ```
+
+**Recovery from Failed Migration:**
+If a migration fails partway through (network issue, timeout, etc.), use `--truncate` flag to safely re-run:
+```bash
+npm run migrate:provision -- --truncate
+```
+This will TRUNCATE all tables before re-inserting data, ensuring a clean migration.
 
 **Important:**
 - This is a **non-destructive** migration (data remains in Supabase)

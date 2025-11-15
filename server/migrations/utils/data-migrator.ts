@@ -24,6 +24,7 @@ export interface MigrationOptions {
   cityIdFilter?: string | null; // Filter value for city_id column (null = Afogados data without city_id)
   batchSize?: number;
   skipIfNotEmpty?: boolean; // Skip migration if target table already has rows
+  truncateBeforeInsert?: boolean; // TRUNCATE table before inserting (for safe re-runs)
   schemaName?: string;
 }
 
@@ -71,6 +72,7 @@ export async function migrateTableData(
     cityIdFilter = null,
     batchSize = 1000,
     skipIfNotEmpty = true,
+    truncateBeforeInsert = false,
     schemaName = 'public',
   } = options;
 
@@ -91,7 +93,7 @@ export async function migrateTableData(
   }
 
   // Check if target table is empty (idempotency)
-  if (skipIfNotEmpty) {
+  if (skipIfNotEmpty && !truncateBeforeInsert) {
     const targetRowCount = await getTableRowCount(targetPool, tableName, schemaName);
     if (targetRowCount > 0) {
       const duration = Date.now() - startTime;
@@ -104,6 +106,12 @@ export async function migrateTableData(
         duration,
       };
     }
+  }
+
+  // TRUNCATE table if requested (for safe re-runs after partial failures)
+  if (truncateBeforeInsert) {
+    logger.info({ citySlug, tableName }, 'Truncating target table for clean re-run...');
+    await targetPool.query(`TRUNCATE TABLE "${schemaName}"."${tableName}" CASCADE`);
   }
 
   // Check if source table has city_id column
@@ -194,6 +202,7 @@ export async function migrateTableData(
 
 /**
  * Insert batch of rows into target table
+ * Uses ON CONFLICT DO NOTHING for safety (idempotent inserts)
  */
 async function insertBatch(
   pool: Pool,
@@ -225,7 +234,14 @@ async function insertBatch(
     ON CONFLICT DO NOTHING
   `;
 
-  await pool.query(insertQuery, values);
+  try {
+    await pool.query(insertQuery, values);
+  } catch (error) {
+    // Log the error but don't throw - let the migration continue
+    // This handles edge cases where ON CONFLICT doesn't catch everything
+    console.error(`Error inserting batch into ${tableName}:`, error);
+    throw error; // Re-throw to stop migration on actual errors
+  }
 }
 
 /**

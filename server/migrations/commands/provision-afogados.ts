@@ -28,6 +28,7 @@ export interface ProvisionAfogadosOptions {
   modulesToProvision?: ModuleKey[]; // Defaults to ALL modules
   skipSchemaIfExists?: boolean; // Skip tables that already exist
   skipDataIfExists?: boolean; // Skip migration if target has rows
+  truncateBeforeInsert?: boolean; // TRUNCATE tables before inserting (for safe re-runs)
   batchSize?: number; // Data migration batch size
 }
 
@@ -56,6 +57,7 @@ export async function provisionAfogados(
     modulesToProvision = getAllModules(),
     skipSchemaIfExists = true,
     skipDataIfExists = true,
+    truncateBeforeInsert = false,
     batchSize = 1000,
   } = options;
 
@@ -95,13 +97,17 @@ export async function provisionAfogados(
   logger.info({ citySlug }, `📊 Step 4/4: Migrating data for ${modulesToProvision.length} modules...`);
   logger.info({ citySlug }, 'Using city_id filter: NULL (Afogados legacy data without city_id)');
 
+  // Note: If truncateBeforeInsert=true, we override skipDataIfExists
+  const effectiveSkipIfExists = truncateBeforeInsert ? false : skipDataIfExists;
+
   const dataResults = await migrateMultipleModules(
     modulesToProvision,
     citySlug,
     targetPool,
     null, // cityIdFilter = null means "WHERE city_id IS NULL" for Afogados legacy data
     batchSize,
-    skipDataIfExists
+    effectiveSkipIfExists,
+    truncateBeforeInsert
   );
 
   const totalRowsMigrated = dataResults.reduce(

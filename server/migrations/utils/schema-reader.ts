@@ -79,6 +79,28 @@ export interface IndexDefinition {
 }
 
 /**
+ * Sequence definition
+ */
+export interface SequenceDefinition {
+  sequenceName: string;
+  ownedByColumn: string | null; // Column that owns this sequence
+  dataType: string;
+  startValue: number;
+  incrementBy: number;
+  maxValue: number | null;
+  minValue: number | null;
+  cacheSize: number;
+}
+
+/**
+ * Enum type definition
+ */
+export interface EnumTypeDefinition {
+  typeName: string;
+  values: string[];
+}
+
+/**
  * Complete table schema
  */
 export interface TableSchema {
@@ -90,6 +112,8 @@ export interface TableSchema {
   uniqueConstraints: UniqueConstraintDefinition[];
   checkConstraints: CheckConstraintDefinition[];
   indexes: IndexDefinition[];
+  sequences: SequenceDefinition[];
+  enumTypes: EnumTypeDefinition[];
 }
 
 /**
@@ -109,6 +133,8 @@ export async function readTableSchema(
     uniqueConstraints,
     checkConstraints,
     indexes,
+    sequences,
+    enumTypes,
   ] = await Promise.all([
     readColumns(pool, tableName, schemaName),
     readPrimaryKey(pool, tableName, schemaName),
@@ -116,11 +142,13 @@ export async function readTableSchema(
     readUniqueConstraints(pool, tableName, schemaName),
     readCheckConstraints(pool, tableName, schemaName),
     readIndexes(pool, tableName, schemaName),
+    readSequences(pool, tableName, schemaName),
+    readEnumTypes(pool, tableName, schemaName),
   ]);
 
   logger.success(
     { tableName },
-    `Schema read: ${columns.length} cols, ${foreignKeys.length} FKs, ${indexes.length} indexes`
+    `Schema read: ${columns.length} cols, ${foreignKeys.length} FKs, ${indexes.length} indexes, ${sequences.length} seqs, ${enumTypes.length} enums`
   );
 
   return {
@@ -132,6 +160,8 @@ export async function readTableSchema(
     uniqueConstraints,
     checkConstraints,
     indexes,
+    sequences,
+    enumTypes,
   };
 }
 
@@ -405,4 +435,94 @@ export async function getTableRowCount(
   const query = `SELECT COUNT(*) as count FROM "${schemaName}"."${tableName}"`;
   const result = await pool.query(query);
   return parseInt(result.rows[0].count, 10);
+}
+
+/**
+ * Read sequences owned by table columns
+ */
+async function readSequences(
+  pool: Pool,
+  tableName: string,
+  schemaName: string
+): Promise<SequenceDefinition[]> {
+  const query = `
+    SELECT
+      s.sequence_name,
+      s.data_type,
+      s.start_value::bigint,
+      s.increment::bigint as increment_by,
+      s.maximum_value::bigint as max_value,
+      s.minimum_value::bigint as min_value,
+      s.cache_size::bigint,
+      d.column_name as owned_by_column
+    FROM information_schema.sequences s
+    LEFT JOIN pg_depend dep ON dep.objid = (
+      SELECT oid FROM pg_class 
+      WHERE relname = s.sequence_name 
+      AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = s.sequence_schema)
+    )
+    LEFT JOIN pg_attribute a ON a.attnum = dep.refobjsubid AND a.attrelid = dep.refobjid
+    LEFT JOIN information_schema.columns d ON d.column_name = a.attname
+      AND d.table_schema = $1
+      AND d.table_name = $2
+    WHERE s.sequence_schema = $1
+      AND EXISTS (
+        SELECT 1 FROM pg_depend dep2
+        WHERE dep2.objid = (
+          SELECT oid FROM pg_class
+          WHERE relname = s.sequence_name
+          AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = s.sequence_schema)
+        )
+        AND dep2.refobjid = (
+          SELECT oid FROM pg_class
+          WHERE relname = $2
+          AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = $1)
+        )
+      )
+  `;
+
+  const result = await pool.query(query, [schemaName, tableName]);
+
+  return result.rows.map((row) => ({
+    sequenceName: row.sequence_name,
+    ownedByColumn: row.owned_by_column,
+    dataType: row.data_type,
+    startValue: parseInt(row.start_value, 10),
+    incrementBy: parseInt(row.increment_by, 10),
+    maxValue: row.max_value ? parseInt(row.max_value, 10) : null,
+    minValue: row.min_value ? parseInt(row.min_value, 10) : null,
+    cacheSize: parseInt(row.cache_size, 10),
+  }));
+}
+
+/**
+ * Read enum types used by table columns
+ */
+async function readEnumTypes(
+  pool: Pool,
+  tableName: string,
+  schemaName: string
+): Promise<EnumTypeDefinition[]> {
+  const query = `
+    SELECT DISTINCT
+      t.typname as type_name,
+      array_agg(e.enumlabel ORDER BY e.enumsortorder) as enum_values
+    FROM pg_type t
+    JOIN pg_enum e ON t.oid = e.enumtypid
+    WHERE t.typname IN (
+      SELECT DISTINCT udt_name
+      FROM information_schema.columns
+      WHERE table_schema = $1
+        AND table_name = $2
+        AND data_type = 'USER-DEFINED'
+    )
+    GROUP BY t.typname
+  `;
+
+  const result = await pool.query(query, [schemaName, tableName]);
+
+  return result.rows.map((row) => ({
+    typeName: row.type_name,
+    values: row.enum_values,
+  }));
 }
