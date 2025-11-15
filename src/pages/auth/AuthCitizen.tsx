@@ -1,24 +1,31 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useNavigate, useLocation } from "wouter";
+import { supabaseCitizen } from "@/integrations/supabase/citizen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useCityTheme } from "@/hooks/useCityTheme";
 
-const Auth = () => {
+/**
+ * AuthCitizen - Login Page for City Portals
+ * 
+ * URL: {city}.urbanbyte.com.br/auth
+ * Context: CITY
+ * Users: Citizens of the specific municipality
+ */
+export default function AuthCitizen() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [, navigate] = useNavigate();
+  const [location] = useLocation();
   
   const { data: cityTheme } = useCityTheme();
   
   // Captura a URL de origem via query params ou sessionStorage
-  const searchParams = new URLSearchParams(location.search);
+  const searchParams = new URLSearchParams(window.location.search);
   const redirectParam = searchParams.get('redirect');
   
   // Salva o redirect no sessionStorage se existir
@@ -29,7 +36,7 @@ const Auth = () => {
     }
   }, [redirectParam]);
   
-  const from = redirectParam || sessionStorage.getItem('auth_redirect') || (location.state as any)?.from?.pathname || null;
+  const from = redirectParam || sessionStorage.getItem('auth_redirect') || null;
   
   console.log('[AUTH] Redirect param:', redirectParam);
   console.log('[AUTH] From:', from);
@@ -40,7 +47,7 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabaseCitizen.auth.signInWithPassword({
           email,
           password,
         });
@@ -49,7 +56,7 @@ const Auth = () => {
         toast.success("Login realizado com sucesso!");
         
         // Busca roles PRIMEIRO antes de qualquer redirecionamento
-        const { data: roles } = await supabase
+        const { data: roles } = await supabaseCitizen
           .from("user_roles")
           .select("role")
           .eq("user_id", data.user.id);
@@ -118,7 +125,7 @@ const Auth = () => {
 
           // Verifica se é secretário e redireciona baseado na secretaria
           if (roles.some(r => r.role === "secretario")) {
-            const { data: assignments } = await supabase
+            const { data: assignments } = await supabaseCitizen
               .from("secretary_assignments")
               .select("secretaria_slug")
               .eq("user_id", data.user.id);
@@ -158,9 +165,9 @@ const Auth = () => {
           }
         }
         
-        navigate("/", { replace: true });
+        navigate("/");
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { error } = await supabaseCitizen.auth.signUp({
           email,
           password,
           options: {
@@ -270,6 +277,4 @@ const Auth = () => {
       </div>
     </div>
   );
-};
-
-export default Auth;
+}

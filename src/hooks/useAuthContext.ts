@@ -9,10 +9,13 @@
  * - CITY ({city}.urbanbyte.com.br) → supabaseCitizen
  */
 import { useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { getDomainContext } from '@/core/domain-context';
 import { DomainType } from '@/core/domain-types';
-import { supabaseCitizen, supabaseMaster, supabaseCollaborator, supabasePartner } from '@/integrations/supabase/client';
+import { supabaseCitizen } from '@/integrations/supabase/citizen';
+import { supabaseMaster } from '@/integrations/supabase/master';
+import { supabaseCollaborator } from '@/integrations/supabase/collaborator';
+import { supabasePartner } from '@/integrations/supabase/partner';
 
 export function useAuthContext() {
   const location = useLocation();
