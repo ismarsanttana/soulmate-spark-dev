@@ -8,7 +8,13 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "migrate": "tsx server/migrations/index.ts",
+    "migrate:provision": "tsx server/migrations/index.ts provision:afogados",
+    "migrate:new-city": "tsx server/migrations/index.ts provision:city",
+    "migrate:enable-module": "tsx server/migrations/index.ts enable:module",
+    "migrate:test-connections": "tsx server/migrations/index.ts test:connections",
+    "migrate:list-modules": "tsx server/migrations/index.ts list:modules"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -67,6 +73,7 @@
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.20.6",
     "vaul": "^0.9.9",
     "vite-plugin-pwa": "^1.1.0",
     "zod": "^3.25.76"
