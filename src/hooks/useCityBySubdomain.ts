@@ -27,7 +27,23 @@ export interface City {
 }
 
 /**
+ * Map subdomain to slug for fallback when subdomain column doesn't exist yet
+ * TODO: Remove this after adding subdomain column to Supabase Control Plane
+ */
+function subdomainToSlug(subdomain: string): string {
+  const mapping: Record<string, string> = {
+    'afogados': 'afogados-da-ingazeira',
+    'zabele': 'zabele',
+  };
+  return mapping[subdomain] || subdomain;
+}
+
+/**
  * Hook to fetch city data by subdomain
+ * 
+ * FALLBACK STRATEGY:
+ * 1. Try to fetch by subdomain column (future-proof)
+ * 2. If subdomain column doesn't exist (error 42703), fallback to slug
  */
 export function useCityBySubdomain(
   subdomain: string | null | undefined,
@@ -40,12 +56,29 @@ export function useCityBySubdomain(
         throw new Error('Subdomain is required');
       }
 
-      const { data, error } = await supabase
+      // Try to fetch by subdomain first (when column exists)
+      let { data, error } = await supabase
         .from('cities')
         .select('*')
         .eq('subdomain', subdomain)
         .eq('is_active', true)
         .single();
+
+      // If subdomain column doesn't exist, fallback to slug
+      if (error && error.code === '42703') {
+        console.log(`[useCityBySubdomain] Column 'subdomain' not found, using slug fallback for: ${subdomain}`);
+        const slug = subdomainToSlug(subdomain);
+        
+        const fallbackResult = await supabase
+          .from('cities')
+          .select('*')
+          .eq('slug', slug)
+          .eq('is_active', true)
+          .single();
+        
+        data = fallbackResult.data;
+        error = fallbackResult.error;
+      }
 
       if (error) {
         console.error('Error fetching city by subdomain:', error);

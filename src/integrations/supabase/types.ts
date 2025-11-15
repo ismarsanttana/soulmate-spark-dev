@@ -312,6 +312,51 @@ export type Database = {
           },
         ]
       }
+      cities: {
+        Row: {
+          accent_color: string | null
+          created_at: string
+          db_url: string | null
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          primary_color: string | null
+          secondary_color: string | null
+          slug: string
+          subdomain: string | null
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          created_at?: string
+          db_url?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug: string
+          subdomain?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          created_at?: string
+          db_url?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug?: string
+          subdomain?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       city_agenda: {
         Row: {
           category: string | null

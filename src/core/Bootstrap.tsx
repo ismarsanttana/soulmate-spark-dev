@@ -5,6 +5,8 @@
  * This is the root component that determines which version of the app to load.
  */
 
+import { useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { getDomainContext, getDomainTypeName } from './domain-context';
 import { DomainType } from './domain-types';
 import { MasterAppShell } from '@/shells/MasterAppShell';
@@ -24,8 +26,13 @@ import { RootShell } from '@/shells/RootShell';
  * - CITY → City-specific portal ({city}.urbanbyte.com.br)
  */
 export function Bootstrap() {
-  // Detect domain context
-  const context = getDomainContext();
+  // Subscribe to router location changes (for ?mode query params)
+  const location = useLocation();
+  
+  // Detect domain context - recalculates when URL search params change
+  const context = useMemo(() => {
+    return getDomainContext();
+  }, [location.search]);
 
   // Log context in development
   if (import.meta.env.DEV) {

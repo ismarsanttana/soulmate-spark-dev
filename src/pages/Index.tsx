@@ -10,6 +10,8 @@ import { getIconComponent } from "@/lib/iconMapper";
 import { StoryViewer } from "@/components/StoryViewer";
 import { JobVacanciesSection } from "@/components/JobVacanciesSection";
 import { useRealtimeSubscriptions } from "@/hooks/useRealtimeSubscription";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
 
 // Importar secretarias e serviços
 const defaultSecretarias = [
@@ -31,6 +33,12 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [storyViewerOpen, setStoryViewerOpen] = useState(false);
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
+  
+  // DEV: Teste de navegação entre modos
+  const isDev = import.meta.env.DEV;
+  const testMasterMode = () => {
+    window.location.href = '/?mode=dash';
+  };
   
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -269,6 +277,22 @@ const Index = () => {
   return (
     <Layout>
       <Header />
+      
+      {/* DEV ONLY: Test Multi-Domain Navigation */}
+      {isDev && (
+        <div className="mb-4 p-4 bg-yellow-100 dark:bg-yellow-900/20 border-2 border-yellow-500 rounded-lg">
+          <p className="text-sm font-semibold mb-2 text-foreground">DEV MODE - Multi-Domain Test</p>
+          <Button
+            onClick={testMasterMode}
+            variant="default"
+            size="default"
+            data-testid="button-test-master"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Access MASTER Panel (mode=dash)
+          </Button>
+        </div>
+      )}
 
       {/* Assistente Virtual */}
       <div className="mb-5 bg-card dark:bg-card rounded-2xl p-4 shadow-sm card-hover">
