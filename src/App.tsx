@@ -39,6 +39,8 @@ import SecretariasList from "./pages/SecretariasList";
 import FacialTest from "./pages/FacialTest";
 import ExpoAgro from "./pages/ExpoAgro";
 import Download from "./pages/Download";
+import CompanyDashboard from "./pages/CompanyDashboard";
+import { ProtectedMasterRoute } from "@/components/ProtectedMasterRoute";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +87,14 @@ const AnimatedRoutes = () => {
           
           {/* Admin & Panels */}
           <Route path="/admin" element={<Admin />} />
+          <Route 
+            path="/admin/urbanbyte" 
+            element={
+              <ProtectedMasterRoute>
+                <CompanyDashboard />
+              </ProtectedMasterRoute>
+            } 
+          />
           <Route path="/painel-prefeito" element={<PainelPrefeito />} />
           <Route path="/painel-secretario" element={<PainelSecretario />} />
           <Route path="/ascom" element={<PainelSecretario />} />
