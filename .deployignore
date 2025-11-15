@@ -1,0 +1,52 @@
+# Replit Deploy Ignore
+# Files and directories excluded from Autoscale deployments
+# Similar to .gitignore but specific to production builds
+
+# ============================================
+# MIGRATIONS (CLI System - Not for Production)
+# ============================================
+# The migration system is a CLI tool for provisioning new cities
+# Production servers only connect to already-migrated databases
+# Excluding this prevents "stage already exists" validation errors
+server/migrations/
+
+# ============================================
+# TEST FILES
+# ============================================
+# Test files are not needed in production
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+**/__tests__/
+**/__mocks__/
+*.test.js
+*.spec.js
+
+# ============================================
+# DEVELOPMENT DOCUMENTATION
+# ============================================
+# Example files and documentation only needed in development
+.env.example
+*.md.backup
+TODO.md
+NOTES.md
+
+# ============================================
+# DEVELOPMENT ARTIFACTS
+# ============================================
+# These are generated during development but not needed in prod
+.DS_Store
+*.log
+.vscode/
+.idea/
+coverage/
+.nyc_output/
+
+# ============================================
+# SOURCE MAPS (Optional - Uncomment to reduce bundle size)
+# ============================================
+# Uncomment these if you want smaller deploys (harder to debug in prod)
+# *.map
+# *.js.map
+# *.css.map

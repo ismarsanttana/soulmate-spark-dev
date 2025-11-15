@@ -44,3 +44,117 @@ The platform supports multi-tenancy through dynamic theming and content. City co
 -   **Social Media**: Facebook, Instagram, Twitter, LinkedIn APIs for auto-publishing and OAuth-based authentication.
 -   **Notifications**: Supabase Realtime for real-time notifications, service workers for push notifications, email, and WhatsApp for alerts.
 -   **Analytics & Monitoring**: Basic statistics tracking and usage metrics for the admin dashboard.
+
+## Deployment Configuration
+
+This project is configured for **Replit Autoscale** deployment with production-ready settings.
+
+### Configuration Files
+
+**`.replit`**:
+```toml
+modules = ["nodejs-20", "web"]
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["npm", "run", "start"]
+build = ["npm", "run", "build"]
+```
+
+### Steps to Deploy
+
+⚠️ **CRITICAL**: Autoscale deployments **DO NOT** automatically inherit workspace secrets. You must manually sync them.
+
+**Step 1: Add Secrets to Workspace** (if not done yet)
+- Click the 🔒 "Secrets" icon in the left sidebar
+- Add these required secrets:
+  - `SUPABASE_URL`: `https://hqhjbelcouanvcrqudbj.supabase.co`
+  - `SUPABASE_ANON_KEY`: Get from Supabase Dashboard > Settings > API
+
+**Step 2: Test Build Locally** (recommended)
+```bash
+npm run build && npm run start
+```
+This catches missing env vars before deploying.
+
+**Step 3: Open Publishing Interface**
+- Click "Publishing" tab at the top of Replit
+- Or click "Deploy" button
+
+**Step 4: Sync Secrets to Production** ⚠️ **MOST IMPORTANT STEP**
+
+In the Publishing interface:
+
+a. Scroll down to the **"Production app secrets"** section
+
+b. You'll see a warning: **"X workspace secrets are missing from this environment"**
+
+c. Under that warning, you'll see a list of secrets that need to be synced:
+   - `SUPABASE_URL` with a **"+ Add secret"** button
+   - `SUPABASE_ANON_KEY` with a **"+ Add secret"** button
+
+d. For each secret, click the **"+ Add secret"** button next to it
+   - This copies the value from your workspace secrets to the deployment
+   - The secret will now show as `••••••••` indicating it's synced
+
+e. Repeat until the "X secrets out of sync" warning disappears
+
+**Required secrets for deployment**:
+- ✅ `SUPABASE_URL` (mandatory)
+- ✅ `SUPABASE_ANON_KEY` (mandatory)
+
+**Step 5: Configure Deployment**
+- Verify "Build command": `npm run build`
+- Verify "Run command": `npm run start`
+- Choose machine size (CPU/RAM) - Start with smallest, scale up if needed
+- Set max machines for autoscaling (e.g., 3-5)
+
+**Step 6: Publish**
+- Click the blue **"Publish"** button (bottom right)
+- Wait for build to complete (~30-60 seconds)
+- Monitor progress in "Overview" > "Logs"
+
+### Common Deployment Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| "SUPABASE_URL is required" | Secrets not synced to deployment | Go back to Step 4, click "+ Add secret" |
+| "Build failed" | npm build error | Run `npm run build` locally to see full error |
+| "X secrets out of sync" | Haven't clicked "+ Add secret" buttons | Must manually sync each secret in Publishing UI |
+| "Cannot validate database migrations - stage already exists" | Migration system conflict | **FIXED** - `.deployignore` now excludes migrations |
+
+**Post-Deployment**:
+- Monitor deployment logs for errors
+- Verify database connections
+- Test authentication flow
+- Validate PWA installation on mobile devices
+
+## Deploy Optimization
+
+### .deployignore
+
+The `.deployignore` file excludes development-only files from production deploys, reducing bundle size and preventing validation conflicts.
+
+**What's excluded**:
+
+1. **Migration System** (`server/migrations/`)
+   - CLI tool for provisioning new city databases
+   - Not needed in production (servers connect to pre-migrated databases)
+   - **Prevents "stage already exists" error** during Replit validation
+
+2. **Test Files** (`*.test.ts`, `*.spec.ts`)
+   - Unit and integration tests
+   - Only needed during development
+
+3. **Development Documentation** (`.env.example`, `TODO.md`)
+   - Example files and notes
+   - Not required for running the app
+
+**Why this matters**:
+
+✅ **Faster deploys** - Smaller bundle uploads faster  
+✅ **No migration conflicts** - Replit won't try to validate custom CLI migrations  
+✅ **Cleaner production** - Only runtime code in prod environment  
+✅ **Better security** - No test data or example configs exposed
+
+The migration system remains available in the workspace for manual city provisioning via the CLI (`npm run migrate provision:city <slug>`).
