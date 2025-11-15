@@ -22,7 +22,7 @@ import { useDynamicPWA } from "@/hooks/useDynamicPWA";
 
 // Page imports (same as App.tsx)
 import Index from "@/pages/Index";
-import Auth from "@/pages/Auth";
+import AuthCitizen from "@/pages/auth/AuthCitizen";
 import Profile from "@/pages/Profile";
 import Saude from "@/pages/Saude";
 import AssistenciaSocial from "@/pages/AssistenciaSocial";
@@ -71,7 +71,7 @@ const AnimatedRoutes = () => {
     <PageTransition key={location.pathname}>
       <Routes location={location}>
         <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<Auth />} />
+        <Route path="/auth" element={<AuthCitizen />} />
         <Route path="/perfil" element={<Profile />} />
         
         {/* Dynamic Secretarias Routes */}
