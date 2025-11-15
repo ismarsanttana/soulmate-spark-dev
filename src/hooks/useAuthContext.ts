@@ -12,10 +12,12 @@ import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getDomainContext } from '@/core/domain-context';
 import { DomainType } from '@/core/domain-types';
-import { supabaseCitizen } from '@/integrations/supabase/citizen';
-import { supabaseMaster } from '@/integrations/supabase/master';
-import { supabaseCollaborator } from '@/integrations/supabase/collaborator';
-import { supabasePartner } from '@/integrations/supabase/partner';
+import {
+  getCitizenClient,
+  getMasterClient,
+  getCollaboratorClient,
+  getPartnerClient,
+} from '@/integrations/supabase/lazy-clients';
 
 export function useAuthContext() {
   const location = useLocation();
@@ -25,20 +27,20 @@ export function useAuthContext() {
     return getDomainContext();
   }, [location]);
 
-  // Return appropriate Supabase client
+  // Return appropriate Supabase client (lazy-loaded)
   switch (context.type) {
     case DomainType.MASTER:
-      return supabaseMaster;
+      return getMasterClient();
     
     case DomainType.COLLABORATOR:
-      return supabaseCollaborator;
+      return getCollaboratorClient();
     
     case DomainType.PARTNER:
-      return supabasePartner;
+      return getPartnerClient();
     
     case DomainType.CITY:
     case DomainType.ROOT:
     default:
-      return supabaseCitizen;
+      return getCitizenClient();
   }
 }

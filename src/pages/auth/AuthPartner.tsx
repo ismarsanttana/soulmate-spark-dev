@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabasePartner } from "@/integrations/supabase/partner";
+import { getPartnerClient } from "@/integrations/supabase/lazy-clients";
 import { validateRoleOrSignOut } from "@/lib/auth/platform-roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,8 @@ export default function AuthPartner() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabasePartner.auth.signInWithPassword({
+      const client = getPartnerClient();
+      const { data, error } = await client.auth.signInWithPassword({
         email,
         password,
       });
@@ -36,7 +37,7 @@ export default function AuthPartner() {
       
       // Validate user has 'partner' role in platform_users table
       await validateRoleOrSignOut(
-        supabasePartner,
+        client,
         'partner',
         () => navigate("/dashboard", { replace: true }), // onSuccess
         () => navigate("/auth", { replace: true })       // onFailure

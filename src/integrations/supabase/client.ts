@@ -1,10 +1,23 @@
 /**
  * Supabase Client Barrel Export
  * 
- * Re-exports all context-specific Supabase clients.
- * For backward compatibility, the default export is the citizen client.
+ * Re-exports all lazy-loaded Supabase clients.
+ * For backward compatibility, exports getter functions that return memoized instances.
+ * 
+ * NOTE: Clients are now lazy-loaded to prevent "Multiple GoTrueClient instances" warning.
+ * Legacy code can still use these exports, but new code should use lazy-clients directly.
  */
-export { supabase, supabaseCitizen } from './citizen';
-export { supabaseMaster } from './master';
-export { supabaseCollaborator } from './collaborator';
-export { supabasePartner } from './partner';
+export {
+  getCitizenClient,
+  getMasterClient,
+  getCollaboratorClient,
+  getPartnerClient,
+  resetAllClients,
+} from './lazy-clients';
+
+// Backward compatibility: Default export
+export const supabase = getCitizenClient;
+export const supabaseCitizen = getCitizenClient;
+export const supabaseMaster = getMasterClient;
+export const supabaseCollaborator = getCollaboratorClient;
+export const supabasePartner = getPartnerClient;

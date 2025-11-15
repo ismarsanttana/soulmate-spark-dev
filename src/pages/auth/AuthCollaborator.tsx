@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabaseCollaborator } from "@/integrations/supabase/collaborator";
+import { getCollaboratorClient } from "@/integrations/supabase/lazy-clients";
 import { validateRoleOrSignOut } from "@/lib/auth/platform-roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,8 @@ export default function AuthCollaborator() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabaseCollaborator.auth.signInWithPassword({
+      const client = getCollaboratorClient();
+      const { data, error } = await client.auth.signInWithPassword({
         email,
         password,
       });
@@ -36,7 +37,7 @@ export default function AuthCollaborator() {
       
       // Validate user has 'team' role in platform_users table
       await validateRoleOrSignOut(
-        supabaseCollaborator,
+        client,
         'team',
         () => navigate("/dashboard", { replace: true }), // onSuccess
         () => navigate("/auth", { replace: true })       // onFailure

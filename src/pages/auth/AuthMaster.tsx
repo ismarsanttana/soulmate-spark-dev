@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabaseMaster } from "@/integrations/supabase/master";
+import { getMasterClient } from "@/integrations/supabase/lazy-clients";
 import { validateRoleOrSignOut } from "@/lib/auth/platform-roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,8 @@ export default function AuthMaster() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabaseMaster.auth.signInWithPassword({
+      const client = getMasterClient();
+      const { data, error } = await client.auth.signInWithPassword({
         email,
         password,
       });
@@ -36,7 +37,7 @@ export default function AuthMaster() {
       
       // Validate user has 'master' role in platform_users table
       await validateRoleOrSignOut(
-        supabaseMaster,
+        client,
         'master',
         () => navigate("/dashboard", { replace: true }), // onSuccess
         () => navigate("/auth", { replace: true })       // onFailure
