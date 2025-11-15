@@ -55,13 +55,14 @@ The system uses a sophisticated domain detection mechanism that supports both pr
 
 ### Multi-Context Authentication Architecture
 
-The platform implements **isolated authentication systems** for each domain context to prevent privilege escalation and session leakage. Each context uses a dedicated Supabase client with unique storage keys.
+The platform implements **isolated authentication systems** for each domain context with **continuous role validation** to prevent privilege escalation and session leakage. Each context uses a dedicated Supabase client with unique storage keys.
 
 **Authentication Clients:**
 - `src/integrations/supabase/citizen.ts` - City portal authentication (default)
 - `src/integrations/supabase/master.ts` - MASTER admin panel authentication
 - `src/integrations/supabase/collaborator.ts` - Team panel authentication
 - `src/integrations/supabase/partner.ts` - Partner panel authentication
+- `src/integrations/supabase/lazy-clients.ts` - **NEW**: Lazy-loading getters to prevent "Multiple GoTrueClient instances" warning
 
 **Key Security Features:**
 1. **Isolated Session Storage** - Each client uses unique localStorage keys:
@@ -87,15 +88,35 @@ The platform implements **isolated authentication systems** for each domain cont
    - `PartnerShell.tsx` - Routes for PARTNER panel
    - `CityAppShell.tsx` - Routes for city portals
 
+5. **Continuous Role Validation** - **NEW SECURITY LAYER**:
+   - `DomainGuard` component validates user's platform role on **every render**
+   - `usePlatformUser` hook queries `platform_users` table with:
+     - **No caching** (staleTime: 0) for immediate role changes
+     - **30-second polling** (refetchInterval) to catch role revocations even if user stays on page
+     - **Focus refetch** to validate when user returns to tab
+     - **Reconnect refetch** to validate after network interruption
+   - **Automatic signout** when user loses platform role or is deactivated
+   - Maximum delay for role revocation: **30 seconds**
+
+**Platform Roles Database:**
+- `platform_users` table stores admin/team/partner roles:
+  - `user_id` (UUID) - Foreign key to auth.users
+  - `role` (enum) - 'master', 'team', or 'partner' (lowercase)
+  - `is_active` (boolean) - Whether user is currently active
+  - RLS policies enforce role-based access control
+  - Migration: `supabase/migrations/20250115000000_create_platform_users.sql`
+
 **Session Isolation Benefits:**
 - User logged into `dash.urbanbyte.com.br` cannot access city portals with same session
 - Admin tokens stored separately from citizen tokens
 - Prevents cross-domain privilege escalation attacks
 - Enables concurrent logins across different contexts (e.g., admin + citizen)
+- **NEW**: Continuous validation prevents stale session exploitation
 
-**Backward Compatibility:**
-- `src/integrations/supabase/client.ts` - Barrel file exports all clients
-- Legacy code continues to work via `supabase` export (aliases `supabaseCitizen`)
+**Client Initialization:**
+- **Recommended**: Use lazy getters (`getCitizenClient()`, `getMasterClient()`, etc.)
+- **Deprecated**: Direct client imports (`supabase`, `supabaseMaster`, etc.) still work but cause "Multiple GoTrueClient instances" warning
+- Migration path documented in `src/integrations/supabase/client.ts`
 
 ## External Dependencies
 
