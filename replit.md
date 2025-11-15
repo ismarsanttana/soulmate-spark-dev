@@ -230,3 +230,120 @@ curl http://localhost:5000/api/cities/afogados-da-ingazeira/theme
 **Architecture Documentation**:
 - Full details in `.local/state/replit/agent/multi-tenant-architecture.md`
 - Includes schema, API specs, security notes, and migration roadmap
+
+## Deployment & Production
+
+### Build Configuration
+
+**Development**:
+```bash
+npm run dev        # Vite dev server (port 5000)
+```
+
+**Production Build**:
+```bash
+npm run build      # Creates dist/ folder with optimized assets
+npm run start      # Serves built files via Vite preview (port 5000)
+```
+
+**Preview**:
+```bash
+npm run preview    # Test production build locally
+```
+
+### Environment Variables
+
+Required secrets (configured in Replit Secrets or production environment):
+
+1. **CONTROL_DB_URL** - Control Plane database (Supabase)
+   - Format: `postgresql://[user]:[pass]@db.xxxx.supabase.co:5432/postgres`
+   - Used for: cities table, platform_users, global configuration
+
+2. **DATABASE_URL** - Data Plane database (Neon, per city)
+   - Format: `postgresql://[user]:[pass]@ep-xxxx.us-east-2.aws.neon.tech/neondb?sslmode=require`
+   - Used for: city-specific data, migrations, CLI tools
+
+**Note**: Frontend Supabase credentials are hardcoded in `src/integrations/supabase/client.ts` (no env vars needed)
+
+See `.env.example` for full documentation.
+
+### Replit Deployment (Autoscale)
+
+**Configuration** (`.replit`):
+```toml
+[deployment]
+deploymentTarget = "autoscale"
+run = ["npm", "run", "start"]
+build = ["npm", "run", "build"]
+```
+
+**Steps to Deploy**:
+1. Ensure secrets are configured (DATABASE_URL, CONTROL_DB_URL)
+2. Test build locally: `npm run build && npm run start`
+3. Click "Deploy" button in Replit
+4. Select "Autoscale" deployment
+5. Configure machine size (CPU/RAM)
+6. Set max number of machines for autoscaling
+7. Click "Publish"
+
+**Post-Deployment**:
+- Monitor deployment logs for errors
+- Verify database connections
+- Test authentication flow
+- Validate PWA installation on mobile devices
+
+### Migration & Database Management
+
+**CLI Commands**:
+```bash
+# Test database connections
+npm run migrate:test-connections
+
+# Provision new city
+npm run migrate:new-city
+
+# Enable module for city
+npm run migrate:enable-module
+
+# List available modules
+npm run migrate:list-modules
+```
+
+**Migration System**:
+- Control Plane (Supabase): Manual migrations in `supabase/migrations/`
+- Data Plane (Neon): CLI-driven schema sync via `server/migrations/`
+- Schema versioning tracked per city in `schema_versions` table
+
+### Production Checklist
+
+Before deploying to production:
+
+- [ ] All Supabase migrations applied (`supabase db push`)
+- [ ] Control Plane database accessible (CONTROL_DB_URL)
+- [ ] Data Plane database accessible (DATABASE_URL)
+- [ ] Environment secrets configured
+- [ ] Build succeeds without errors (`npm run build`)
+- [ ] Start script works locally (`npm run start`)
+- [ ] PWA manifest configured correctly
+- [ ] Service worker registered (offline support)
+- [ ] SSL certificates valid (HTTPS)
+- [ ] Authentication flow tested
+- [ ] Role-based access control verified
+- [ ] Real-time subscriptions working
+- [ ] File uploads functional
+
+### Monitoring & Maintenance
+
+**Health Checks**:
+- Monitor Replit deployment status
+- Check Supabase database health
+- Verify Neon database connections
+- Monitor API response times
+- Track error rates in logs
+
+**Regular Maintenance**:
+- Review and apply Supabase migrations
+- Update city configurations
+- Clean up old logs and temporary files
+- Monitor storage usage
+- Update dependencies (npm update)
