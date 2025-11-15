@@ -70,6 +70,9 @@ export const usePlatformUser = (enabled: boolean = false) => {
     // SECURITY: No cache (staleTime: 0) to ensure immediate role revocation
     // Role changes must take effect immediately to prevent unauthorized access
     staleTime: 0,
+    // SECURITY: Refetch every 30 seconds to catch role changes even if user stays on page
+    // This ensures continuous validation and prevents unauthorized access via stale sessions
+    refetchInterval: 30 * 1000, // 30 seconds
     // Refetch on window focus to catch role changes when user returns to tab
     refetchOnWindowFocus: true,
     // Refetch on reconnect to catch role changes after network interruption
