@@ -1,10 +1,21 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePlatformUser } from "@/hooks/usePlatformUser";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuthContext } from "@/hooks/useAuthContext";
 import { Loader2, ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+
+function withCurrentSearch(path: string) {
+  if (path.startsWith("http") || path.includes("?") || typeof window === "undefined") {
+    return path;
+  }
+  const currentSearch = window.location.search;
+  if (!currentSearch) {
+    return path;
+  }
+  return `${path}${currentSearch}`;
+}
 
 interface ProtectedMasterRouteProps {
   children: ReactNode;
@@ -12,23 +23,56 @@ interface ProtectedMasterRouteProps {
 
 export function ProtectedMasterRoute({ children }: ProtectedMasterRouteProps) {
   const navigate = useNavigate();
+  const client = useAuthContext();
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // CRITICAL: Check auth BEFORE loading platform user data
+  // Ensure Supabase session is valid before checking platform role
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        navigate("/auth", { replace: true });
-      } else {
-        setIsAuthenticated(true);
-      }
+    let isMounted = true;
+
+    const syncSession = async () => {
+      const { data } = await client.auth.getSession();
+      if (!isMounted) return;
+      const hasSession = !!data.session;
+      setIsAuthenticated(hasSession);
       setIsAuthChecked(true);
-    });
-  }, [navigate]);
+
+      if (!hasSession) {
+        navigate(withCurrentSearch("/auth"), { replace: true });
+      }
+    };
+
+    syncSession();
+
+    const { data: authListener } = client.auth.onAuthStateChange(
+      (_event, session) => {
+        if (!isMounted) {
+          return;
+        }
+
+        const hasSession = !!session;
+        setIsAuthenticated(hasSession);
+        setIsAuthChecked(true);
+
+        if (!hasSession) {
+          navigate(withCurrentSearch("/auth"), { replace: true });
+        }
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, [client, navigate]);
 
   // Only query platform_users AFTER auth is confirmed
-  const { data: platformData, isLoading: isPlatformLoading, error } = usePlatformUser(isAuthenticated);
+  const {
+    data: platformData,
+    isLoading: isPlatformLoading,
+    error,
+  } = usePlatformUser(isAuthenticated);
 
   // Loading state - checking auth first, then platform access
   if (!isAuthChecked || (isAuthenticated && isPlatformLoading)) {
@@ -69,7 +113,7 @@ export function ProtectedMasterRoute({ children }: ProtectedMasterRouteProps) {
             </p>
             <div className="flex flex-col gap-2">
               <Button
-                onClick={() => navigate("/")}
+                onClick={() => navigate(withCurrentSearch("/"))}
                 variant="default"
                 className="w-full"
                 data-testid="button-go-home"
@@ -78,8 +122,8 @@ export function ProtectedMasterRoute({ children }: ProtectedMasterRouteProps) {
               </Button>
               <Button
                 onClick={() => {
-                  supabase.auth.signOut();
-                  navigate("/auth");
+                  client.auth.signOut();
+                  navigate(withCurrentSearch("/auth"));
                 }}
                 variant="outline"
                 className="w-full"

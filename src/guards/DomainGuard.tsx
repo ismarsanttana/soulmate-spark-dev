@@ -5,16 +5,28 @@
  * Wrapper component that validates access and redirects if necessary.
  */
 
-import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useDomainContext } from '@/hooks/useDomainContext';
 import { usePlatformUser } from '@/hooks/usePlatformUser';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { validateDomainAccess, getAccessDenialMessage } from './domain-access';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, LogIn } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+
+function preserveSearchParams(target: string) {
+  if (!target) return target;
+  if (target.startsWith('http') || target.includes('?') || typeof window === 'undefined') {
+    return target;
+  }
+  const currentSearch = window.location.search;
+  if (!currentSearch) {
+    return target;
+  }
+  return `${target}${currentSearch}`;
+}
 
 interface DomainGuardProps {
   children: React.ReactNode;
@@ -49,13 +61,22 @@ export function DomainGuard({
   loadingComponent, 
   accessDeniedComponent 
 }: DomainGuardProps) {
+  const location = useLocation();
   const context = useDomainContext();
   const client = useAuthContext();
-  const { data: platformUser, isLoading } = usePlatformUser(true);
+  const shouldBypassGuard = useMemo(
+    () => location.pathname.startsWith('/auth'),
+    [location.pathname]
+  );
+  const { data: platformUser, isLoading } = usePlatformUser(!shouldBypassGuard);
   const [accessResult, setAccessResult] = useState<ReturnType<typeof validateDomainAccess> | null>(null);
   const [hasSignedOut, setHasSignedOut] = useState(false);
 
   useEffect(() => {
+    if (shouldBypassGuard) {
+      return;
+    }
+
     if (!isLoading) {
       const result = validateDomainAccess(context, platformUser?.role || null);
       setAccessResult(result);
@@ -75,7 +96,11 @@ export function DomainGuard({
         });
       }
     }
-  }, [context, platformUser, isLoading, client, hasSignedOut]);
+  }, [context, platformUser, isLoading, client, hasSignedOut, shouldBypassGuard]);
+
+  if (shouldBypassGuard) {
+    return <>{children}</>;
+  }
 
   // Loading state
   if (isLoading || !accessResult) {
@@ -94,7 +119,8 @@ export function DomainGuard({
   if (!accessResult.allowed) {
     // If redirectTo is provided, redirect using React Router
     if (accessResult.redirectTo) {
-      return <Navigate to={accessResult.redirectTo} replace />;
+      const redirectTarget = preserveSearchParams(accessResult.redirectTo);
+      return <Navigate to={redirectTarget} replace />;
     }
 
     // Otherwise show access denied UI
@@ -118,7 +144,7 @@ export function DomainGuard({
             <p className="text-sm text-muted-foreground">
               {accessResult.reason || 'Você não tem permissão para acessar esta área.'}
             </p>
-            <Navigate to="/auth" replace />
+            <Navigate to={preserveSearchParams('/auth')} replace />
           </CardContent>
         </Card>
       </div>
@@ -127,19 +153,4 @@ export function DomainGuard({
 
   // Access granted
   return <>{children}</>;
-}
-
-/**
- * Simple hook version for programmatic access checking
- */
-export function useDomainAccess() {
-  const context = useDomainContext();
-  const { data: platformUser, isLoading } = usePlatformUser(true);
-
-  if (isLoading) {
-    return { allowed: null, isLoading: true };
-  }
-
-  const result = validateDomainAccess(context, platformUser?.role || null);
-  return { ...result, isLoading: false };
 }

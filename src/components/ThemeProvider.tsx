@@ -1,6 +1,8 @@
 import { useEffect, ReactNode } from "react";
 import { useCityTheme } from "@/hooks/useCityTheme";
 import { hexToHSL } from "@/lib/colorUtils";
+import { useDomainContext } from "@/hooks/useDomainContext";
+import { DomainType } from "@/core/domain-types";
 
 interface ThemeProviderProps {
   children: ReactNode;
@@ -8,11 +10,19 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children, citySlug = "afogados-da-ingazeira" }: ThemeProviderProps) {
-  const { data: cityTheme, isLoading } = useCityTheme(citySlug);
+  const context = useDomainContext();
+  const isCityContext = context.type === DomainType.CITY;
+  const effectiveSlug = isCityContext ? context.subdomain || citySlug : citySlug;
+  const { data: cityTheme, isLoading } = useCityTheme(effectiveSlug, {
+    enabled: isCityContext,
+  });
 
   useEffect(() => {
-    if (cityTheme) {
-      const root = document.documentElement;
+    if (!isCityContext || !cityTheme) {
+      return;
+    }
+
+    const root = document.documentElement;
       
       // Converte cores HEX para HSL (formato Tailwind)
       const primaryHSL = hexToHSL(cityTheme.primary_color);
@@ -33,15 +43,14 @@ export function ThemeProvider({ children, citySlug = "afogados-da-ingazeira" }: 
       root.style.setProperty("--chart-1", primaryHSL);
       root.style.setProperty("--chart-2", secondaryHSL);
       
-      console.log(`[ThemeProvider] Applied theme for ${cityTheme.name}`, {
-        primary: `${cityTheme.primary_color} → ${primaryHSL}`,
-        secondary: `${cityTheme.secondary_color} → ${secondaryHSL}`,
-        accent: `${cityTheme.accent_color} → ${accentHSL}`,
-      });
-    }
-  }, [cityTheme]);
+    console.log(`[ThemeProvider] Applied theme for ${cityTheme.name}`, {
+      primary: `${cityTheme.primary_color} → ${primaryHSL}`,
+      secondary: `${cityTheme.secondary_color} → ${secondaryHSL}`,
+      accent: `${cityTheme.accent_color} → ${accentHSL}`,
+    });
+  }, [cityTheme, isCityContext]);
 
-  if (isLoading) {
+  if (isCityContext && isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">

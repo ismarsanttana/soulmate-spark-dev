@@ -33,6 +33,7 @@ export function Bootstrap() {
   const context = useMemo(() => {
     return getDomainContext();
   }, [location.search]);
+  console.log('[Bootstrap] context:', context);
 
   // Log context in development
   if (import.meta.env.DEV) {

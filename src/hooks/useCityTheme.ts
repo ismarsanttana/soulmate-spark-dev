@@ -32,7 +32,14 @@ async function fetchCityTheme(citySlug: string): Promise<CityTheme> {
   return response.json();
 }
 
-export function useCityTheme(citySlug: string = "afogados-da-ingazeira") {
+type UseCityThemeOptions = {
+  enabled?: boolean;
+};
+
+export function useCityTheme(
+  citySlug: string = "afogados-da-ingazeira",
+  options?: UseCityThemeOptions
+) {
   return useQuery({
     queryKey: ["city-theme", citySlug],
     queryFn: () => fetchCityTheme(citySlug),
@@ -41,5 +48,6 @@ export function useCityTheme(citySlug: string = "afogados-da-ingazeira") {
     retry: 2,
     refetchOnWindowFocus: false,
     placeholderData: DEFAULT_THEME,
+    enabled: options?.enabled ?? true,
   });
 }
