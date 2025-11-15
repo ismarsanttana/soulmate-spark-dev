@@ -1,0 +1,251 @@
+Contexto geral do projeto
+
+Hoje:
+
+- Tenho um projeto chamado "Conecta Afogados" que está evoluindo para uma plataforma multi-tenant de cidades.
+- O frontend é React + Vite.
+- Já temos implementado:
+  - API de temas por cidade (via plugin Vite).
+  - Hook useCityTheme() com React Query.
+  - ThemeProvider global que injeta CSS variables com cores da cidade.
+  - Tabela public.cities no Supabase com pelo menos um registro:
+    - Afogados da Ingazeira (slug: "afogados-da-ingazeira").
+
+Situação atual de dados:
+
+- O Supabase é hoje a FONTE DE VERDADE para a cidade de Afogados:
+  - Todas as tabelas de módulos (educação, saúde, etc.) já existem dentro do banco do Supabase.
+  - Os dados reais de Afogados já estão lá.
+- Eu quero começar a migração para uma arquitetura em que:
+  - Cada cidade terá um banco separado no Neon (Postgres).
+  - O Supabase ficará como Control Plane (cadastro de cidades, módulos, auth, etc.).
+  - O Neon será o Data Plane (dados operacionais de cada cidade).
+
+Objetivo desta fase
+
+Quero que você:
+
+1. Implemente no código do projeto um fluxo backend/servidor que:
+   - Leia as estruturas de tabelas (schema) dos módulos existentes no Supabase para Afogados.
+   - Crie um banco de dados específico para Afogados no Neon (se ainda não existir).
+   - Crie no Neon as tabelas necessárias com base no schema atual do Supabase.
+   - Migre os dados da cidade de Afogados do Supabase para o Neon, respeitando apenas os dados pertencentes à cidade.
+
+2. Deixe esse fluxo genérico o bastante para que:
+   - No futuro, quando eu cadastrar uma nova cidade no Supabase e habilitar módulos para ela,
+   - O sistema consiga:
+     - criar o banco Neon da nova cidade,
+     - criar apenas as tabelas necessárias para os módulos habilitados,
+     - e migrar (ou inicializar) os dados adequados.
+
+IMPORTANTE: o Supabase já tem hoje as tabelas e dados para Afogados.
+Não quero reescrever schema “na mão” — quero que você use o que já existe no Supabase como referência.
+
+Variáveis de ambiente (você pode assumir/usar assim)
+
+Quero que você trabalhe com as seguintes envs (podemos ajustar nomes se precisar):
+
+- SUPABASE_DB_URL
+  - String de conexão completa do Postgres do Supabase (onde estão as tabelas atuais da cidade Afogados).
+  - Este é o banco que hoje tem a estrutura e os dados reais dos módulos.
+
+- CONTROL_DB_URL
+  - Pode ser a mesma do SUPABASE_DB_URL, já que o Control Plane também está no Supabase (tabela public.cities).
+  - Se preferir, use apenas SUPABASE_DB_URL para ambos papéis, mas deixe o código preparado para separar no futuro.
+
+- NEON_ADMIN_URL
+  - String de conexão para o projeto Neon com permissão de criar bancos.
+  - Exemplo: conexão em um DB “postgres” ou “default” do Neon que permita rodar `CREATE DATABASE nome_db`.
+
+- NEON_AFON_AFOGADOS_DB_URL (ou NEON_CITY_AFOGADOS_DB_URL)
+  - Opcional: se não for possível criar o DB via SQL/Neon API, assuma que esse env já aponta para o banco Neon específico de Afogados.
+  - Se você conseguir automatizar a criação do DB via NEON_ADMIN_URL, melhor ainda.
+
+Estrutura lógica dos módulos no Supabase
+
+No Supabase, os módulos (educação, saúde, etc.) já têm suas tabelas definidas. Você deve:
+
+- Descobrir a estrutura das tabelas usando as views do Postgres:
+  - `information_schema.tables`
+  - `information_schema.columns`
+  - se precisar, `pg_catalog.pg_indexes` para índices.
+- Criar um pequeno “mapeamento” lógico de quais tabelas pertencem a quais módulos.
+  - Exemplo (adaptar à realidade do meu schema):
+    - Módulo Educação → tabelas com prefixo `edu_` ou tabelas específicas (ex: `schools`, `students`, `classes`, etc.).
+    - Módulo Saúde → tabelas com prefixo `saude_` ou `health_` (ex: `health_units`, `appointments`, etc.).
+- Você pode hardcodear esse mapeamento em um arquivo de configuração em Node/TypeScript, por exemplo:
+  - `modules/educacao: ["schools", "students", "classes", ...]`
+  - `modules/saude: ["health_units", "appointments", ...]`
+
+Mesmo que você precise olhar o schema manualmente uma vez, quero que esse mapeamento fique codificado para ser reaproveitado para novas cidades.
+
+Fluxo que eu quero que você implemente
+
+1) Funções utilitárias de conexão
+
+Crie um módulo de util com funções, por exemplo:
+
+- `getSupabasePool()` → retorna um pool de conexão para o banco supabase (usando SUPABASE_DB_URL).
+- `getNeonAdminPool()` → se necessário, retorna pool para o Neon “admin” (NEON_ADMIN_URL).
+- `getCityNeonPool(citySlug)` → retorna pool para o banco Neon da cidade:
+  - No caso de Afogados, pode usar NEON_AFON_AFOGADOS_DB_URL.
+  - No futuro, isso pode ser pego da coluna `db_url` na tabela public.cities do Supabase.
+
+2) Descoberta de schema no Supabase
+
+Implemente uma função (em Node/TS) que:
+
+- Conecta no SUPABASE_DB_URL.
+- Para um conjunto de tabelas (por exemplo, listas associadas a um módulo), busque:
+  - colunas (nome, tipo, nullability, default),
+  - chaves primárias,
+  - chaves estrangeiras se for viável,
+  - índices essenciais.
+
+Pode usar queries como:
+
+- `SELECT * FROM information_schema.columns WHERE table_name = '...'`
+- `SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid = 'schema.table'::regclass;`
+- Ou outra abordagem que achar melhor para recriar o `CREATE TABLE`.
+
+O objetivo é conseguir gerar uma instrução de `CREATE TABLE` equivalente no Neon.
+
+3) Criação do banco Neon da cidade Afogados (se você conseguir automatizar)
+
+Implemente uma função que:
+
+- Usa NEON_ADMIN_URL para se conectar ao Neon.
+- Cria um database específico para Afogados, ex: `urbanbyte_afogados`.
+  - `CREATE DATABASE urbanbyte_afogados;`
+- Em seguida, constrói a string de conexão `NEON_CITY_AFOGADOS_DB_URL` (ou equivalente).
+- Atualiza a tabela public.cities no Supabase (via CONTROL_DB_URL / SUPABASE_DB_URL):
+  - setando a coluna `db_url` da cidade com slug `afogados-da-ingazeira` para essa conexão Neon.
+
+Se não for viável criar o DB via código (por limitação do ambiente), parta do pressuposto que NEON_CITY_AFOGADOS_DB_URL já está configurada, e foque nas próximas etapas.
+
+4) Criação das tabelas no Neon com base no Supabase
+
+Implemente uma função do tipo:
+
+- `async function syncModuleSchemaFromSupabaseToNeon(citySlug: string, moduleKey: string)`
+
+Ela deve:
+
+- Descobrir quais tabelas pertencem ao módulo (usando o mapeamento que você criou).
+- Para cada tabela:
+  - ler o schema no Supabase (colunas, tipos, defaults, constraints principais),
+  - verificar se a tabela já existe no Neon:
+    - se não existir, criar com um `CREATE TABLE ...` compatível.
+    - se existir, você pode assumir que é igual por enquanto (não precisa tratar diff de schema nesta fase).
+
+5) Migração dos dados de Afogados para o Neon
+
+Implemente uma função:
+
+- `async function migrateCityDataFromSupabaseToNeon(citySlug: string, moduleKey: string)`
+
+Ela deve:
+
+- Considerar que a cidade “Afogados da Ingazeira” pode ser identificada de duas formas:
+  - Se as tabelas tiverem coluna `city_id` ou similar:
+    - Descobrir o `id` da cidade na tabela `public.cities` onde `slug = 'afogados-da-ingazeira'`.
+    - Copiar apenas os registros onde `city_id = esse_id`.
+  - Se as tabelas NÃO tiverem coluna de cidade (porque só existe Afogados hoje):
+    - Assumir que todos os registros atuais pertencem à cidade de Afogados.
+
+Para cada tabela do módulo:
+
+- Executar algo conceitualmente assim:
+
+  ```sql
+  INSERT INTO neon_table (col1, col2, ..., colN)
+  SELECT col1, col2, ..., colN
+  FROM supabase_table
+  [WHERE city_id = <id_afogados>];
+Isso pode ser feito tabelas por tabela, numa transação por tabela ou módulo.
+
+Evite duplicar dados se a migração for rodada duas vezes:
+
+você pode checar se a tabela do Neon está vazia antes de copiar,
+
+ou usar uma chave única/natural, se existir.
+
+Orquestração completa para Afogados
+
+Crie uma função de alto nível, por exemplo:
+
+async function provisionAndMigrateAfogados():
+
+Fluxo:
+
+Ler dados da cidade afogados-da-ingazeira em public.cities (Supabase).
+
+Se db_url estiver vazio:
+
+criar o banco Neon da cidade (se possível) e atualizar db_url.
+
+Determinar quais módulos Afogados tem habilitados:
+
+se já existir uma tabela city_modules, use-a.
+
+se não existir, assume inicialmente que todos os módulos que já têm tabela no Supabase pertencem a Afogados.
+
+Para cada módulo habilitado:
+
+syncModuleSchemaFromSupabaseToNeon("afogados-da-ingazeira", moduleKey)
+
+migrateCityDataFromSupabaseToNeon("afogados-da-ingazeira", moduleKey)
+
+Hooks ou comandos para novas cidades
+
+Depois de deixar Afogados ok, deixe também preparado:
+
+Uma função genérica provisionCity(citySlug: string) que:
+
+cria o DB Neon da cidade,
+
+cria as tabelas dos módulos habilitados (com base no mapeamento),
+
+NÃO precisa migrar dados, pois nova cidade começa “vazia”.
+
+Uma função enableModuleForCity(citySlug: string, moduleKey: string) que:
+
+cria as tabelas daquele módulo no DB Neon da cidade,
+
+opcionalmente inicializa tabelas de configuração.
+
+Estas funções podem ser expostas como:
+
+scripts (por ex: node scripts/provision-afogados.ts),
+
+ou endpoints de API internos (que chamarei depois do painel de gestão generalista).
+
+Requisitos de segurança
+
+Todas as strings de conexão (Supabase, Neon Admin, Neon por cidade) devem ficar em variáveis de ambiente.
+
+Não expor nenhuma dessas strings no frontend.
+
+Não retornar db_url em nenhuma resposta de API pública.
+
+Garantir que, na migração, apenas os dados da cidade de Afogados sejam copiados para o Neon (quando houver coluna de cidade).
+
+Registrar logs mínimos para acompanhar a migração (por cidade, módulo, tabela, quantidade de registros copiados).
+
+Resumo
+
+Quero que você:
+
+Analise o schema já existente no Supabase para a cidade de Afogados.
+
+Implemente um fluxo em Node/TypeScript (aproveitando o ambiente servidor do Vite/Node que você já configurou) para:
+
+criar o banco Neon de Afogados (se possível),
+
+criar as tabelas necessárias no Neon com base no schema do Supabase,
+
+migrar os dados de Afogados do Supabase para o Neon,
+
+atualizar o campo db_url da cidade em public.cities.
+
+Deixe também implementadas funções genéricas para provisionar novas cidades e habilitar módulos, reutilizando esse mesmo mecanismo de schema + migração.

@@ -1,0 +1,129 @@
+Show, era exatamente esse tipo de abordagem que eu queria. ✅
+
+Sim, a ideia é justamente essa: sair do single-tenant (tudo em Afogados dentro do Supabase) para multi-tenant com isolamento total, onde:
+
+- o Supabase fica como Control Plane (cities, modules, auth, etc.)
+- o Neon fica como Data Plane (um banco por cidade)
+- o código passa a orquestrar criação de DB, schema e migração de dados por cidade/módulo.
+
+👍 Sobre a sua abordagem, estou de acordo com todos os pontos:
+
+1) Descoberta automática de schema no Supabase  
+   - Faz todo sentido usar `information_schema` + `pg_catalog` para ler o schema real.  
+   - Quero justamente evitar reescrever CREATE TABLE “na mão”.  
+   - Pode seguir nessa linha de gerar DDL compatível com o Neon.
+
+2) Mapeamento modular em `server/migrations/config/modules.ts`  
+   - Perfeito ter um arquivo mapeando módulos → tabelas, algo como:
+
+     ```ts
+     export const MODULE_TABLES = {
+       educacao: ['schools', 'students', 'teachers', 'school_classes', 'student_enrollments', 'ideb_data'],
+       saude: ['health_units', 'appointments'],
+       conteudo: ['news', 'events', 'stories', 'campaign_banners', 'gallery_albums'],
+       // etc...
+     };
+     ```
+
+   - Pode criar esse arquivo e deixar bem documentado, porque depois eu vou expandir para outros módulos.
+
+3) Pools de conexão reutilizáveis  
+   - Ok com essa estrutura:
+
+     - `getSupabasePool()`       → Supabase (schema + dados atuais)
+     - `getNeonAdminPool()`      → conexão administrativa do Neon para `CREATE DATABASE`
+     - `getCityNeonPool(slug)`  → DB específico da cidade
+
+   - Isso deixa o código bem organizado e pronto para ser chamado depois pelo painel de gerenciamento.
+
+4) Pipeline de migração  
+   - Essa ideia de comandos está perfeita:
+
+     - `npm run migrate:provision afogados-da-ingazeira`
+       - cria o DB Neon da cidade (se ainda não existir),
+       - replica o schema,
+       - migra os dados,
+       - atualiza `cities.db_url`.
+
+     - `npm run migrate:new-city zabele --modules=educacao,saude`
+       - cria DB da nova cidade,
+       - cria apenas as tabelas dos módulos habilitados,
+       - sem migração de dados (cidade nova, começa “do zero”).
+
+   - Quero que esse fluxo de CLI fique bem redondinho, porque mais pra frente vamos acionar isso a partir de uma tela do painel (via API), então ter esses comandos claros ajuda muito.
+
+5) Tratamento dos dados  
+   - Perfeito:
+
+     - Se as tabelas tiverem coluna `city_id`, filtrar por `city_id` da cidade de Afogados.
+     - Se não tiverem `city_id`, podemos assumir que hoje todos os dados pertencem a Afogados (porque só Afogados existe de fato).
+
+   - A idempotência também é essencial:
+     - checar se a tabela do Neon está vazia antes de migrar,
+     - e nunca deletar nada automático do Supabase nesse primeiro momento (migração não-destrutiva).
+
+6) Estrutura de código  
+   - Essa estrutura proposta em `server/migrations/...` está ótima:
+
+     ```text
+     server/
+       migrations/
+         config/
+           modules.ts              # Módulos → tabelas
+           control-plane-tables.ts # Tabelas que sempre ficam no Supabase
+         utils/
+           connections.ts          # Pools de conexão
+           schema-reader.ts        # Lê schema do Supabase
+           ddl-generator.ts        # Gera CREATE TABLE p/ Neon
+           data-migrator.ts        # Copia dados tabela a tabela
+         commands/
+           provision-city.ts       # Provisiona nova cidade
+           migrate-afogados.ts     # Migração inicial de Afogados
+           enable-module.ts        # Habilita módulo para cidade
+         index.ts
+     ```
+
+   - Pode seguir esse desenho que está bem alinhado com a arquitetura que eu quero.
+
+7) Segurança  
+   - Totalmente alinhado:
+
+     - Todas as credentials em ENV vars.
+     - Nunca expor `db_url` no frontend.
+     - Logs por cidade/módulo/tabela e quantidade de registros migrados.
+     - Nada de apagar dados no Supabase nessa fase: migração sempre não-destrutiva.
+
+🔐 Sobre ENV VARs:
+
+Eu vou configurar as seguintes variáveis de ambiente:
+
+- `SUPABASE_DB_URL`
+  - conexão para o banco Postgres do Supabase que hoje contém:
+    - a tabela `public.cities`
+    - e todas as tabelas operacionais de Afogados.
+
+- `NEON_ADMIN_URL`
+  - conexão para o banco “admin” do projeto Neon, com permissão de criar outros databases (`CREATE DATABASE`).
+  - se você precisar de um formato específico (por exemplo `postgres://user:pass@host/db?sslmode=require`), me diga que eu ajusto.
+
+- `NEON_PROJECT_ID`
+  - se você for usar a API REST do Neon, eu configuro também esse ID do projeto.
+
+- (opcional, se você achar útil)
+  - `NEON_CITY_AFOGADOS_DB_URL` enquanto testamos:
+    - se por algum motivo não for possível criar o DB via código, podemos apontar direto para um DB já criado de Afogados no Neon, e focar na parte de criação de schema + migração de dados.
+
+Pode assumir que eu vou configurar essas envs no ambiente server e que elas não estarão disponíveis no frontend.
+
+✅ Pode começar a implementar essa pipeline a partir da cidade Afogados:
+- Primeiro provisionar o DB Neon de Afogados,
+- Depois gerar schema a partir das tabelas que você mapear nos módulos (educacao, saude, conteudo, etc.),
+- Em seguida migrar os dados de Afogados,
+- E por fim atualizar `public.cities.db_url` para essa conexão Neon.
+
+Depois que isso estiver funcionando para Afogados, a gente parte para:
+- provisionamento de novas cidades via `migrate:new-city`,
+- enable de módulos via `enable-module.ts`,
+- e na sequência vamos voltar para o frontend do painel geral para acionar tudo isso pela interface.
+
+Pode seguir em frente, estamos prontos para começar. 🚀
