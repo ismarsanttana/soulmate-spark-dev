@@ -439,6 +439,7 @@ export async function getTableRowCount(
 
 /**
  * Read sequences owned by table columns
+ * Only returns sequences explicitly owned by columns of THIS table
  */
 async function readSequences(
   pool: Pool,
@@ -446,39 +447,24 @@ async function readSequences(
   schemaName: string
 ): Promise<SequenceDefinition[]> {
   const query = `
-    SELECT
-      s.sequence_name,
-      s.data_type,
-      s.start_value::bigint,
-      s.increment::bigint as increment_by,
-      s.maximum_value::bigint as max_value,
-      s.minimum_value::bigint as min_value,
-      s.cache_size::bigint,
-      d.column_name as owned_by_column
-    FROM information_schema.sequences s
-    LEFT JOIN pg_depend dep ON dep.objid = (
-      SELECT oid FROM pg_class 
-      WHERE relname = s.sequence_name 
-      AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = s.sequence_schema)
-    )
-    LEFT JOIN pg_attribute a ON a.attnum = dep.refobjsubid AND a.attrelid = dep.refobjid
-    LEFT JOIN information_schema.columns d ON d.column_name = a.attname
-      AND d.table_schema = $1
-      AND d.table_name = $2
-    WHERE s.sequence_schema = $1
-      AND EXISTS (
-        SELECT 1 FROM pg_depend dep2
-        WHERE dep2.objid = (
-          SELECT oid FROM pg_class
-          WHERE relname = s.sequence_name
-          AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = s.sequence_schema)
-        )
-        AND dep2.refobjid = (
-          SELECT oid FROM pg_class
-          WHERE relname = $2
-          AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = $1)
-        )
-      )
+    SELECT DISTINCT
+      c.relname as sequence_name,
+      a.attname as owned_by_column,
+      'bigint' as data_type,
+      1 as start_value,
+      1 as increment_by,
+      NULL::bigint as max_value,
+      NULL::bigint as min_value,
+      1 as cache_size
+    FROM pg_class c
+    JOIN pg_depend d ON d.objid = c.oid
+    JOIN pg_attribute a ON a.attrelid = d.refobjid AND a.attnum = d.refobjsubid
+    JOIN pg_class t ON t.oid = d.refobjid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE c.relkind = 'S' -- Sequence
+      AND d.deptype = 'a' -- Auto dependency (owned by)
+      AND t.relname = $2
+      AND n.nspname = $1
   `;
 
   const result = await pool.query(query, [schemaName, tableName]);

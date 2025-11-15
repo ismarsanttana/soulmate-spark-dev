@@ -108,12 +108,6 @@ export async function migrateTableData(
     }
   }
 
-  // TRUNCATE table if requested (for safe re-runs after partial failures)
-  if (truncateBeforeInsert) {
-    logger.info({ citySlug, tableName }, 'Truncating target table for clean re-run...');
-    await targetPool.query(`TRUNCATE TABLE "${schemaName}"."${tableName}" CASCADE`);
-  }
-
   // Check if source table has city_id column
   const sourceHasCityId = await hasCityIdColumn(sourcePool, tableName, schemaName);
 
@@ -157,36 +151,59 @@ export async function migrateTableData(
     };
   }
 
-  // Migrate data in batches
+  // IMPORTANT: Wrap TRUNCATE + migration in a transaction for rollback safety
+  const client = await targetPool.connect();
   let totalRowsMigrated = 0;
-  let offset = 0;
+  
+  try {
+    await client.query('BEGIN');
 
-  while (true) {
-    const batchQuery = `${selectQuery} LIMIT ${batchSize} OFFSET ${offset}`;
-    const batchResult = await sourcePool.query(batchQuery, queryParams);
-
-    if (batchResult.rows.length === 0) {
-      break; // No more rows to migrate
+    // TRUNCATE table if requested (for safe re-runs after partial failures)
+    if (truncateBeforeInsert) {
+      logger.info({ citySlug, tableName }, 'Truncating target table for clean re-run...');
+      await client.query(`TRUNCATE TABLE "${schemaName}"."${tableName}" CASCADE`);
     }
 
-    // Insert batch into target
-    if (batchResult.rows.length > 0) {
-      await insertBatch(targetPool, tableName, schemaName, targetColumns, batchResult.rows);
-      totalRowsMigrated += batchResult.rows.length;
+    // Migrate data in batches
+    let offset = 0;
 
-      logger.info(
-        { citySlug, tableName },
-        `Migrated batch: ${totalRowsMigrated} rows (${batchResult.rows.length} in this batch)`
-      );
+    while (true) {
+      const batchQuery = `${selectQuery} LIMIT ${batchSize} OFFSET ${offset}`;
+      const batchResult = await sourcePool.query(batchQuery, queryParams);
+
+      if (batchResult.rows.length === 0) {
+        break; // No more rows to migrate
+      }
+
+      // Insert batch into target using the transaction client
+      if (batchResult.rows.length > 0) {
+        await insertBatchInTransaction(client, tableName, schemaName, targetColumns, batchResult.rows);
+        totalRowsMigrated += batchResult.rows.length;
+
+        logger.info(
+          { citySlug, tableName },
+          `Migrated batch: ${totalRowsMigrated} rows (${batchResult.rows.length} in this batch)`
+        );
+      }
+
+      offset += batchSize;
+
+      // Safety check: prevent infinite loop
+      if (offset > 1_000_000) {
+        logger.warn({ citySlug, tableName }, 'Reached safety limit of 1M rows');
+        break;
+      }
     }
 
-    offset += batchSize;
-
-    // Safety check: prevent infinite loop
-    if (offset > 1_000_000) {
-      logger.warn({ citySlug, tableName }, 'Reached safety limit of 1M rows');
-      break;
-    }
+    // Commit transaction
+    await client.query('COMMIT');
+  } catch (error) {
+    // Rollback on error - undoes TRUNCATE and any partial inserts
+    await client.query('ROLLBACK');
+    logger.error({ citySlug, tableName }, `Migration failed, rolled back: ${error}`);
+    throw error;
+  } finally {
+    client.release();
   }
 
   const duration = Date.now() - startTime;
@@ -201,7 +218,44 @@ export async function migrateTableData(
 }
 
 /**
- * Insert batch of rows into target table
+ * Insert batch of rows into target table using a transaction client
+ * Uses ON CONFLICT DO NOTHING for safety (idempotent inserts)
+ */
+async function insertBatchInTransaction(
+  client: PoolClient,
+  tableName: string,
+  schemaName: string,
+  columns: string[],
+  rows: any[]
+): Promise<void> {
+  if (rows.length === 0) return;
+
+  // Build INSERT statement with ON CONFLICT DO NOTHING for idempotency
+  const columnList = columns.map((c) => `"${c}"`).join(', ');
+  const values: any[] = [];
+  const valuePlaceholders: string[] = [];
+
+  let paramIndex = 1;
+  for (const row of rows) {
+    const rowPlaceholders: string[] = [];
+    for (const col of columns) {
+      rowPlaceholders.push(`$${paramIndex++}`);
+      values.push(row[col]);
+    }
+    valuePlaceholders.push(`(${rowPlaceholders.join(', ')})`);
+  }
+
+  const insertQuery = `
+    INSERT INTO "${schemaName}"."${tableName}" (${columnList})
+    VALUES ${valuePlaceholders.join(', ')}
+    ON CONFLICT DO NOTHING
+  `;
+
+  await client.query(insertQuery, values);
+}
+
+/**
+ * Insert batch of rows into target table (backward compatibility)
  * Uses ON CONFLICT DO NOTHING for safety (idempotent inserts)
  */
 async function insertBatch(
@@ -234,14 +288,7 @@ async function insertBatch(
     ON CONFLICT DO NOTHING
   `;
 
-  try {
-    await pool.query(insertQuery, values);
-  } catch (error) {
-    // Log the error but don't throw - let the migration continue
-    // This handles edge cases where ON CONFLICT doesn't catch everything
-    console.error(`Error inserting batch into ${tableName}:`, error);
-    throw error; // Re-throw to stop migration on actual errors
-  }
+  await pool.query(insertQuery, values);
 }
 
 /**
