@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabasePartner } from "@/integrations/supabase/partner";
+import { validateRoleOrSignOut } from "@/lib/auth/platform-roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -33,9 +34,13 @@ export default function AuthPartner() {
 
       toast.success("Login realizado com sucesso!");
       
-      // TODO: Verify user has 'partner' role in platform_users table
-      // For now, just redirect to dashboard
-      navigate("/dashboard", { replace: true });
+      // Validate user has 'partner' role in platform_users table
+      await validateRoleOrSignOut(
+        supabasePartner,
+        'partner',
+        () => navigate("/dashboard", { replace: true }), // onSuccess
+        () => navigate("/auth", { replace: true })       // onFailure
+      );
       
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer login");

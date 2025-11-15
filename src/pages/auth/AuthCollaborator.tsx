@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabaseCollaborator } from "@/integrations/supabase/collaborator";
+import { validateRoleOrSignOut } from "@/lib/auth/platform-roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -33,9 +34,13 @@ export default function AuthCollaborator() {
 
       toast.success("Login realizado com sucesso!");
       
-      // TODO: Verify user has 'collaborator' role in platform_users table
-      // For now, just redirect to dashboard
-      navigate("/dashboard", { replace: true });
+      // Validate user has 'team' role in platform_users table
+      await validateRoleOrSignOut(
+        supabaseCollaborator,
+        'team',
+        () => navigate("/dashboard", { replace: true }), // onSuccess
+        () => navigate("/auth", { replace: true })       // onFailure
+      );
       
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer login");

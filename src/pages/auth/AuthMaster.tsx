@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabaseMaster } from "@/integrations/supabase/master";
+import { validateRoleOrSignOut } from "@/lib/auth/platform-roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -33,9 +34,13 @@ export default function AuthMaster() {
 
       toast.success("Login realizado com sucesso!");
       
-      // TODO: Verify user has 'master' role in platform_users table
-      // For now, just redirect to dashboard
-      navigate("/dashboard", { replace: true });
+      // Validate user has 'master' role in platform_users table
+      await validateRoleOrSignOut(
+        supabaseMaster,
+        'master',
+        () => navigate("/dashboard", { replace: true }), // onSuccess
+        () => navigate("/auth", { replace: true })       // onFailure
+      );
       
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer login");
