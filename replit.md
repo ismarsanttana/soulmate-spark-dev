@@ -255,15 +255,28 @@ npm run preview    # Test production build locally
 
 Required secrets (configured in Replit Secrets or production environment):
 
-1. **CONTROL_DB_URL** - Control Plane database (Supabase)
-   - Format: `postgresql://[user]:[pass]@db.xxxx.supabase.co:5432/postgres`
-   - Used for: cities table, platform_users, global configuration
+1. **SUPABASE_URL** - Supabase project URL (REQUIRED for production server)
+   - Format: `https://your-project.supabase.co`
+   - Example: `https://hqhjbelcouanvcrqudbj.supabase.co`
+   - Used by: Production Express server for cities API
 
-2. **DATABASE_URL** - Data Plane database (Neon, per city)
+2. **SUPABASE_ANON_KEY** - Supabase anonymous key (REQUIRED for production server)
+   - Format: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+   - Get from: Supabase Dashboard > Settings > API
+   - Used by: Production Express server for cities API
+
+3. **CONTROL_DB_URL** - Control Plane database (Supabase)
+   - Format: `postgresql://[user]:[pass]@db.xxxx.supabase.co:5432/postgres`
+   - Used for: Migration CLI tools, platform management
+
+4. **DATABASE_URL** - Data Plane database (Neon, per city)
    - Format: `postgresql://[user]:[pass]@ep-xxxx.us-east-2.aws.neon.tech/neondb?sslmode=require`
    - Used for: city-specific data, migrations, CLI tools
 
-**Note**: Frontend Supabase credentials are hardcoded in `src/integrations/supabase/client.ts` (no env vars needed)
+**Important**: 
+- SUPABASE_URL and SUPABASE_ANON_KEY are REQUIRED for production deployment
+- These must be configured in Replit Secrets before publishing
+- Frontend has these hardcoded in `src/integrations/supabase/client.ts` (browser only)
 
 See `.env.example` for full documentation.
 
